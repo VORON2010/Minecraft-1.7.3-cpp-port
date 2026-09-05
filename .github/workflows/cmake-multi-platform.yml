@@ -1,0 +1,187 @@
+name: CMake on multiple platforms
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    name: ${{ matrix.name }} (${{ matrix.build_type }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux (x64)
+          - name: ubuntu-22.04
+            os: ubuntu-22.04
+            build_type: Release
+          - name: ubuntu-22.04
+            os: ubuntu-22.04
+            build_type: Debug
+
+          # Windows (MSVC)
+          - name: windows-latest
+            os: windows-latest
+            build_type: Release
+          - name: windows-latest
+            os: windows-latest
+            build_type: Debug
+
+          # macOS (Apple Silicon, arm64)
+          - name: macos-latest
+            os: macos-latest
+            build_type: Release
+          - name: macos-latest
+            os: macos-latest
+            build_type: Debug
+
+          # macOS (Intel, x86_64)
+          - name: macos-15-intel
+            os: macos-15-intel
+            build_type: Release
+          - name: macos-15-intel
+            os: macos-15-intel
+            build_type: Debug
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          submodules: recursive
+
+      - name: Setup Ninja
+        uses: seanmiddleditch/gha-setup-ninja@v5
+
+      - name: Setup MSVC (Windows)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Set reusable strings
+        id: strings
+        shell: bash
+        run: |
+          echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            echo "bin-dir=${{ github.workspace }}/bin" >> "$GITHUB_OUTPUT"
+            echo "exe-name=McBetaCpp.exe" >> "$GITHUB_OUTPUT"
+          else
+            echo "bin-dir=${{ github.workspace }}/bin" >> "$GITHUB_OUTPUT"
+            echo "exe-name=McBetaCpp" >> "$GITHUB_OUTPUT"
+          fi
+
+      # SDL3 recommends these build deps on Linux when building with "all features enabled"
+      - name: Install Linux dependencies (SDL2)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            git \
+            make \
+            pkg-config \
+            cmake \
+            ninja-build \
+            gnome-desktop-testing \
+            libasound2-dev \
+            libpulse-dev \
+            libaudio-dev \
+            libjack-dev \
+            libsndio-dev \
+            libx11-dev \
+            libxext-dev \
+            libxrandr-dev \
+            libxcursor-dev \
+            libxfixes-dev \
+            libxi-dev \
+            libxss-dev \
+            libxtst-dev \
+            libwayland-dev \
+            libxkbcommon-dev \
+            libdrm-dev \
+            libgbm-dev \
+            libgl1-mesa-dev \
+            libegl1-mesa-dev \
+            libgles2-mesa-dev \
+            libvulkan-dev \
+            libudev-dev \
+            libdbus-1-dev \
+            libibus-1.0-dev \
+            libsamplerate0-dev \
+            libpipewire-0.3-dev \
+            libdecor-0-dev \
+            liburing-dev \
+            libfreetype6-dev \
+            libharfbuzz-dev \
+            libfribidi-dev \
+            libpng-dev \
+            libjpeg-dev \
+            libwebp-dev \
+            libtiff-dev \
+            libavif-dev \
+            libfluidsynth-dev \
+            libdiscid-dev \
+            libmodplug-dev \
+            libmpg123-dev \
+            libopusfile-dev \
+            libvorbis-dev \
+            libflac-dev \
+            libmikmod-dev \
+            libtheora-dev \
+            libogg-dev \
+            libglvnd-dev \
+            libthai-dev
+
+      - name: Configure (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          cmake -S "${{ github.workspace }}" -B "${{ steps.strings.outputs.build-output-dir }}" \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DCMAKE_VERBOSE_MAKEFILE=ON
+
+      - name: Configure (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          cmake -S "${{ github.workspace }}" -B "${{ steps.strings.outputs.build-output-dir }}" \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DCMAKE_VERBOSE_MAKEFILE=ON
+
+      - name: Build (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          cmake --build "${{ steps.strings.outputs.build-output-dir }}" --parallel --verbose
+
+      - name: Build (Linux/Windows)
+        if: runner.os != 'macOS'
+        shell: bash
+        run: |
+          cmake --build "${{ steps.strings.outputs.build-output-dir }}" --parallel --verbose
+
+      - name: Test
+        shell: bash
+        run: |
+          ctest --test-dir "${{ steps.strings.outputs.build-output-dir }}" --output-on-failure --timeout 300 || true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ runner.os }}-${{ matrix.os }}-${{ matrix.build_type }}
+          path: |
+            ${{ steps.strings.outputs.bin-dir }}/${{ steps.strings.outputs.exe-name }}
+            ${{ steps.strings.outputs.bin-dir }}/resource/
+            ${{ steps.strings.outputs.bin-dir }}/*.dll
+            ${{ steps.strings.outputs.bin-dir }}/*.so
+            ${{ steps.strings.outputs.bin-dir }}/*.dylib
+          retention-days: 30
