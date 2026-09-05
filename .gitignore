@@ -1,0 +1,16 @@
+/build*
+/out
+/bin
+/ref
+/external_old
+/.vs
+/.vscode
+/CMakeSettings.json
+CMakeUserPresets.json
+*.user
+stderr.log
+/.pi
+/.pi-lens
+AGENTS.md
+/scripts.idea/ 
+cmake-build-debug/ 
