@@ -36,7 +36,6 @@ bool PigZombie::hurt(Entity *source, int_t damage)
 	{
 		AABB *angerBox = bb.grow(32.0, 32.0, 32.0);
 		const auto &nearby = level.getEntities(this, *angerBox);
-		delete angerBox;
 		for (const auto &entity : nearby)
 		{
 			PigZombie *pigZombie = dynamic_cast<PigZombie *>(entity.get());

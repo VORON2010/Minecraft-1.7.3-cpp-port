@@ -11,6 +11,7 @@
 #include "client/gui/DeathScreen.h"
 #include "client/gui/ConnectingScreen.h"
 #include "client/gui/InventoryScreen.h"
+#include "client/gui/CreativeInventoryScreen.h"
 #include "client/gui/ScreenSizeCalculator.h"
 #include "client/gui/ChatScreen.h"
 #include "client/gui/PauseScreen.h"
@@ -702,6 +703,8 @@ void Minecraft::releaseMouse()
 		return;
 	mouseGrabbed = false;
 	mouseHandler.release();
+	if (player != nullptr)
+		player->releaseAllKeys();
 }
 
 void Minecraft::pauseGame()
@@ -917,6 +920,8 @@ void Minecraft::handleGrabTexture()
 
 void Minecraft::tick()
 {
+	auto keepLevelAlive = this->level;
+
 	Profiler::Scope tickProfile(Profiler::Section::Tick);
 	{
 		Profiler::Scope soundProfile(Profiler::Section::Sound);
@@ -1044,8 +1049,12 @@ void Minecraft::tick()
 						options.smoothCamera = !options.smoothCamera;
 					if (lwjgl::Keyboard::getEventKey() == options.keyDrop.key && player != nullptr)
 						player->drop();
-					if (lwjgl::Keyboard::getEventKey() == options.keyInventory.key && player != nullptr)
-						setScreen(Util::make_shared<InventoryScreen>(*this));
+					if (lwjgl::Keyboard::getEventKey() == options.keyInventory.key && player != nullptr) {
+						if (gameMode->isCreativeMode())
+							setScreen(Util::make_shared<CreativeInventoryScreen>(*this));
+						else
+							setScreen(Util::make_shared<InventoryScreen>(*this));
+					}
 					if (lwjgl::Keyboard::getEventKey() == options.keyChat.key && player != nullptr)
 						setScreen(Util::make_shared<ChatScreen>(*this));
 				}
@@ -1227,7 +1236,7 @@ void Minecraft::selectLevel(const jstring &name, const jstring &levelName, long_
 
 void Minecraft::toggleDimension()
 {
-	if (level == nullptr || player == nullptr)
+	if (level == nullptr || player == nullptr || isOnline())
 		return;
 
 	std::cout << "Toggling dimension!!" << '\n';

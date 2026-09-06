@@ -1277,7 +1277,9 @@ bool Level::addEntity(std::shared_ptr<Entity> entity)
 		std::cout << "Player count: " << players.size() << '\n';
 	}
 
-	getChunk(cx, cz)->addEntity(entity);
+	auto chunk = getChunk(cx, cz);
+	if (chunk != nullptr)
+		chunk->addEntity(entity);
 	entities.push_back(entity);
 	entityAdded(entity);
 

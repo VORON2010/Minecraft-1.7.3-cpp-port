@@ -113,6 +113,61 @@ void processMessages()
 			case SDL_TEXTINPUT:
 				Keyboard::detail::pushEvent(e);
 				break;
+#ifdef __ANDROID__
+			case SDL_FINGERDOWN:
+			case SDL_FINGERUP:
+			case SDL_FINGERMOTION:
+			{
+				// Basic Android Touch-to-Gamepad translation
+				// Left half of screen = D-Pad (WASD)
+				// Right half of screen = Mouse Look & Click
+				bool isLeftHalf = (e.tfinger.x < 0.5f);
+				
+				if (isLeftHalf) {
+					// Virtual joystick for WASD
+					SDL_Event keyEvent;
+					keyEvent.type = (e.type == SDL_FINGERUP) ? SDL_KEYUP : SDL_KEYDOWN;
+					keyEvent.key.state = (e.type == SDL_FINGERUP) ? SDL_RELEASED : SDL_PRESSED;
+					
+					// Determine direction based on touch position relative to bottom-left quadrant
+					float jx = e.tfinger.x - 0.25f;
+					float jy = e.tfinger.y - 0.75f;
+					
+					if (e.type != SDL_FINGERUP) {
+						if (jy < -0.1f) keyEvent.key.keysym.scancode = SDL_SCANCODE_W;
+						else if (jy > 0.1f) keyEvent.key.keysym.scancode = SDL_SCANCODE_S;
+						else if (jx < -0.1f) keyEvent.key.keysym.scancode = SDL_SCANCODE_A;
+						else if (jx > 0.1f) keyEvent.key.keysym.scancode = SDL_SCANCODE_D;
+						else keyEvent.key.keysym.scancode = SDL_SCANCODE_SPACE; // Center tap to jump
+					} else {
+						// Release all movement keys on finger up
+						keyEvent.key.keysym.scancode = SDL_SCANCODE_W; Keyboard::detail::pushEvent(keyEvent);
+						keyEvent.key.keysym.scancode = SDL_SCANCODE_A; Keyboard::detail::pushEvent(keyEvent);
+						keyEvent.key.keysym.scancode = SDL_SCANCODE_S; Keyboard::detail::pushEvent(keyEvent);
+						keyEvent.key.keysym.scancode = SDL_SCANCODE_D; Keyboard::detail::pushEvent(keyEvent);
+						keyEvent.key.keysym.scancode = SDL_SCANCODE_SPACE; Keyboard::detail::pushEvent(keyEvent);
+						continue;
+					}
+					Keyboard::detail::pushEvent(keyEvent);
+				} else {
+					// Right half: Mouse look & tap to click
+					if (e.type == SDL_FINGERMOTION) {
+						SDL_Event mouseEvent;
+						mouseEvent.type = SDL_MOUSEMOTION;
+						mouseEvent.motion.xrel = e.tfinger.dx * 1000.0f; // Scale sensitivity
+						mouseEvent.motion.yrel = e.tfinger.dy * 1000.0f;
+						Mouse::detail::pushEvent(mouseEvent);
+					} else {
+						SDL_Event mouseEvent;
+						mouseEvent.type = (e.type == SDL_FINGERDOWN) ? SDL_MOUSEBUTTONDOWN : SDL_MOUSEBUTTONUP;
+						mouseEvent.button.button = SDL_BUTTON_LEFT;
+						mouseEvent.button.state = (e.type == SDL_FINGERDOWN) ? SDL_PRESSED : SDL_RELEASED;
+						Mouse::detail::pushEvent(mouseEvent);
+					}
+				}
+				break;
+			}
+#endif
 		}
 	}
 

@@ -230,7 +230,7 @@ void GameRenderer::pick(float a)
 		}
 	}
 
-	if (hovered != nullptr && !mc.gameMode->isCreativeMode())
+	if (hovered != nullptr)
 		mc.hitResult = HitResult(hovered);
 }
 

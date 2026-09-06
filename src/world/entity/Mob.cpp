@@ -474,7 +474,11 @@ void Mob::travel(float x, float z)
 
 		float acceleration = 0.16277136f / (friction * friction * friction);
 		if (isSprinting && onGround) acceleration *= 1.5f;
-		moveRelative(x, z, onGround ? (0.1f * acceleration) : (isSprinting ? 0.025f : 0.02f));
+		// Creative flight has its own air-control speed.  Sprint doubles it,
+		// matching the expected accelerated flight behaviour.
+		float airAcceleration = isFlying ? (isSprinting ? 0.10f : 0.05f)
+			: (isSprinting ? 0.025f : 0.02f);
+		moveRelative(x, z, onGround ? (0.1f * acceleration) : airAcceleration);
 
 		friction = 0.91f;
 		if (onGround)

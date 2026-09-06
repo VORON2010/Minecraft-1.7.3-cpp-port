@@ -133,7 +133,7 @@ void HellCaveFeature::addTunnel(int_t cx, int_t cz, std::array<ubyte_t, 16 * 16 
 					for (int_t i4 = i1; i4 < i2; i4++)
 					{
 						double d9 = ((i4 + cz * 16) + 0.5 - z) / d3;
-						int_t i5 = (i3 * 16 + i4) * 128 + n;
+						int_t i5 = (i3 * 16 + i4) * 128 + n - 1;
 
 						for (int_t i6 = n - 1; i6 >= m; i6--)
 						{
