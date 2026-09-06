@@ -73,9 +73,11 @@ jstring Pig::getDeathSound()
 	return u"mob.pigdeath";
 }
 
-int_t Pig::getDeathLoot()
+void Pig::dropDeathLoot()
 {
-	return onFire > 0 ? Items::porkchopCooked->getShiftedIndex() : Items::porkchopRaw->getShiftedIndex();
+	int_t count = (random.nextInt(100) < 5) ? 2 : 1;
+	for (int_t i = 0; i < count; ++i)
+		spawnAtLocation(ItemInstance(onFire > 0 ? Items::porkchopCooked->getShiftedIndex() : Items::porkchopRaw->getShiftedIndex(), 1, 0), 0.0f);
 }
 
 bool Pig::isSaddled() const

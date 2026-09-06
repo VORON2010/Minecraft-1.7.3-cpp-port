@@ -29,6 +29,12 @@ namespace Items
 	extern Item *cookie;
 	extern Item *porkchopRaw;
 	extern Item *porkchopCooked;
+	extern Item *beefRaw;
+	extern Item *beefCooked;
+	extern Item *chickenRaw;
+	extern Item *chickenCooked;
+	extern Item *muttonRaw;
+	extern Item *muttonCooked;
 	extern Item *painting;
 	extern Item *appleGold;
 	extern Item *reed;
@@ -43,6 +49,12 @@ namespace Items
 	extern Item *clock;
 	extern Item *record13;
 	extern Item *recordCat;
+	extern Item *recordHorror;
+	extern Item *recordChirp;
+	extern Item *recordMail;
+	extern Item *recordError404;
+	extern Item *recordLiminality;
+	extern Item *recordNostalgia;
 	extern Item *coal;
 	extern Item *diamond;
 	extern Item *redstone;

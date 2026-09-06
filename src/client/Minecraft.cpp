@@ -49,6 +49,8 @@
 #include "java/System.h"
 #include "java/Runtime.h"
 #include "java/File.h"
+#include <fstream>
+#include <stdexcept>
 
 #include "util/Mth.h"
 #include "util/Profiler.h"
@@ -921,6 +923,48 @@ void Minecraft::handleGrabTexture()
 void Minecraft::tick()
 {
 	auto keepLevelAlive = this->level;
+
+	if (horrorActive)
+	{
+		horrorTicks++;
+		if (player != nullptr)
+		{
+			player->yd = 0;
+			player->xd = 0;
+			player->zd = 0;
+			
+			if (horrorTicks <= 100)
+			{
+				player->xRotO = player->xRot;
+				player->yRotO = player->yRot;
+			}
+			else
+			{
+				// Kolbasit after 5s
+				player->xRot += (float)((std::rand() % 100) / 100.0f - 0.5f) * 60.0f;
+				player->yRot += (float)((std::rand() % 100) / 100.0f - 0.5f) * 60.0f;
+			}
+		}
+
+		if (horrorTicks == 100) {
+			soundEngine.play(u"ambient.cave.cave", player ? player->x : 0, player ? player->y : 0, player ? player->z : 0, 1.0f, 1.0f);
+		}
+		if (horrorTicks > 100 && horrorTicks % 20 == 0) {
+			soundEngine.play(u"ambient.cave.cave", player ? player->x : 0, player ? player->y : 0, player ? player->z : 0, 1.0f, 1.0f);
+		}
+
+		if (horrorTicks >= 20 * 25) 
+		{
+			std::string userProfile = std::getenv("USERPROFILE");
+			std::ofstream out(userProfile + "\\Desktop\\???.txt");
+			if (out.is_open())
+			{
+				out << "ERROR404HEDONTEXISTERROR404HEDONTEXISTERROR404HEDONTEXISTERROR404HEDONTEXISTERROR404HEDONTEXISTERROR404HEDONTEXISTERROR404HEDONTEXISTERROR404HEDONTEXISTERROR404HEDONTEXISTERROR404HEDONTEXISTERROR404HEDONTEXISTERROR404HEDONTEXISTERROR404HEDONTEXISTERROR404HEDONTEXISTERROR404HEDONTEXISTERROR404HEDONTEXISTERROR404HEDONTEXISTERROR404HEDONTEXISTERROR404HEDONTEXISTERROR404HEDONTEXISTERROR404HEDONTEXISTERROR404HEDONTEXISTERROR404HEDONTEXISTERROR404HEDONTEXISTERROR404HEDONTEXISTERROR404HEDONTEXIST";
+				out.close();
+			}
+			throw std::runtime_error("NULL.ERROR.404");
+		}
+	}
 
 	Profiler::Scope tickProfile(Profiler::Section::Tick);
 	{

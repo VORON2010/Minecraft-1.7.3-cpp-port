@@ -22,4 +22,5 @@ protected:
 	jstring getHurtSound() override;
 	jstring getDeathSound() override;
 	int_t getDeathLoot() override;
+	void dropDeathLoot() override;
 };

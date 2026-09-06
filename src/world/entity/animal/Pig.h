@@ -17,7 +17,7 @@ protected:
 	jstring getAmbientSound() override;
 	jstring getHurtSound() override;
 	jstring getDeathSound() override;
-	int_t getDeathLoot() override;
+	void dropDeathLoot() override;
 
 public:
 	bool isSaddled() const;

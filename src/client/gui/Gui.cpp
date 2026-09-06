@@ -242,6 +242,32 @@ void Gui::render(float a, bool inScreen, int_t xm, int_t ym)
 	// Draw on-screen Android touch controls
 	renderTouchControls(width, height);
 
+	if (minecraft.horrorActive && minecraft.horrorTicks > 100)
+	{
+		if ((minecraft.horrorTicks / 2) % 2 == 0) // flicker every 2 ticks
+		{
+			glDisable(GL_DEPTH_TEST);
+			glDepthMask(false);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+			glDisable(GL_ALPHA_TEST);
+			glBindTexture(GL_TEXTURE_2D, minecraft.textures.loadTexture(u"/gui/screamer.png"));
+			
+			Tesselator &t = Tesselator::instance;
+			t.begin(GL_QUADS);
+			t.vertexUV(0.0, height, -90.0, 0.0, 1.0);
+			t.vertexUV(width, height, -90.0, 1.0, 1.0);
+			t.vertexUV(width, 0.0, -90.0, 1.0, 0.0);
+			t.vertexUV(0.0, 0.0, -90.0, 0.0, 0.0);
+			t.end();
+			
+			glDepthMask(true);
+			glEnable(GL_DEPTH_TEST);
+			glEnable(GL_ALPHA_TEST);
+			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		}
+	}
+
 
 	
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);

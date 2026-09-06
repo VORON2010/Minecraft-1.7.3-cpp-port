@@ -1291,6 +1291,10 @@ void LevelRenderer::playStreamingMusic(const jstring &name, int_t x, int_t y, in
 {
 	if (!name.empty())
 		mc.gui.setRecordPlayingMessage(u"C418 - " + name);
+	
+	if (name == u"error404")
+		mc.horrorActive = true;
+
 	mc.soundEngine.playStreaming(name, (float)x, (float)y, (float)z, 1.0f, 1.0f);
 }
 
