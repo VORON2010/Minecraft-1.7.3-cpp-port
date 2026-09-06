@@ -65,6 +65,12 @@ namespace Items
 	Item *cookie = nullptr;
 	Item *porkchopRaw = nullptr;
 	Item *porkchopCooked = nullptr;
+	Item *beefRaw = nullptr;
+	Item *beefCooked = nullptr;
+	Item *chickenRaw = nullptr;
+	Item *chickenCooked = nullptr;
+	Item *muttonRaw = nullptr;
+	Item *muttonCooked = nullptr;
 	Item *painting = nullptr;
 	Item *appleGold = nullptr;
 	Item *reed = nullptr;
@@ -84,6 +90,12 @@ namespace Items
 	Item *clock = nullptr;
 	Item *record13 = nullptr;
 	Item *recordCat = nullptr;
+	Item *recordHorror = nullptr;
+	Item *recordChirp = nullptr;
+	Item *recordMail = nullptr;
+	Item *recordError404 = nullptr;
+	Item *recordLiminality = nullptr;
+	Item *recordNostalgia = nullptr;
 	Item *coal = nullptr;
 	Item *diamond = nullptr;
 	Item *redstone = nullptr;
@@ -315,10 +327,28 @@ namespace Items
 		bootsGold->setIconIndex(52).setDescriptionId(u"item.bootsGold");
 
 		porkchopRaw = new ItemFood(63, 3, true);
-		porkchopRaw->setIconIndex(87).setDescriptionId(u"item.porkchopRaw");
+		porkchopRaw->setMaxStackSize(64).setIconIndex(87).setDescriptionId(u"item.porkchopRaw");
 
 		porkchopCooked = new ItemFood(64, 8, true);
-		porkchopCooked->setIconIndex(88).setDescriptionId(u"item.porkchopCooked");
+		porkchopCooked->setMaxStackSize(64).setIconIndex(88).setDescriptionId(u"item.porkchopCooked");
+
+		beefRaw = new ItemFood(104, 3, true);
+		beefRaw->setMaxStackSize(64).setIconIndex(224).setDescriptionId(u"item.beefRaw");
+
+		beefCooked = new ItemFood(105, 8, true);
+		beefCooked->setMaxStackSize(64).setIconIndex(225).setDescriptionId(u"item.beefCooked");
+
+		chickenRaw = new ItemFood(106, 2, true);
+		chickenRaw->setMaxStackSize(64).setIconIndex(226).setDescriptionId(u"item.chickenRaw");
+
+		chickenCooked = new ItemFood(107, 6, true);
+		chickenCooked->setMaxStackSize(64).setIconIndex(227).setDescriptionId(u"item.chickenCooked");
+
+		muttonRaw = new ItemFood(108, 2, true);
+		muttonRaw->setMaxStackSize(64).setIconIndex(228).setDescriptionId(u"item.muttonRaw");
+
+		muttonCooked = new ItemFood(109, 6, true);
+		muttonCooked->setMaxStackSize(64).setIconIndex(229).setDescriptionId(u"item.muttonCooked");
 
 		painting = new ItemPainting(65);
 		painting->setIconIndex(26).setDescriptionId(u"item.painting");
@@ -364,6 +394,24 @@ namespace Items
 
 		recordCat = new RecordItem(2001, u"cat");
 		recordCat->setIconIndex(241).setDescriptionId(u"item.record");
+
+		recordHorror = new RecordItem(2002, u"horror");
+		recordHorror->setIconIndex(242).setDescriptionId(u"item.recordHorror");
+
+		recordChirp = new RecordItem(2003, u"chirp");
+		recordChirp->setIconIndex(243).setDescriptionId(u"item.recordChirp");
+
+		recordMail = new RecordItem(2004, u"mail");
+		recordMail->setIconIndex(244).setDescriptionId(u"item.recordMail");
+
+		recordError404 = new RecordItem(2005, u"error404");
+		recordError404->setIconIndex(245).setDescriptionId(u"item.recordError404");
+
+		recordLiminality = new RecordItem(2006, u"liminality");
+		recordLiminality->setIconIndex(246).setDescriptionId(u"item.recordLiminality");
+
+		recordNostalgia = new RecordItem(2007, u"nostalgia");
+		recordNostalgia->setIconIndex(247).setDescriptionId(u"item.recordNostalgia");
 
 		coal = new ItemCoal(7);
 		coal->setIconIndex(7).setDescriptionId(u"item.coal");
@@ -426,10 +474,10 @@ namespace Items
 		glowstoneDust->setIconIndex(73).setDescriptionId(u"item.yellowDust");
 
 		fishRaw = new ItemFood(93, 2, false);
-		fishRaw->setIconIndex(89).setDescriptionId(u"item.fishRaw");
+		fishRaw->setMaxStackSize(64).setIconIndex(89).setDescriptionId(u"item.fishRaw");
 
 		fishCooked = new ItemFood(94, 5, false);
-		fishCooked->setIconIndex(90).setDescriptionId(u"item.fishCooked");
+		fishCooked->setMaxStackSize(64).setIconIndex(90).setDescriptionId(u"item.fishCooked");
 
 		bone = new Item(96);
 		bone->setIconIndex(28).setDescriptionId(u"item.bone");

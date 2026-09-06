@@ -132,6 +132,9 @@ private:
 	
 public:
 	bool isRaining = false;
+	
+	int_t horrorTicks = 0;
+	bool horrorActive = false;
 
 private:
 	long_t lastTickTime = System::currentTimeMillis();

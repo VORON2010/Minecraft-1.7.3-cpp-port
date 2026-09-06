@@ -15,4 +15,5 @@ protected:
 	jstring getDeathSound() override;
 	float getSoundVolume() override;
 	int_t getDeathLoot() override;
+	void dropDeathLoot() override;
 };

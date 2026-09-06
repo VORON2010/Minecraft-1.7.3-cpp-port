@@ -59,3 +59,9 @@ int_t Chicken::getDeathLoot()
 {
 	return Items::feather->getShiftedIndex();
 }
+
+void Chicken::dropDeathLoot()
+{
+	Animal::dropDeathLoot();
+	spawnAtLocation(ItemInstance(onFire > 0 ? Items::chickenCooked->getShiftedIndex() : Items::chickenRaw->getShiftedIndex(), 1, 0), 0.0f);
+}

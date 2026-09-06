@@ -580,3 +580,24 @@ item.leaves.name=Leaves
 item.leaves.desc=
 item.shears.name=Shears
 item.shears.desc=
+
+item.beefRaw.name=Raw Beef
+item.beefCooked.name=Steak
+item.chickenRaw.name=Raw Chicken
+item.chickenCooked.name=Cooked Chicken
+item.muttonRaw.name=Raw Mutton
+item.muttonCooked.name=Cooked Mutton
+
+item.recordHorror.name=Music Disc
+item.recordHorror.desc=Unknown - Horror
+
+item.recordChirp.name=Chirp
+item.recordChirp.desc=Unknown - Chirp
+item.recordMail.name=Mail
+item.recordMail.desc=Unknown - Mail
+item.recordError404.name=Error 404
+item.recordError404.desc=Unknown - Error 404
+item.recordLiminality.name=Liminality
+item.recordLiminality.desc=Unknown - Liminality
+item.recordNostalgia.name=Nostalgia
+item.recordNostalgia.desc=Unknown - Nostalgia

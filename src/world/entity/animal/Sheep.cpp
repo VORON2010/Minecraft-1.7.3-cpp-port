@@ -44,6 +44,10 @@ void Sheep::dropDeathLoot()
 {
 	if (!isSheared())
 		spawnAtLocation(ItemInstance(Tile::wool.id, 1, getFleeceColor()), 0.0f);
+
+	int_t count = (random.nextInt(100) < 5) ? 2 : 1;
+	for (int_t i = 0; i < count; ++i)
+		spawnAtLocation(ItemInstance(onFire > 0 ? Items::muttonCooked->getShiftedIndex() : Items::muttonRaw->getShiftedIndex(), 1, 0), 0.0f);
 }
 
 void Sheep::addAdditionalSaveData(CompoundTag &tag)

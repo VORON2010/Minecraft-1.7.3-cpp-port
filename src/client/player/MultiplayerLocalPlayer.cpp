@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "client/spc/SPCCommand.h"
 #include "network/NetClientHandler.h"
 #include "network/PacketCore.h"
 #include "network/PacketWindow.h"
@@ -127,6 +128,22 @@ void MultiplayerLocalPlayer::sendInventoryChanged()
 
 void MultiplayerLocalPlayer::sendChatMessage(const jstring &message)
 {
+	if (!message.empty() && message[0] == u'/') {
+		size_t beforeCount = SPCCommand::messages.size();
+		SPCCommand::execute(minecraft, message);
+		size_t afterCount = SPCCommand::messages.size();
+		
+		if (afterCount > beforeCount) {
+			const jstring &lastMsg = SPCCommand::messages.back().text;
+			if (lastMsg.find(u"Command not found -") != jstring::npos ||
+			    lastMsg.find(u"Not implemented yet:") != jstring::npos) {
+				SPCCommand::messages.pop_back();
+				sendQueue.addToSendQueue(std::make_unique<Packet3Chat>(message));
+				return;
+			}
+		}
+		return;
+	}
 	sendQueue.addToSendQueue(std::make_unique<Packet3Chat>(message));
 }
 

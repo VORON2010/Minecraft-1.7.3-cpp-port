@@ -45,3 +45,11 @@ int_t Cow::getDeathLoot()
 {
 	return Items::leather->getShiftedIndex();
 }
+
+void Cow::dropDeathLoot()
+{
+	Animal::dropDeathLoot();
+	int_t count = (random.nextInt(100) < 5) ? 2 : 1;
+	for (int_t i = 0; i < count; ++i)
+		spawnAtLocation(ItemInstance(onFire > 0 ? Items::beefCooked->getShiftedIndex() : Items::beefRaw->getShiftedIndex(), 1, 0), 0.0f);
+}
