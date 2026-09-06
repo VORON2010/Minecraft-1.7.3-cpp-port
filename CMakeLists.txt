@@ -83,6 +83,7 @@ set(McBetaCpp_SOURCES
 	"src/client/gui/GuiTextField.cpp"
 	"src/client/gui/GuiTextField.h"
 	"src/client/gui/InventoryScreen.cpp"
+	"src/client/gui/CreativeInventoryScreen.cpp"
 	"src/client/gui/InventoryScreen.h"
 	"src/client/gui/MultiplayerScreen.cpp"
 	"src/client/gui/MultiplayerScreen.h"
@@ -959,7 +960,7 @@ add_library(McBetaCppCore OBJECT
 	"src/pc/lwjgl/Mouse.h"
 )
 
-add_executable(McBetaCpp "src/pc/Main.cpp")
+add_executable(McBetaCpp WIN32 "src/pc/Main.cpp")
 target_link_libraries(McBetaCpp PRIVATE McBetaCppCore)
 
 add_executable(McBetaCppStress EXCLUDE_FROM_ALL

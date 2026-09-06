@@ -1,6 +1,10 @@
 #define SDL_MAIN_HANDLED
 #include "SDL.h"
 
+#ifdef _MSC_VER
+#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
+#endif
+
 #include <cstring>
 
 #include "client/Minecraft.h"

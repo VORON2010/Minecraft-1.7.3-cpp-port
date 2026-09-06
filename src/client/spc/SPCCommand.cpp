@@ -615,10 +615,6 @@ void SPCCommand::execute(Minecraft &mc, const jstring &input)
 			mc.gameMode = std::make_shared<CreativeMode>(mc);
 			if (mc.player) {
 				mc.gameMode->initPlayer(mc.player);
-				int_t basicBlocks[] = { 1, 2, 3, 4, 5, 12, 13, 14, 15, 16, 17, 18, 20, 24, 35, 41, 42, 45, 46, 47, 48, 49, 50, 53, 54, 57, 58, 61, 65, 87, 88, 89, 91 };
-				for (int i = 0; i < 33 && i < 36; i++) {
-					mc.player->inventory.setItem(i, ItemInstance(basicBlocks[i], 1, 0));
-				}
 				addMessage(u"Game mode updated to Creative");
 			}
 		}
@@ -737,7 +733,43 @@ void SPCCommand::execute(Minecraft &mc, const jstring &input)
 				}
 			}
 		}
-		addMessage(u"Set " + String::fromUTF8(std::to_string(count)) + u" blocks.");
+		addMessage(u"\u00a7dSet " + String::fromUTF8(std::to_string(count)) + u" blocks.");
+		return;
+	}
+
+	if (cmd == u"//sphere")
+	{
+		if (parts.size() < 3)
+		{
+			sendError(u"Usage: //sphere <block_id> <radius>");
+			return;
+		}
+		int_t id = resolveItemId(parts[1]);
+		double radius = 0.0;
+		if (!parseDouble(parts[2], radius))
+		{
+			sendError(u"Invalid radius.");
+			return;
+		}
+		int_t r = Mth::floor(radius);
+		int_t px = Mth::floor(mc.player->x);
+		int_t py = Mth::floor(mc.player->y);
+		int_t pz = Mth::floor(mc.player->z);
+		int_t count = 0;
+		for (int_t x = px - r; x <= px + r; x++) {
+			for (int_t y = py - r; y <= py + r; y++) {
+				for (int_t z = pz - r; z <= pz + r; z++) {
+					double dx = x - px;
+					double dy = y - py;
+					double dz = z - pz;
+					if (dx * dx + dy * dy + dz * dz <= radius * radius) {
+						mc.level->setTile(x, y, z, id);
+						count++;
+					}
+				}
+			}
+		}
+		addMessage(u"\u00a7dCreated sphere with " + String::fromUTF8(std::to_string(count)) + u" blocks.");
 		return;
 	}
 
@@ -772,7 +804,7 @@ void SPCCommand::execute(Minecraft &mc, const jstring &input)
 				}
 			}
 		}
-		addMessage(u"Replaced " + String::fromUTF8(std::to_string(count)) + u" blocks.");
+		addMessage(u"\u00a7dReplaced " + String::fromUTF8(std::to_string(count)) + u" blocks.");
 		return;
 	}
 

@@ -14,3 +14,9 @@ stderr.log
 AGENTS.md
 /scripts.idea/ 
 cmake-build-debug/ 
+
+# Safe open-source ignores
+resource/
+img/
+.idea/
+cmake-build-*/

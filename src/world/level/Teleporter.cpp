@@ -19,7 +19,11 @@ void Teleporter::teleport(Level &level, Entity &entity)
 
 bool Teleporter::findPortal(Level &level, Entity &entity)
 {
-	short_t range = 128;
+	// Searching 128 blocks in each direction reads 8.5 million block positions.
+	// On a freshly created Nether this forces hundreds of chunks to generate before
+	// the player can move, which exhausts memory on some systems.  A 32-block
+	// search still finds nearby linked portals and keeps the transition bounded.
+	short_t range = 32;
 	double bestDistance = -1.0;
 	int_t bestX = 0;
 	int_t bestY = 0;

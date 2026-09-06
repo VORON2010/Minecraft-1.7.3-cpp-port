@@ -174,6 +174,48 @@ void Gui::renderPortalOverlay(float portalTime, int_t width, int_t height)
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
+void renderTouchControls(int_t width, int_t height)
+{
+#ifdef __ANDROID__
+	glDisable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
+	// Semi-transparent white for buttons
+	glColor4f(1.0f, 1.0f, 1.0f, 0.3f);
+	
+	Tesselator &t = Tesselator::instance;
+	
+	// D-Pad center
+	float cx = 45.0f;
+	float cy = static_cast<float>(height) - 45.0f;
+	float s = 15.0f; // button size half
+	
+	t.begin();
+	// W
+	t.vertex(cx - s, cy - s*3, 0); t.vertex(cx + s, cy - s*3, 0); t.vertex(cx + s, cy - s, 0); t.vertex(cx - s, cy - s, 0);
+	// S
+	t.vertex(cx - s, cy + s, 0); t.vertex(cx + s, cy + s, 0); t.vertex(cx + s, cy + s*3, 0); t.vertex(cx - s, cy + s*3, 0);
+	// A
+	t.vertex(cx - s*3, cy - s, 0); t.vertex(cx - s, cy - s, 0); t.vertex(cx - s, cy + s, 0); t.vertex(cx - s*3, cy + s, 0);
+	// D
+	t.vertex(cx + s, cy - s, 0); t.vertex(cx + s*3, cy - s, 0); t.vertex(cx + s*3, cy + s, 0); t.vertex(cx + s, cy + s, 0);
+	// SPACE (Center)
+	t.vertex(cx - s, cy - s, 0); t.vertex(cx + s, cy - s, 0); t.vertex(cx + s, cy + s, 0); t.vertex(cx - s, cy + s, 0);
+	t.end();
+	
+	// Draw Jump button on the right side
+	float jx = static_cast<float>(width) - 45.0f;
+	float jy = static_cast<float>(height) - 45.0f;
+	t.begin();
+	t.vertex(jx - s*2, jy - s*2, 0); t.vertex(jx + s*2, jy - s*2, 0); t.vertex(jx + s*2, jy + s*2, 0); t.vertex(jx - s*2, jy + s*2, 0);
+	t.end();
+	
+	glEnable(GL_TEXTURE_2D);
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+#endif
+}
+
 void Gui::render(float a, bool inScreen, int_t xm, int_t ym)
 {
 	ScreenSizeCalculator ssc(minecraft.options, minecraft.width, minecraft.height);
@@ -196,6 +238,10 @@ void Gui::render(float a, bool inScreen, int_t xm, int_t ym)
 	float portalTime = minecraft.player->oPortalTime + (minecraft.player->portalTime - minecraft.player->oPortalTime) * a;
 	if (portalTime > 0.0f)
 		renderPortalOverlay(portalTime, width, height);
+
+	// Draw on-screen Android touch controls
+	renderTouchControls(width, height);
+
 
 	
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);

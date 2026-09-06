@@ -399,7 +399,7 @@ void Entity::move(double xd, double yd, double zd)
 	double fdx = x - ox;
 	double fdz = z - oz;
 
-	if (makeStepSound && !sneaking)
+	if (makeStepSound && !sneaking && !isFlying)
 	{
 		walkDist = static_cast<float>(walkDist + Mth::sqrt(fdx * fdx + fdz * fdz) * 0.6);
 
