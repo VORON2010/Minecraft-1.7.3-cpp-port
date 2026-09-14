@@ -7,6 +7,7 @@
 #include "world/item/ItemPickaxe.h"
 #include "world/item/ItemSeeds.h"
 #include "world/item/ItemSpade.h"
+#include "world/item/ItemSpawnEgg.h"
 #include "world/item/ItemSword.h"
 #include "world/item/ItemArmor.h"
 #include "world/item/ItemFood.h"
@@ -84,6 +85,14 @@ namespace Items
 	Item *map = nullptr;
 	Item *cake = nullptr;
 	Item *egg = nullptr;
+	Item *spawnEggZombie = nullptr;
+	Item *spawnEggSkeleton = nullptr;
+	Item *spawnEggCreeper = nullptr;
+	Item *spawnEggSpider = nullptr;
+	Item *spawnEggPig = nullptr;
+	Item *spawnEggSheep = nullptr;
+	Item *spawnEggCow = nullptr;
+	Item *spawnEggChicken = nullptr;
 	Item *saddle = nullptr;
 	Item *compass = nullptr;
 	Item *fishingRod = nullptr;
@@ -139,6 +148,7 @@ namespace Items
 
 	Item *swordGold = nullptr;
 	Item *shovelGold = nullptr;
+	Item *rottenFlesh = nullptr;
 	ItemPickaxe *pickaxeGold = nullptr;
 	Item *axeGold = nullptr;
 	Item *hoeGold = nullptr;
@@ -177,7 +187,7 @@ namespace Items
 
 		flintAndSteel = new ItemFlintAndSteel(3);
 
-		apple = new ItemFood(4, 4, false);
+		apple = new ItemFood(4, 4, 0.3f, false);
 		apple->setIconIndex(10).setDescriptionId(u"item.apple");
 
 		bow = new ItemBow(5);
@@ -282,8 +292,11 @@ namespace Items
 		saddle = new ItemSaddle(73);
 		saddle->setIconIndex(104).setDescriptionId(u"item.saddle");
 
-		bread = new ItemFood(41, 5, false);
+		bread = new ItemFood(41, 5, 0.6f, false);
 		bread->setIconIndex(41).setDescriptionId(u"item.bread");
+
+		rottenFlesh = new ItemFood(111, 4, 0.8f, true);
+		rottenFlesh->setIconIndex(111).setDescriptionId(u"item.rottenFlesh");
 
 		helmetLeather = new ItemArmor(42, 0, 0, 0);
 		helmetLeather->setIconIndex(0).setDescriptionId(u"item.helmetCloth");
@@ -326,34 +339,34 @@ namespace Items
 		bootsGold = new ItemArmor(61, 1, 4, 3);
 		bootsGold->setIconIndex(52).setDescriptionId(u"item.bootsGold");
 
-		porkchopRaw = new ItemFood(63, 3, true);
+		porkchopRaw = new ItemFood(63, 3, 0.3f, true);
 		porkchopRaw->setMaxStackSize(64).setIconIndex(87).setDescriptionId(u"item.porkchopRaw");
 
-		porkchopCooked = new ItemFood(64, 8, true);
+		porkchopCooked = new ItemFood(64, 8, 0.8f, true);
 		porkchopCooked->setMaxStackSize(64).setIconIndex(88).setDescriptionId(u"item.porkchopCooked");
 
-		beefRaw = new ItemFood(104, 3, true);
+		beefRaw = new ItemFood(104, 3, 0.3f, true);
 		beefRaw->setMaxStackSize(64).setIconIndex(224).setDescriptionId(u"item.beefRaw");
 
-		beefCooked = new ItemFood(105, 8, true);
+		beefCooked = new ItemFood(105, 8, 0.8f, true);
 		beefCooked->setMaxStackSize(64).setIconIndex(225).setDescriptionId(u"item.beefCooked");
 
-		chickenRaw = new ItemFood(106, 2, true);
+		chickenRaw = new ItemFood(106, 2, 0.3f, true);
 		chickenRaw->setMaxStackSize(64).setIconIndex(226).setDescriptionId(u"item.chickenRaw");
 
-		chickenCooked = new ItemFood(107, 6, true);
+		chickenCooked = new ItemFood(107, 6, 0.6f, true);
 		chickenCooked->setMaxStackSize(64).setIconIndex(227).setDescriptionId(u"item.chickenCooked");
 
-		muttonRaw = new ItemFood(108, 2, true);
+		muttonRaw = new ItemFood(108, 2, 0.3f, true);
 		muttonRaw->setMaxStackSize(64).setIconIndex(228).setDescriptionId(u"item.muttonRaw");
 
-		muttonCooked = new ItemFood(109, 6, true);
+		muttonCooked = new ItemFood(109, 6, 0.6f, true);
 		muttonCooked->setMaxStackSize(64).setIconIndex(229).setDescriptionId(u"item.muttonCooked");
 
 		painting = new ItemPainting(65);
 		painting->setIconIndex(26).setDescriptionId(u"item.painting");
 
-		appleGold = new ItemFood(66, 42, false);
+		appleGold = new ItemFood(66, 4, 1.2f, false);
 		appleGold->setIconIndex(11).setDescriptionId(u"item.appleGold");
 
 		flint = new Item(62);
@@ -473,10 +486,10 @@ namespace Items
 		glowstoneDust = new Item(92);
 		glowstoneDust->setIconIndex(73).setDescriptionId(u"item.yellowDust");
 
-		fishRaw = new ItemFood(93, 2, false);
+		fishRaw = new ItemFood(93, 2, 0.1f, false);
 		fishRaw->setMaxStackSize(64).setIconIndex(89).setDescriptionId(u"item.fishRaw");
 
-		fishCooked = new ItemFood(94, 5, false);
+		fishCooked = new ItemFood(94, 5, 0.6f, false);
 		fishCooked->setMaxStackSize(64).setIconIndex(90).setDescriptionId(u"item.fishCooked");
 
 		bone = new Item(96);
@@ -485,7 +498,7 @@ namespace Items
 		redstoneRepeater = new ItemRepeater(100);
 		redstoneRepeater->setIconIndex(86).setDescriptionId(u"item.diode");
 
-		cookie = new ItemFood(101, 1, false);
+		cookie = new ItemFood(101, 2, 0.1f, false);
 		cookie->setMaxStackSize(8).setIconIndex(92).setDescriptionId(u"item.cookie");
 
 		snowball = new ItemSnowball(76);
@@ -506,7 +519,31 @@ namespace Items
 		cake = new ItemCake(98, Tile::cake);
 		cake->setIconIndex(29).setDescriptionId(u"item.cake");
 
-		egg = new ItemEgg(88);
+			spawnEggZombie = new ItemSpawnEgg(200, 54);
+		spawnEggZombie->setIconIndex(200).setDescriptionId(u"item.spawnEggZombie");
+		
+		spawnEggSkeleton = new ItemSpawnEgg(201, 51);
+		spawnEggSkeleton->setIconIndex(201).setDescriptionId(u"item.spawnEggSkeleton");
+		
+		spawnEggCreeper = new ItemSpawnEgg(202, 50);
+		spawnEggCreeper->setIconIndex(202).setDescriptionId(u"item.spawnEggCreeper");
+		
+		spawnEggSpider = new ItemSpawnEgg(203, 52);
+		spawnEggSpider->setIconIndex(203).setDescriptionId(u"item.spawnEggSpider");
+		
+		spawnEggPig = new ItemSpawnEgg(204, 90);
+		spawnEggPig->setIconIndex(204).setDescriptionId(u"item.spawnEggPig");
+		
+		spawnEggSheep = new ItemSpawnEgg(205, 91);
+		spawnEggSheep->setIconIndex(205).setDescriptionId(u"item.spawnEggSheep");
+		
+		spawnEggCow = new ItemSpawnEgg(206, 92);
+		spawnEggCow->setIconIndex(206).setDescriptionId(u"item.spawnEggCow");
+		
+		spawnEggChicken = new ItemSpawnEgg(207, 93);
+		spawnEggChicken->setIconIndex(207).setDescriptionId(u"item.spawnEggChicken");
+
+	egg = new ItemEgg(88);
 		egg->setIconIndex(12).setDescriptionId(u"item.egg");
 
 		sign = new ItemSign(67);
@@ -515,3 +552,4 @@ namespace Items
 		new ItemSlab(44 - 256);
 	}
 }
+

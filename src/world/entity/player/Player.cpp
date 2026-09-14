@@ -34,6 +34,20 @@ Player::Player(Level &level) : Mob(level)
 	textureName = u"/mob/char.png";
 }
 
+void Player::feed(int_t food, float saturationModifier)
+{
+	foodLevel = std::min(std::max(foodLevel + food, 0), 20);
+	foodSaturationLevel = std::min(std::max(foodSaturationLevel + (float)food * saturationModifier * 2.0f, 0.0f), (float)foodLevel);
+}
+
+void Player::addExhaustion(float exhaustion)
+{
+	if (level.difficulty > 0 && !level.isOnline)
+	{
+		foodExhaustionLevel = std::min(foodExhaustionLevel + exhaustion, 40.0f);
+	}
+}
+
 void Player::prepareCustomTextures()
 {
 	cloakTexture = u"http://s3.amazonaws.com/MinecraftCloaks/" + name + u".png";
@@ -324,6 +338,53 @@ void Player::aiStep()
 {
 	if (level.difficulty == 0 && health < MAX_HEALTH && (tickCount % 20) * 12 == 0)
 		heal(1);
+	if (level.difficulty == 0 && foodLevel < 20 && tickCount % 20 == 0)
+		foodLevel++;
+
+	if (!level.isOnline)
+	{
+		if (foodExhaustionLevel > 4.0f)
+		{
+			foodExhaustionLevel -= 4.0f;
+			if (foodSaturationLevel > 0.0f)
+				foodSaturationLevel = std::max(foodSaturationLevel - 1.0f, 0.0f);
+			else
+				foodLevel = std::max(foodLevel - 1, 0);
+		}
+
+		if (foodLevel >= 18 && health < MAX_HEALTH && health > 0)
+		{
+			foodTickTimer++;
+			if (foodTickTimer >= 80)
+			{
+				heal(1);
+				addExhaustion(3.0f);
+				foodTickTimer = 0;
+			}
+		}
+		else if (foodLevel <= 0)
+		{
+			foodTickTimer++;
+			if (foodTickTimer >= 80)
+			{
+				if (health > 10 || (level.difficulty >= 2 && health > 1) || (level.difficulty >= 3 && health > 0))
+				{
+					hurt(nullptr, 1);
+				}
+				foodTickTimer = 0;
+			}
+		}
+		else
+		{
+			foodTickTimer = 0;
+		}
+
+		if (hungerEffectTimer > 0)
+		{
+			hungerEffectTimer--;
+			addExhaustion(0.025f);
+		}
+	}
 
 	inventory.tick();
 	oBob = bob;
@@ -382,6 +443,7 @@ void Player::attack(const std::shared_ptr<Entity> &entity)
 	}
 	if (dynamic_cast<Mob *>(entity.get()) != nullptr)
 		addStat(*StatList::damageDealtStat, attackDamage);
+	addExhaustion(0.3f);
 }
 
 void Player::respawn()
@@ -431,6 +493,19 @@ void Player::readAdditionalSaveData(CompoundTag &tag)
 
 	sleeping = tag.getBoolean(u"Sleeping");
 	sleepTimer = tag.getShort(u"SleepTimer");
+
+	if (tag.contains(u"foodLevel"))
+	{
+		foodLevel = tag.getInt(u"foodLevel");
+		foodTickTimer = tag.getInt(u"foodTickTimer");
+		foodExhaustionLevel = tag.getFloat(u"foodExhaustionLevel");
+		foodSaturationLevel = tag.getFloat(u"foodSaturationLevel");
+	}
+	if (tag.contains(u"hungerEffectTimer"))
+	{
+		hungerEffectTimer = tag.getInt(u"hungerEffectTimer");
+	}
+
 	if (sleeping)
 	{
 		bedX = Mth::floor(x);
@@ -455,6 +530,11 @@ void Player::addAdditionalSaveData(CompoundTag &tag)
 
 	tag.putBoolean(u"Sleeping", sleeping);
 	tag.putShort(u"SleepTimer", static_cast<short_t>(sleepTimer));
+	tag.putInt(u"foodLevel", foodLevel);
+	tag.putInt(u"foodTickTimer", foodTickTimer);
+	tag.putFloat(u"foodExhaustionLevel", foodExhaustionLevel);
+	tag.putFloat(u"foodSaturationLevel", foodSaturationLevel);
+	tag.putInt(u"hungerEffectTimer", hungerEffectTimer);
 }
 
 const TilePos *Player::getPlayerSpawnPosition() const
@@ -634,6 +714,7 @@ void Player::jumpFromGround()
 {
 	Mob::jumpFromGround();
 	addStat(*StatList::jumpStat, 1);
+	addExhaustion(0.2f);
 }
 
 void Player::travel(float xInput, float zInput)
@@ -653,13 +734,19 @@ void Player::travel(float xInput, float zInput)
 	{
 		int_t distance = static_cast<int_t>(std::round(Mth::sqrt(dx * dx + dy * dy + dz * dz) * 100.0f));
 		if (distance > 0)
+		{
 			addStat(*StatList::distanceDoveStat, distance);
+			addExhaustion(0.015f * static_cast<float>(distance) * 0.01f);
+		}
 	}
 	else if (isInWater())
 	{
 		int_t distance = static_cast<int_t>(std::round(Mth::sqrt(dx * dx + dz * dz) * 100.0f));
 		if (distance > 0)
+		{
 			addStat(*StatList::distanceSwumStat, distance);
+			addExhaustion(0.015f * static_cast<float>(distance) * 0.01f);
+		}
 	}
 	else if (onLadder())
 	{
@@ -670,7 +757,10 @@ void Player::travel(float xInput, float zInput)
 	{
 		int_t distance = static_cast<int_t>(std::round(Mth::sqrt(dx * dx + dz * dz) * 100.0f));
 		if (distance > 0)
+		{
 			addStat(*StatList::distanceWalkedStat, distance);
+			addExhaustion(0.01f * static_cast<float>(distance) * 0.01f);
+		}
 	}
 	else
 	{

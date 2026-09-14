@@ -42,6 +42,15 @@ public:
 	std::unique_ptr<TilePos> playerSpawnPosition;
 	std::shared_ptr<EntityFish> fishEntity;
 
+	int_t foodLevel = 20;
+	int_t foodTickTimer = 0;
+	float foodSaturationLevel = 5.0f;
+	float foodExhaustionLevel = 0.0f;
+	int_t hungerEffectTimer = 0;
+
+	void feed(int_t food, float saturationModifier);
+	void addExhaustion(float exhaustion);
+
 private:
 	bool hasMinecartStart = false;
 	int_t minecartStartX = 0;

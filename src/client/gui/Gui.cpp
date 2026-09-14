@@ -296,31 +296,50 @@ void Gui::render(float a, bool inScreen, int_t xm, int_t ym)
 	if (minecraft.gameMode->canHurtPlayer())
 	{
 		int_t armor = minecraft.player->inventory.getArmorValue();
+		int_t foodLevel = minecraft.player->foodLevel;
 
 		for (int_t x = 0; x < 10; x++)
 		{
-			int_t y = height - 32;
+			int_t yHealth = height - 32;
+			if (nowHealth <= 4)
+				yHealth += random.nextInt(2);
+
+			int_t yArmor = height - 32 - 10;
+			int_t yHunger = height - 32;
+
+			// Render Armor (above health)
 			if (armor > 0)
 			{
-				int_t armorX = width / 2 + 91 - x * 8 - 9;
-				if (x * 2 + 1 < armor) blit(armorX, y, 34, 9, 9, 9);
-				if (x * 2 + 1 == armor) blit(armorX, y, 25, 9, 9, 9);
-				if (x * 2 + 1 > armor) blit(armorX, y, 16, 9, 9, 9);
+				int_t armorX = width / 2 - 91 + x * 8;
+				if (x * 2 + 1 < armor) blit(armorX, yArmor, 34, 9, 9, 9);
+				if (x * 2 + 1 == armor) blit(armorX, yArmor, 25, 9, 9, 9);
+				if (x * 2 + 1 > armor) blit(armorX, yArmor, 16, 9, 9, 9);
 			}
 
+			// Render Health
 			int_t healthX = width / 2 - 91 + x * 8;
-
-			if (nowHealth <= 4)
-				y += random.nextInt(2);
-
-			blit(healthX, y, 16 + flicker * 9, 0, 9, 9);
+			blit(healthX, yHealth, 16 + flicker * 9, 0, 9, 9);
 			if (flicker)
 			{
-				if (x * 2 + 1 < lastHealth) blit(healthX, y, 70, 0, 9, 9);
-				if (x * 2 + 1 == lastHealth) blit(healthX, y, 79, 0, 9, 9);
+				if (x * 2 + 1 < lastHealth) blit(healthX, yHealth, 70, 0, 9, 9);
+				if (x * 2 + 1 == lastHealth) blit(healthX, yHealth, 79, 0, 9, 9);
 			}
-			if (x * 2 + 1 < nowHealth) blit(healthX, y, 52, 0, 9, 9);
-			if (x * 2 + 1 == nowHealth) blit(healthX, y, 61, 0, 9, 9);
+			if (x * 2 + 1 < nowHealth) blit(healthX, yHealth, 52, 0, 9, 9);
+			if (x * 2 + 1 == nowHealth) blit(healthX, yHealth, 61, 0, 9, 9);
+
+			// Render Hunger (where armor used to be)
+			int_t hungerX = width / 2 + 91 - x * 8 - 9;
+			if (minecraft.player->foodTickTimer > 0 && foodLevel <= 4 && (tickCount % 20) < 10)
+				yHunger += random.nextInt(2);
+			
+			// Use Beta 1.8 texture coordinates for hunger (Y=27)
+			int_t iconBg = minecraft.player->hungerEffectTimer > 0 ? 133 : 16;
+			int_t iconFull = minecraft.player->hungerEffectTimer > 0 ? 88 : 52;
+			int_t iconHalf = minecraft.player->hungerEffectTimer > 0 ? 97 : 61;
+
+			blit(hungerX, yHunger, iconBg, 27, 9, 9); // Background
+			if (x * 2 + 1 < foodLevel) blit(hungerX, yHunger, iconFull, 27, 9, 9);
+			if (x * 2 + 1 == foodLevel) blit(hungerX, yHunger, iconHalf, 27, 9, 9);
 		}
 
 		if (minecraft.player->isUnderLiquid(Material::water))
@@ -330,10 +349,11 @@ void Gui::render(float a, bool inScreen, int_t xm, int_t ym)
 
 			for (int_t i = 0; i < full + partial; i++)
 			{
+				int_t bubbleX = width / 2 + 91 - i * 8 - 9; // Above hunger bar
 				if (i < full)
-					blit(width / 2 - 91 + i * 8, height - 32 - 9, 16, 18, 9, 9);
+					blit(bubbleX, height - 32 - 10, 16, 18, 9, 9);
 				else
-					blit(width / 2 - 91 + i * 8, height - 32 - 9, 25, 18, 9, 9);
+					blit(bubbleX, height - 32 - 10, 25, 18, 9, 9);
 			}
 		}
 	}

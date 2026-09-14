@@ -485,6 +485,8 @@ set(McBetaCpp_SOURCES
 	"src/world/item/ItemTool.cpp"
 	"src/world/item/ItemTool.h"
 	"src/world/item/ItemSpade.cpp"
+	"src/world/item/ItemSpawnEgg.cpp"
+	"src/world/item/ItemSpawnEgg.h"
 	"src/world/item/ItemSpade.h"
 	"src/world/item/ItemAxe.cpp"
 	"src/world/item/ItemAxe.h"
@@ -1085,3 +1087,6 @@ else()
 endif()
 add_dependencies(McBetaCpp McBetaCppResources)
 add_dependencies(McBetaCppStress McBetaCppResources)
+
+
+
