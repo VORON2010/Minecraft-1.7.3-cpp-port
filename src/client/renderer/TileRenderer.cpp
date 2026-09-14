@@ -14,6 +14,7 @@
 #include "world/level/tile/PistonBaseTile.h"
 #include "world/level/tile/PistonExtensionTile.h"
 #include "world/level/tile/BedTile.h"
+#include "world/level/tile/NotGateTile.h"
 #include <cmath>
 
 namespace

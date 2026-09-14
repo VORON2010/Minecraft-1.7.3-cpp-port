@@ -40,5 +40,5 @@ jstring Zombie::getDeathSound()
 
 int_t Zombie::getDeathLoot()
 {
-	return Items::feather->getShiftedIndex();
+	return Items::rottenFlesh->getShiftedIndex();
 }

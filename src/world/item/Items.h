@@ -106,7 +106,16 @@ namespace Items
 	extern Item *map;
 	extern Item *cake;
 	extern Item *egg;
+	extern Item *spawnEggZombie;
+	extern Item *spawnEggSkeleton;
+	extern Item *spawnEggCreeper;
+	extern Item *spawnEggSpider;
+	extern Item *spawnEggPig;
+	extern Item *spawnEggSheep;
+	extern Item *spawnEggCow;
+	extern Item *spawnEggChicken;
 	extern Item *saddle;
+	extern Item *rottenFlesh;
 	extern ItemArmor *helmetLeather;
 	extern ItemArmor *plateLeather;
 	extern ItemArmor *legsLeather;
@@ -129,3 +138,4 @@ namespace Items
 	extern ItemArmor *bootsGold;
 	void initItems();
 }
+

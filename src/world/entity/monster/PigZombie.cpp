@@ -93,7 +93,7 @@ jstring PigZombie::getDeathSound()
 
 int_t PigZombie::getDeathLoot()
 {
-	return Items::porkchopCooked->getShiftedIndex();
+	return Items::rottenFlesh->getShiftedIndex();
 }
 
 void PigZombie::becomeAngryAt(Entity &target)
