@@ -37,6 +37,8 @@ void Button::render(Minecraft &minecraft, int_t xm, int_t ym)
 
 	glBindTexture(GL_TEXTURE_2D, minecraft.textures.loadTexture(u"/gui/gui.png"));
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	bool hovered = xm >= x && ym >= y && xm < x + w && ym < y + h;
 	int_t yImage = getYImage(hovered);
@@ -67,5 +69,5 @@ void Button::released(int_t mx, int_t my)
 
 bool Button::clicked(Minecraft &minecraft, int_t mx, int_t my)
 {
-	return active && mx >= x && my >= y && mx < x + w && my < y + h;
+	return active && visible && mx >= x && my >= y && mx < x + w && my < y + h;
 }

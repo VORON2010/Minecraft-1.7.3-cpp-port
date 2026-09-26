@@ -4,7 +4,7 @@
 #include <set>
 
 #include "SDL.h"
-#include "glad/glad.h"
+#include "OpenGL.h"
 
 namespace lwjgl
 {

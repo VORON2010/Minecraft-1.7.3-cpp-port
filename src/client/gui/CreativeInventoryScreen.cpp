@@ -8,6 +8,9 @@
 #include "client/renderer/Tesselator.h"
 #include "util/Mth.h"
 #include "client/Lighting.h"
+#include "client/gui/ContainerScreen.h"
+#include "client/Options.h"
+#include "client/gui/RecipeScreen.h"
 #include "lwjgl/Keyboard.h"
 
 // Texture layout (creative_list.png 256x256):
@@ -110,6 +113,17 @@ void CreativeInventoryScreen::render(int_t xm, int_t ym, float a) {
 
     renderBackground();
 
+    if (isDragging) {
+        if (!lwjgl::Mouse::isButtonDown(0)) {
+            isDragging = false;
+        } else {
+            int_t trackY = guiTop + 18;
+            int_t trackHeight = 126;
+            float newScroll = static_cast<float>(ym - trackY) / static_cast<float>(trackHeight - 15);
+            scrollPosition = std::max(0.0f, std::min(1.0f, newScroll));
+        }
+    }
+
     // Draw main panel background
     int_t tex = minecraft.textures.loadTexture(u"/gui/allitems.png");
     glBindTexture(GL_TEXTURE_2D, tex);
@@ -119,7 +133,7 @@ void CreativeInventoryScreen::render(int_t xm, int_t ym, float a) {
     // Scrollbar rendering
     int_t trackX = guiLeft + 156;
     int_t trackY = guiTop + 18;
-    int_t trackHeight = 144; // 8 rows * 18
+    int_t trackHeight = 126; // 8 rows * 18
     int_t thumbHeight = 15;
     int_t thumbY = trackY + static_cast<int_t>(scrollPosition * (trackHeight - thumbHeight));
     blit(trackX, thumbY, 2, 209, 12, 15);
@@ -195,6 +209,28 @@ void CreativeInventoryScreen::render(int_t xm, int_t ym, float a) {
     glDisable(GL_DEPTH_TEST);
 
     glPopMatrix();
+
+    // Tooltips
+    if (!cursorItem || cursorItem->isEmpty()) {
+        int_t hoveredItemIndex = getSlotAtPosition(xm, ym);
+        if (hoveredItemIndex == -1) {
+            int_t hotbarCol = getHotbarSlotAtPosition(xm, ym);
+            if (hotbarCol != -1) {
+                ItemInstance* hStack = minecraft.player->inventory.getItem(hotbarCol);
+                if (hStack && !hStack->isEmpty()) {
+                    auto lines = ContainerScreen::getTooltipLines(*hStack, &minecraft.options);
+                    if (!lines.empty())
+                        renderTooltip(lines, xm + 12, ym - 12);
+                }
+            }
+        } else {
+            if (hoveredItemIndex >= 0 && hoveredItemIndex < static_cast<int_t>(allItems.size())) {
+                auto lines = ContainerScreen::getTooltipLines(allItems[hoveredItemIndex], &minecraft.options);
+                if (!lines.empty())
+                    renderTooltip(lines, xm + 12, ym - 12);
+            }
+        }
+    }
 }
 
 void CreativeInventoryScreen::renderSlot(ItemInstance *stack, int_t x, int_t y) {
@@ -211,7 +247,7 @@ int_t CreativeInventoryScreen::getSlotAtPosition(int_t x, int_t y) const {
     if (relX >= 0 && relX < COLUMNS * SLOT_SIZE && relY >= 0 && relY < ROWS * SLOT_SIZE) {
         int_t col = relX / SLOT_SIZE;
         int_t row = relY / SLOT_SIZE;
-        return row * COLUMNS + col;
+        return (getStartRow() + row) * COLUMNS + col;
     }
     return -1;
 }
@@ -226,7 +262,13 @@ int_t CreativeInventoryScreen::getHotbarSlotAtPosition(int_t x, int_t y) const {
 }
 
 void CreativeInventoryScreen::mouseClicked(int_t x, int_t y, int_t buttonNum) {
-    // Scrollbar drag removed — use mouse wheel to scroll
+    int_t trackX = guiLeft + 156;
+    int_t trackY = guiTop + 18;
+    int_t trackHeight = 126;
+    if (x >= trackX && x <= trackX + 12 && y >= trackY && y <= trackY + trackHeight) {
+        isDragging = true;
+        return;
+    }
     int_t gridSlot = getSlotAtPosition(x, y);
     int_t hotbarSlot = getHotbarSlotAtPosition(x, y);
 
@@ -234,8 +276,7 @@ void CreativeInventoryScreen::mouseClicked(int_t x, int_t y, int_t buttonNum) {
     ItemInstance* cursorItem = inv.getCarried();
 
     if (gridSlot != -1) {
-        int_t startRow = getStartRow();
-        int_t itemIndex = startRow * COLUMNS + gridSlot;
+        int_t itemIndex = gridSlot;
         if (itemIndex >= 0 && itemIndex < static_cast<int_t>(allItems.size())) {
             if (cursorItem) {
                 inv.setCarriedNull();
@@ -282,5 +323,23 @@ void CreativeInventoryScreen::mouseScrolled(int_t x, int_t y, int_t scrollAmount
 void CreativeInventoryScreen::keyPressed(char_t eventCharacter, int_t eventKey) {
     if (eventKey == lwjgl::Keyboard::KEY_ESCAPE || eventKey == minecraft.options.keyInventory.key) {
         minecraft.setScreen(nullptr);
+    }
+    
+    if (eventKey == lwjgl::Keyboard::KEY_F4) {
+        int_t xm = lwjgl::Mouse::getEventX() * width / minecraft.width;
+        int_t ym = height - lwjgl::Mouse::getEventY() * height / minecraft.height - 1;
+        
+        int_t itemIndex = getSlotAtPosition(xm, ym);
+        if (itemIndex >= 0 && itemIndex < static_cast<int_t>(allItems.size())) {
+            minecraft.setScreen(Util::make_shared<RecipeScreen>(minecraft, minecraft.screen, allItems[itemIndex].itemID, allItems[itemIndex].itemDamage));
+        } else {
+            int_t hotbarCol = getHotbarSlotAtPosition(xm, ym);
+            if (hotbarCol != -1) {
+                ItemInstance* stack = minecraft.player->inventory.getItem(hotbarCol);
+                if (stack && !stack->isEmpty()) {
+                    minecraft.setScreen(Util::make_shared<RecipeScreen>(minecraft, minecraft.screen, stack->itemID, stack->itemDamage));
+                }
+            }
+        }
     }
 }

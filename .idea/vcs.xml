@@ -3,6 +3,7 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/external/SDL2" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/external/gl4es" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/external/gzip-hpp" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/external/miniaudio" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/external/openal-soft" vcs="Git" />

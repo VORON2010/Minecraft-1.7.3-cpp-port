@@ -409,7 +409,7 @@ public:
 
 	void broadcastEntityEvent(std::shared_ptr<Entity> entity, byte_t event);
 
-	bool isBlockNormalCube(int_t x, int_t y, int_t z);
+	bool isBlockNormalCube(int_t x, int_t y, int_t z) override;
 	bool getDirectSignal(int_t x, int_t y, int_t z, int_t dir);
 	bool hasDirectSignal(int_t x, int_t y, int_t z);
 	bool getSignal(int_t x, int_t y, int_t z, int_t dir);

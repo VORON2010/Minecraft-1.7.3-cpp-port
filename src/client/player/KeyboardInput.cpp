@@ -1,6 +1,7 @@
 #include "client/player/KeyboardInput.h"
 
 #include "client/Options.h"
+#include "world/entity/player/Player.h"
 
 KeyboardInput::KeyboardInput(Options &options) : options(options)
 {
@@ -24,6 +25,9 @@ void KeyboardInput::setKey(int_t key, bool state)
 void KeyboardInput::releaseAllKeys()
 {
 	keys.fill(false);
+	sprintActive = false;
+	wasForwardKeyDown = false;
+	sprintTriggerTime = 0;
 }
 
 void KeyboardInput::tick(Player &player)
@@ -39,7 +43,37 @@ void KeyboardInput::tick(Player &player)
 	wasJumping = jumping;
 	jumping = keys[KEY_JUMP];
 	sneaking = keys[KEY_SNEAK];
-	sprinting = keys[KEY_SPRINT];
+
+	bool forwardKeyDown = keys[KEY_UP];
+	if (options.doubleTapSprint)
+	{
+		if (!wasForwardKeyDown && forwardKeyDown)
+		{
+			if (sprintTriggerTime > 0)
+			{
+				sprintActive = true;
+				sprintTriggerTime = 0;
+			}
+			else
+			{
+				sprintTriggerTime = 7;
+			}
+		}
+		if (sprintTriggerTime > 0)
+			sprintTriggerTime--;
+	}
+	wasForwardKeyDown = forwardKeyDown;
+
+	if (keys[KEY_SPRINT] && forwardKeyDown)
+		sprintActive = true;
+
+	if (sprintActive)
+	{
+		if (!forwardKeyDown || ya <= 0.0f || sneaking || player.horizontalCollision)
+			sprintActive = false;
+	}
+
+	sprinting = sprintActive || (keys[KEY_SPRINT] && forwardKeyDown);
 
 	if (sneaking)
 	{

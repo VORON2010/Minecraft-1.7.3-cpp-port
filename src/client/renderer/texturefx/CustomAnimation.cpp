@@ -9,7 +9,7 @@
 
 namespace
 {
-	Random random;
+	Random rng;
 }
 
 CustomAnimation::CustomAnimation(Textures &textures, int_t tileNumber, int_t tileImage, int_t tileSize,
@@ -69,7 +69,7 @@ void CustomAnimation::onTick()
 		if (maxScrollDelay <= 0 || --timer <= 0)
 		{
 			if (maxScrollDelay > 0)
-				timer = random.nextInt(maxScrollDelay - minScrollDelay + 1) + minScrollDelay;
+				timer = rng.nextInt(maxScrollDelay - minScrollDelay + 1) + minScrollDelay;
 			std::memcpy(temp.data(), imageData.data() + (TileSize::size - 1) * TileSize::size * 4, TileSize::size * 4);
 			std::memmove(imageData.data() + TileSize::size * 4, imageData.data(), TileSize::size * (TileSize::size - 1) * 4);
 			std::memcpy(imageData.data(), temp.data(), TileSize::size * 4);

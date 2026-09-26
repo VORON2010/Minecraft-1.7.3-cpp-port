@@ -21,7 +21,9 @@
 #ifdef __APPLE__
 #include <mach-o/dyld.h>
 #endif
-
+#ifdef __ANDROID__
+#include <SDL.h>
+#endif
 
 static std::string ToPath(const jstring &path)
 {
@@ -205,7 +207,15 @@ File *File::openResourceDirectory()
 {
 	
 	std::vector<char> path(PATH_MAX);
-#ifdef __APPLE__
+#ifdef __ANDROID__
+	// Return SDL internal/external storage path + "/resource"
+	const char* extPath = SDL_AndroidGetExternalStoragePath();
+	if (!extPath) {
+		extPath = SDL_AndroidGetInternalStoragePath();
+	}
+	jstring u16str = FromPath(extPath ? extPath : "");
+	return new File_Impl(u16str + u"/resource");
+#elif defined(__APPLE__)
 	uint32_t length = static_cast<uint32_t>(path.size());
 	if (_NSGetExecutablePath(path.data(), &length) != 0)
 	{
@@ -227,6 +237,7 @@ File *File::openResourceDirectory()
 		path.resize(path.size() * 2);
 	}
 #endif
+#ifndef __ANDROID__
 	jstring u16str = FromPath(path.data());
 
 	
@@ -236,6 +247,7 @@ File *File::openResourceDirectory()
 
 	
 	return new File_Impl(u16str.substr(0, pos) + u"/resource");
+#endif
 }
 
 File *File::openWorkingDirectory(const jstring &name)

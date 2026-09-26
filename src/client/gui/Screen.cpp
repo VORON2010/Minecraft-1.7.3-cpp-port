@@ -198,3 +198,27 @@ void Screen::confirmResult(bool result, int_t id)
 
 }
 
+void Screen::renderTooltip(const std::vector<jstring> &lines, int_t x, int_t y)
+{
+	if (lines.empty()) return;
+
+	int_t maxW = 0;
+	for (const auto &line : lines)
+	{
+		int_t w = font.width(line);
+		if (w > maxW) maxW = w;
+	}
+
+	int_t h = static_cast<int_t>(lines.size()) * 10;
+	
+	if (x + maxW + 3 > width) x = width - maxW - 3;
+	if (y + h + 1 > height) y = height - h - 1;
+
+	fillGradient(x - 3, y - 3, x + maxW + 3, y + h + 1, 0xC0000000, 0xC0000000);
+
+	for (size_t i = 0; i < lines.size(); i++)
+	{
+		int_t color = (i == 0) ? 0xFFFFFF : ((i == 1 && lines.size() > 2) ? 0x55FF55 : 0xAAAAAA);
+		font.drawShadow(lines[i], x, y + static_cast<int_t>(i) * 10, color);
+	}
+}

@@ -36,6 +36,7 @@ protected:
 
 public:
 	virtual void render(int_t xm, int_t ym, float a);
+	void renderTooltip(const std::vector<jstring> &lines, int_t x, int_t y);
 
 protected:
 	virtual void keyPressed(char_t eventCharacter, int_t eventKey);

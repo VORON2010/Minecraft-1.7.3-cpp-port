@@ -22,6 +22,7 @@ Options::Option::Element *const OPTION_SCREEN_OPTIONS[] = {
 	&Options::Option::SOUND,
 	&Options::Option::INVERT_MOUSE,
 	&Options::Option::SENSITIVITY,
+	&Options::Option::RENDER_DISTANCE,
 	&Options::Option::DIFFICULTY,
 };
 

@@ -70,12 +70,26 @@ AABB *DoorTile::getTileAABB(Level &level, int_t x, int_t y, int_t z)
 
 void DoorTile::updateShape(LevelSource &level, int_t x, int_t y, int_t z)
 {
-	setDoorRotation(getState(level.getData(x, y, z)));
+	int_t data = level.getData(x, y, z);
+	if ((data & 8) != 0 && level.getTile(x, y - 1, z) == id)
+		data = level.getData(x, y - 1, z);
+	setDoorRotation(getState(data));
 }
 
 void DoorTile::updateDefaultShape()
 {
 	setDoorRotation(0);
+}
+
+int_t DoorTile::getTexture(LevelSource &level, int_t x, int_t y, int_t z, Facing face)
+{
+	int_t data = level.getData(x, y, z);
+	if ((data & 8) != 0 && level.getTile(x, y - 1, z) == id)
+	{
+		int_t bottomData = level.getData(x, y - 1, z);
+		data = (data & 8) | (bottomData & 7);
+	}
+	return getTexture(face, data);
 }
 
 int_t DoorTile::getTexture(Facing face, int_t data)

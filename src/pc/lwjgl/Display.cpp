@@ -12,7 +12,7 @@
 #include "GLTrace.h"
 
 #include "SDL.h"
-#include <glad/glad.h>
+#include "OpenGL.h"
 
 namespace lwjgl
 {
@@ -119,8 +119,41 @@ void processMessages()
 			case SDL_FINGERMOTION:
 			{
 				// Basic Android Touch-to-Gamepad translation
+				// Top-Left corner = ESC (Pause)
+				// Top-Right corner = E (Inventory)
+				// Bottom-Right corner = Right Click
+				
+				if (e.tfinger.y < 0.15f) {
+					if (e.tfinger.x < 0.15f) { // Top-Left: ESC
+						SDL_Event keyEvent;
+						keyEvent.type = (e.type == SDL_FINGERUP) ? SDL_KEYUP : SDL_KEYDOWN;
+						keyEvent.key.state = (e.type == SDL_FINGERUP) ? SDL_RELEASED : SDL_PRESSED;
+						keyEvent.key.keysym.scancode = SDL_SCANCODE_ESCAPE;
+						Keyboard::detail::pushEvent(keyEvent);
+						break;
+					} else if (e.tfinger.x > 0.85f) { // Top-Right: E (Inventory)
+						SDL_Event keyEvent;
+						keyEvent.type = (e.type == SDL_FINGERUP) ? SDL_KEYUP : SDL_KEYDOWN;
+						keyEvent.key.state = (e.type == SDL_FINGERUP) ? SDL_RELEASED : SDL_PRESSED;
+						keyEvent.key.keysym.scancode = SDL_SCANCODE_E;
+						Keyboard::detail::pushEvent(keyEvent);
+						break;
+					}
+				}
+				
+				if (e.tfinger.y > 0.85f && e.tfinger.x > 0.85f) { // Bottom-Right: Right Click
+					if (e.type != SDL_FINGERMOTION) {
+						SDL_Event mouseEvent;
+						mouseEvent.type = (e.type == SDL_FINGERDOWN) ? SDL_MOUSEBUTTONDOWN : SDL_MOUSEBUTTONUP;
+						mouseEvent.button.button = SDL_BUTTON_RIGHT;
+						mouseEvent.button.state = (e.type == SDL_FINGERDOWN) ? SDL_PRESSED : SDL_RELEASED;
+						Mouse::detail::pushEvent(mouseEvent);
+					}
+					break;
+				}
+				
 				// Left half of screen = D-Pad (WASD)
-				// Right half of screen = Mouse Look & Click
+				// Right half of screen = Mouse Look & Left Click
 				bool isLeftHalf = (e.tfinger.x < 0.5f);
 				
 				if (isLeftHalf) {

@@ -1,4 +1,5 @@
 #include "client/gui/DispenserScreen.h"
+#include "client/gui/RecipeScreen.h"
 
 #include "OpenGL.h"
 #include "client/Lighting.h"
@@ -122,14 +123,12 @@ void DispenserScreen::render(int_t xm, int_t ym, float a)
 		const ItemInstance *hoveredItem = getSlotItem(hoveredSlot);
 		if (hoveredItem != nullptr && !hoveredItem->isEmpty())
 		{
-			jstring tooltip = getTooltipName(*hoveredItem);
-			if (!tooltip.empty())
+			auto lines = getTooltipLines(*hoveredItem, &minecraft.options);
+			if (!lines.empty())
 			{
 				int_t tooltipX = relX + 12;
 				int_t tooltipY = relY - 12;
-				int_t tooltipW = font.width(tooltip);
-				fillGradient(tooltipX - 3, tooltipY - 3, tooltipX + tooltipW + 3, tooltipY + 11, 0xC0000000, 0xC0000000);
-				font.drawShadow(tooltip, tooltipX, tooltipY, 0xFFFFFF);
+				renderTooltip(lines, tooltipX, tooltipY);
 			}
 		}
 	}
@@ -146,6 +145,21 @@ void DispenserScreen::keyPressed(char_t eventCharacter, int_t eventKey)
 		minecraft.grabMouse();
 		return;
 	}
+
+	if (eventKey == lwjgl::Keyboard::KEY_F4)
+	{
+		int_t slot = getSlotAt(static_cast<int_t>(xMouse), static_cast<int_t>(yMouse));
+		if (slot != SLOT_NONE)
+		{
+			const ItemInstance *hovered = getSlotItem(slot);
+			if (hovered != nullptr && !hovered->isEmpty())
+			{
+				minecraft.setScreen(Util::make_shared<RecipeScreen>(minecraft, minecraft.screen, hovered->itemID, hovered->itemDamage));
+				return;
+			}
+		}
+	}
+
 	Screen::keyPressed(eventCharacter, eventKey);
 }
 

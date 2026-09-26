@@ -30,6 +30,7 @@ public:
 
 	jstring name;
 	int_t dimension = 0;
+	int_t gameType = 0; // 0 = survival, 1 = creative
 
 	jstring cloakTexture;
 	double xCloakO = 0.0, yCloakO = 0.0, zCloakO = 0.0;

@@ -1,4 +1,5 @@
 #include "client/gui/InventoryScreen.h"
+#include "client/gui/RecipeScreen.h"
 
 #include <cmath>
 
@@ -75,8 +76,31 @@ InventoryScreen::InventoryScreen(Minecraft &minecraft, int_t craftingWidth, int_
 		minecraft.player->addStat(*AchievementList::openInventory, 1);
 }
 
+void InventoryScreen::init()
+{
+	buttons.clear();
+	int_t xo = (width - imageWidth) / 2;
+	int_t yo = (height - imageHeight) / 2;
+
+	// Add Recipes button
+	buttons.push_back(Util::make_shared<Button>(300, xo + 125, yo + 61, 44, 20, u"Recipe"));
+}
+
+void InventoryScreen::buttonClicked(Button &button)
+{
+	if (button.id == 300)
+	{
+		minecraft.setScreen(Util::make_shared<RecipeScreen>(minecraft, minecraft.screen));
+	}
+}
+
 void InventoryScreen::render(int_t xm, int_t ym, float a)
 {
+	for (auto& btn : buttons) {
+		if (btn->id == 300) {
+			btn->visible = minecraft.options.showRecipeButton;
+		}
+	}
 	syncCraftingSlotsFromMenu();
 
 	renderBackground();
@@ -215,7 +239,10 @@ void InventoryScreen::render(int_t xm, int_t ym, float a)
 	glEnable(GL_DEPTH_TEST);
 	glPopMatrix();
 
-	
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
+	Screen::render(xm, ym, a);
+
 	xMouse = static_cast<float>(xm);
 	yMouse = static_cast<float>(ym);
 }
@@ -250,6 +277,7 @@ void InventoryScreen::keyPressed(char_t eventCharacter, int_t eventKey)
 
 void InventoryScreen::mouseClicked(int_t x, int_t y, int_t buttonNum)
 {
+	Screen::mouseClicked(x, y, buttonNum);
 	if (minecraft.player == nullptr || (buttonNum != 0 && buttonNum != 1))
 		return;
 

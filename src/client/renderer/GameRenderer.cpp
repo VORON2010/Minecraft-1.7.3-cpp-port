@@ -67,7 +67,7 @@ void GameRenderer::tick()
 {
 	fogBrO = fogBr;
 	float brightness = mc.level->getBrightness(Mth::floor(mc.player->x), Mth::floor(mc.player->y), Mth::floor(mc.player->z));
-	float dist = (3.0f - mc.options.viewDistance) / 3.0f;
+	float dist = (mc.options.viewDistance == 4 || mc.options.viewDistance == 0) ? 1.0f : (3.0f - mc.options.viewDistance) / 3.0f;
 	float fogBrTarget = brightness * (1.0f - dist) + dist;
 	fogBr += (fogBrTarget - fogBr) * 0.1f;
 
@@ -354,7 +354,10 @@ void GameRenderer::moveCameraToPlayer(float a)
 
 void GameRenderer::setupCamera(float a, int_t eye)
 {
-	renderDistance = static_cast<float>(256 >> mc.options.viewDistance);
+	if (mc.options.viewDistance == 4)
+		renderDistance = 512.0f;
+	else
+		renderDistance = static_cast<float>(256 >> mc.options.viewDistance);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -548,7 +551,7 @@ void GameRenderer::renderLevel(float a, long_t deadline)
 		setupCamera(a, eye);
 		Frustum::getFrustum();
 
-		if (mc.options.viewDistance < 2)
+		if (mc.options.viewDistance < 2 || mc.options.viewDistance == 4)
 		{
 			setupFog(-1);
 			levelRenderer.renderSky(a);
@@ -871,7 +874,9 @@ void GameRenderer::setupClearColor(float a)
 	auto &level = mc.level;
 	auto &player = mc.player;
 
-	float dist = 1.0f / (4 - mc.options.viewDistance);
+	float factor = (mc.options.viewDistance == 4) ? 5.0f : static_cast<float>(4 - mc.options.viewDistance);
+	if (factor < 1.0f) factor = 1.0f;
+	float dist = 1.0f / factor;
 	dist = 1.0f - static_cast<float>(std::pow(dist, 0.25));
 
 	Vec3 *skyColor = level->getSkyColor(*mc.player, a);

@@ -141,6 +141,10 @@ void Font::draw(const jstring &str, int_t x, int_t y, int_t color, bool darken)
 	
 	glColor4f(r, g, b, a);
 	
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_ALPHA_TEST);
+
 	ib.clear();
 	glPushMatrix();
 	glTranslatef(x, y, 0.0f);
