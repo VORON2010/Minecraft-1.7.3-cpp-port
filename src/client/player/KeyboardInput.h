@@ -20,6 +20,9 @@ public:
 private:
 	std::array<bool, 11> keys = {};
 	Options &options;
+	int_t sprintTriggerTime = 0;
+	bool wasForwardKeyDown = false;
+	bool sprintActive = false;
 
 public:
 	KeyboardInput(Options &options);

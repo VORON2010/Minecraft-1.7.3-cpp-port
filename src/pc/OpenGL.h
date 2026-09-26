@@ -1,6 +1,27 @@
 #pragma once
+#ifdef __ANDROID__
+#define GL_GLEXT_PROTOTYPES 1
+#include <GL/gl.h>
+#include <GL/glext.h>
 
+#ifndef GL_SAMPLES_PASSED
+#define GL_SAMPLES_PASSED 0x8914
+#endif
+#ifndef GL_QUERY_RESULT_AVAILABLE
+#define GL_QUERY_RESULT_AVAILABLE 0x8867
+#endif
+#ifndef GL_QUERY_RESULT
+#define GL_QUERY_RESULT 0x8866
+#endif
+#define glGenQueries(n, ids) do {} while(0)
+#define glDeleteQueries(n, ids) do {} while(0)
+#define glBeginQuery(target, id) do {} while(0)
+#define glEndQuery(target) do {} while(0)
+#define glGetQueryObjectuiv(id, pname, params) do { *(params) = 1; } while(0)
+
+#else
 #include <glad/glad.h>
+#endif
 
 #if defined(B173_GL_TRACE)
 #include "GLTrace.h"

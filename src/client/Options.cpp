@@ -277,6 +277,8 @@ void Options::load()
 			ambientOcclusion = value == "true";
 		if (key == "advancedOpengl")
 			advancedOpengl = value == "true";
+		if (key == "doubleTapSprint")
+			doubleTapSprint = value == "true";
 		if (key == "difficulty")
 			difficulty = std::stoi(value);
 		if (key == "fancyGraphics")
@@ -325,6 +327,7 @@ void Options::save()
 	*os << "guiScale:" << guiScale << '\n';
 	*os << "ao:" << ambientOcclusion << '\n';
 	*os << "advancedOpengl:" << advancedOpengl << '\n';
+	*os << "doubleTapSprint:" << doubleTapSprint << '\n';
 	*os << "difficulty:" << difficulty << '\n';
 	*os << "fancyGraphics:" << fancyGraphics << '\n';
 	*os << "skin:" << String::toUTF8(skin) << '\n';

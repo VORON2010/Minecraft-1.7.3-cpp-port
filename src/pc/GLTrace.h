@@ -6,7 +6,11 @@
 #include <cstdint>
 #include <type_traits>
 
+#ifdef __ANDROID__
+#include <GL/gl.h>
+#else
 #include <glad/glad.h>
+#endif
 
 namespace GLTrace
 {

@@ -4,6 +4,8 @@
 
 #include "client/renderer/Tesselator.h"
 #include <algorithm>
+#include "util/Mth.h"
+#include "client/Options.h"
 #include "world/level/tile/Tile.h"
 #include "world/level/tile/FireTile.h"
 
@@ -256,6 +258,60 @@ void EntityRenderer::postRender(Entity &entity, double x, double y, double z, fl
 
 	if (entity.isOnFire())
 		renderFlame(entity, x, y, z, a);
+
+	if (entityRenderDispatcher.options != nullptr && entityRenderDispatcher.options->showHitboxes)
+	{
+		glDisable(GL_TEXTURE_2D);
+		glDisable(GL_LIGHTING);
+		glDisable(GL_CULL_FACE);
+		glDepthMask(false);
+		glLineWidth(2.0f);
+
+		double x0 = entity.bb.x0 - entity.x + x;
+		double y0 = entity.bb.y0 - entity.y + y;
+		double z0 = entity.bb.z0 - entity.z + z;
+		double x1 = entity.bb.x1 - entity.x + x;
+		double y1 = entity.bb.y1 - entity.y + y;
+		double z1 = entity.bb.z1 - entity.z + z;
+
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		glBegin(GL_LINES);
+		glVertex3d(x0, y0, z0); glVertex3d(x1, y0, z0);
+		glVertex3d(x1, y0, z0); glVertex3d(x1, y0, z1);
+		glVertex3d(x1, y0, z1); glVertex3d(x0, y0, z1);
+		glVertex3d(x0, y0, z1); glVertex3d(x0, y0, z0);
+
+		glVertex3d(x0, y1, z0); glVertex3d(x1, y1, z0);
+		glVertex3d(x1, y1, z0); glVertex3d(x1, y1, z1);
+		glVertex3d(x1, y1, z1); glVertex3d(x0, y1, z1);
+		glVertex3d(x0, y1, z1); glVertex3d(x0, y1, z0);
+
+		glVertex3d(x0, y0, z0); glVertex3d(x0, y1, z0);
+		glVertex3d(x1, y0, z0); glVertex3d(x1, y1, z0);
+		glVertex3d(x1, y0, z1); glVertex3d(x1, y1, z1);
+		glVertex3d(x0, y0, z1); glVertex3d(x0, y1, z1);
+
+		glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
+		double eyeY = y + entity.getHeadHeight();
+		glVertex3d(x0, eyeY, z0); glVertex3d(x1, eyeY, z0);
+		glVertex3d(x1, eyeY, z0); glVertex3d(x1, eyeY, z1);
+		glVertex3d(x1, eyeY, z1); glVertex3d(x0, eyeY, z1);
+		glVertex3d(x0, eyeY, z1); glVertex3d(x0, eyeY, z0);
+
+		double lookX = -Mth::sin(entity.yRot * Mth::PI / 180.0f) * Mth::cos(entity.xRot * Mth::PI / 180.0f) * 2.0;
+		double lookY = -Mth::sin(entity.xRot * Mth::PI / 180.0f) * 2.0;
+		double lookZ = Mth::cos(entity.yRot * Mth::PI / 180.0f) * Mth::cos(entity.xRot * Mth::PI / 180.0f) * 2.0;
+		glColor4f(0.0f, 0.3f, 1.0f, 1.0f);
+		glVertex3d(x, eyeY, z);
+		glVertex3d(x + lookX, eyeY + lookY, z + lookZ);
+		glEnd();
+
+		glLineWidth(1.0f);
+		glDepthMask(true);
+		glEnable(GL_TEXTURE_2D);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_CULL_FACE);
+	}
 }
 
 Font &EntityRenderer::getFont()

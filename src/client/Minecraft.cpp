@@ -1087,8 +1087,26 @@ void Minecraft::tick()
 						options.showDebugInfo = !options.showDebugInfo;
 					if (lwjgl::Keyboard::getEventKey() == lwjgl::Keyboard::KEY_S && lwjgl::Keyboard::isKeyDown(lwjgl::Keyboard::KEY_F3))
 						reloadSound();
+					if ((lwjgl::Keyboard::getEventKey() == lwjgl::Keyboard::KEY_B && lwjgl::Keyboard::isKeyDown(lwjgl::Keyboard::KEY_F4)) ||
+					    (lwjgl::Keyboard::getEventKey() == lwjgl::Keyboard::KEY_F4 && lwjgl::Keyboard::isKeyDown(lwjgl::Keyboard::KEY_B)))
+					{
+						options.showHitboxes = !options.showHitboxes;
+						SPCCommand::addMessage(options.showHitboxes ? u"[Debug]: Hitboxes: shown" : u"[Debug]: Hitboxes: hidden");
+					}
+					if ((lwjgl::Keyboard::getEventKey() == lwjgl::Keyboard::KEY_N && lwjgl::Keyboard::isKeyDown(lwjgl::Keyboard::KEY_F4)) ||
+					    (lwjgl::Keyboard::getEventKey() == lwjgl::Keyboard::KEY_F4 && lwjgl::Keyboard::isKeyDown(lwjgl::Keyboard::KEY_N)))
+					{
+						options.advancedItemTooltips = !options.advancedItemTooltips;
+						SPCCommand::addMessage(options.advancedItemTooltips ? u"[Debug]: Advanced tooltips: shown" : u"[Debug]: Advanced tooltips: hidden");
+					}
+					if ((lwjgl::Keyboard::getEventKey() == lwjgl::Keyboard::KEY_N && lwjgl::Keyboard::isKeyDown(lwjgl::Keyboard::KEY_F6)) ||
+					    (lwjgl::Keyboard::getEventKey() == lwjgl::Keyboard::KEY_F6 && lwjgl::Keyboard::isKeyDown(lwjgl::Keyboard::KEY_N)))
+					{
+						options.showRecipeButton = !options.showRecipeButton;
+						SPCCommand::addMessage(options.showRecipeButton ? u"[Debug]: Recipe button: shown" : u"[Debug]: Recipe button: hidden");
+					}
 					if (lwjgl::Keyboard::getEventKey() == lwjgl::Keyboard::KEY_F5)
-						options.thirdPersonView = !options.thirdPersonView;
+						options.thirdPersonView = (options.thirdPersonView + 1) % 2;
 					if (lwjgl::Keyboard::getEventKey() == lwjgl::Keyboard::KEY_F8)
 						options.smoothCamera = !options.smoothCamera;
 					if (lwjgl::Keyboard::getEventKey() == options.keyDrop.key && player != nullptr)
@@ -1395,6 +1413,15 @@ void Minecraft::setLevel(std::shared_ptr<Level> level, const jstring &title, std
 
 
 		level->loadPlayer(this->player);
+		if (this->player->gameType == 1 && !gameMode->isCreativeMode()) {
+			gameMode = std::make_shared<CreativeMode>(*this);
+			gameMode->initPlayer(this->player);
+			gameMode->adjustPlayer(this->player);
+		} else if (this->player->gameType == 0 && gameMode->isCreativeMode()) {
+			gameMode = std::make_shared<SurvivalMode>(*this);
+			gameMode->initPlayer(this->player);
+			gameMode->adjustPlayer(this->player);
+		}
 
 		if (level->isNew)
 			level->forceSave(progressRenderer);
@@ -1481,6 +1508,15 @@ void Minecraft::respawnPlayer(int_t dimension)
 	this->player->resetPos();
 	gameMode->initPlayer(this->player);
 	level->loadPlayer(this->player);
+	if (this->player->gameType == 1 && !gameMode->isCreativeMode()) {
+		gameMode = std::make_shared<CreativeMode>(*this);
+		gameMode->initPlayer(this->player);
+		gameMode->adjustPlayer(this->player);
+	} else if (this->player->gameType == 0 && gameMode->isCreativeMode()) {
+		gameMode = std::make_shared<SurvivalMode>(*this);
+		gameMode->initPlayer(this->player);
+		gameMode->adjustPlayer(this->player);
+	}
 	this->player->input = std::make_unique<KeyboardInput>(options);
 	this->player->entityId = entityId;
 	this->player->animateRespawn();

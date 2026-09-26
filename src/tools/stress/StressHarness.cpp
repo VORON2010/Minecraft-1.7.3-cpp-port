@@ -97,7 +97,7 @@ void validateOptions(const Options &options)
 	if (options.frames < 0 || options.frames > 1000000 || options.warmupFrames < 0 ||
 		options.warmupFrames > 1000000 || options.tickInterval < 1 || options.tickInterval > 1000000 ||
 		options.sampleEvery < 1 || options.sampleEvery > 1000000 ||
-		options.viewDistance < 0 || options.viewDistance > 3 || options.fancyGraphics < 0 || options.fancyGraphics > 1)
+		options.viewDistance < 0 || options.viewDistance > 4 || options.fancyGraphics < 0 || options.fancyGraphics > 1)
 		throw std::invalid_argument("Out-of-range runner option");
 	const std::map<std::string, std::vector<std::string>> keys = {
 		{ "idle", {} }, { "spin", { "rate" } }, { "walk", { "radius" } },

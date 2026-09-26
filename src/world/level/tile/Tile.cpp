@@ -352,8 +352,8 @@ void Tile::initTiles()
 	rose.setDescriptionId(u"tile.rose");
 	brownMushroom.setDescriptionId(u"tile.mushroom");
 	redMushroom.setDescriptionId(u"tile.mushroom");
-	slabDouble.setDescriptionId(u"tile.stoneSlab.stone");
-	slabSingle.setDescriptionId(u"tile.stoneSlab.stone");
+	slabDouble.setDescriptionId(u"tile.stoneSlab");
+	slabSingle.setDescriptionId(u"tile.stoneSlab");
 	mossyCobblestone.setDescriptionId(u"tile.stoneMoss");
 	obsidian.setDescriptionId(u"tile.obsidian");
 	diamondOre.setDescriptionId(u"tile.oreDiamond");

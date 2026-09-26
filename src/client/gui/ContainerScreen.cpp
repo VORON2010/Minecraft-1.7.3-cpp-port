@@ -1,6 +1,7 @@
 #include "client/gui/ContainerScreen.h"
 
 #include "client/Minecraft.h"
+#include "client/Options.h"
 #include "client/locale/Language.h"
 #include "world/entity/player/Player.h"
 #include "world/item/Item.h"
@@ -43,6 +44,29 @@ jstring ContainerScreen::getTooltipName(const ItemInstance &stack)
 	while (end > start && static_cast<uchar_t>(name[end - 1]) <= u' ')
 		end--;
 	return name.substr(start, end - start);
+}
+
+std::vector<jstring> ContainerScreen::getTooltipLines(const ItemInstance &stack, const Options *options)
+{
+	std::vector<jstring> lines;
+	jstring name = getTooltipName(stack);
+	if (!name.empty())
+		lines.push_back(name);
+
+	if (options != nullptr && options->advancedItemTooltips)
+	{
+		Item *item = stack.getItem();
+		if (item != nullptr && item->getMaxDamage() > 0)
+		{
+			int_t remaining = item->getMaxDamage() - stack.itemDamage;
+			lines.push_back(u"Durability: " + String::toString(remaining) + u" / " + String::toString(item->getMaxDamage()));
+		}
+		jstring idStr = u"#" + String::toString(stack.itemID);
+		if (stack.itemDamage != 0)
+			idStr += u"/" + String::toString(stack.itemDamage);
+		lines.push_back(idStr);
+	}
+	return lines;
 }
 
 void ContainerScreen::tick()

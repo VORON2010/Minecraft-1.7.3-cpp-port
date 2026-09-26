@@ -478,6 +478,7 @@ void Player::readAdditionalSaveData(CompoundTag &tag)
 {
 	Mob::readAdditionalSaveData(tag);
 	dimension = tag.getInt(u"Dimension");
+	gameType = tag.getInt(u"GameType");
 	auto inventoryTag = tag.getList(u"Inventory");
 	if (inventoryTag != nullptr)
 		inventory.load(*inventoryTag);
@@ -518,6 +519,7 @@ void Player::addAdditionalSaveData(CompoundTag &tag)
 {
 	Mob::addAdditionalSaveData(tag);
 	tag.putInt(u"Dimension", dimension);
+	tag.putInt(u"GameType", gameType);
 	auto inventoryTag = std::make_shared<ListTag>();
 	inventory.save(*inventoryTag);
 	tag.put(u"Inventory", inventoryTag);

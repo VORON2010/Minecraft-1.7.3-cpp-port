@@ -107,6 +107,8 @@ set(McBetaCpp_SOURCES
 	"src/client/gui/Screen.h"
 	"src/client/gui/ContainerScreen.cpp"
 	"src/client/gui/ContainerScreen.h"
+	"src/client/gui/RecipeScreen.cpp"
+	"src/client/gui/RecipeScreen.h"
 	"src/client/gui/ScreenSizeCalculator.cpp"
 	"src/client/gui/ScreenSizeCalculator.h"
 	"src/client/gui/SelectWorldScreen.cpp"
@@ -962,15 +964,26 @@ add_library(McBetaCppCore OBJECT
 	"src/pc/lwjgl/Mouse.h"
 )
 
-add_executable(McBetaCpp WIN32 "src/pc/Main.cpp")
+if (ANDROID)
+	add_library(McBetaCpp SHARED "src/pc/Main.cpp")
+else()
+	add_executable(McBetaCpp WIN32 "src/pc/Main.cpp")
+endif()
 target_link_libraries(McBetaCpp PRIVATE McBetaCppCore)
 
+if (NOT ANDROID)
 add_executable(McBetaCppStress EXCLUDE_FROM_ALL
 	"src/tools/stress/StressMain.cpp"
 	"src/tools/stress/StressHarness.cpp"
 	"src/tools/stress/Scenarios.cpp"
 )
 target_link_libraries(McBetaCppStress PRIVATE McBetaCppCore)
+set_target_properties(McBetaCppStress PROPERTIES
+	CXX_STANDARD 14
+	CXX_STANDARD_REQUIRED YES
+	CXX_EXTENSIONS NO
+)
+endif()
 target_include_directories(McBetaCppCore PUBLIC "src/pc")
 
 target_include_directories(McBetaCppCore PUBLIC "src")
@@ -1002,8 +1015,16 @@ elseif(UNIX)
 	target_compile_definitions(McBetaCppCore PUBLIC MC_LINUX)
 endif()
 
+if (ANDROID)
+	target_sources(McBetaCppCore PRIVATE
+		"src/pc/linux/java/File.cpp"
+		"src/pc/linux/java/Resource.cpp"
+		"src/pc/linux/java/Runtime.cpp"
+	)
+endif()
+
 # Use C++14
-set_target_properties(McBetaCppCore McBetaCpp McBetaCppStress PROPERTIES
+set_target_properties(McBetaCppCore McBetaCpp PROPERTIES
 	CXX_STANDARD 14
 	CXX_STANDARD_REQUIRED YES
 	CXX_EXTENSIONS NO
@@ -1034,6 +1055,12 @@ endif()
 add_subdirectory("external/glad" EXCLUDE_FROM_ALL)
 target_link_libraries(McBetaCppCore PUBLIC glad)
 
+if (ANDROID)
+    add_subdirectory("external/gl4es" EXCLUDE_FROM_ALL)
+    target_link_libraries(McBetaCppCore PUBLIC GL)
+    target_include_directories(McBetaCppCore PUBLIC "external/gl4es/include")
+endif()
+
 add_subdirectory("external/SDL2" EXCLUDE_FROM_ALL)
 target_link_libraries(McBetaCppCore PUBLIC SDL2-static)
 
@@ -1057,17 +1084,25 @@ target_include_directories(McBetaCppCore PUBLIC "external/openal-soft/include")
 # Link OpenAL
 if(WIN32)
 	target_link_libraries(McBetaCppCore PUBLIC OpenAL ws2_32)
+elseif(ANDROID)
+	target_link_libraries(McBetaCppCore PUBLIC OpenAL)
 else()
 	target_link_libraries(McBetaCppCore PUBLIC openal)
 endif()
 
 # Output to bin/ directory
 set(B173_OUTPUT_SUFFIX "" CACHE STRING "Suffix appended to executable names, for side-by-side variant builds")
-set_target_properties(McBetaCpp McBetaCppStress PROPERTIES
-	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
-	OUTPUT_NAME "McBetaCpp${B173_OUTPUT_SUFFIX}"
-)
-set_target_properties(McBetaCppStress PROPERTIES OUTPUT_NAME "McBetaCppStress${B173_OUTPUT_SUFFIX}")
+if (ANDROID)
+	set_target_properties(McBetaCpp PROPERTIES
+		OUTPUT_NAME "main"
+	)
+else()
+	set_target_properties(McBetaCpp McBetaCppStress PROPERTIES
+		RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
+		OUTPUT_NAME "McBetaCpp${B173_OUTPUT_SUFFIX}"
+	)
+	set_target_properties(McBetaCppStress PROPERTIES OUTPUT_NAME "McBetaCppStress${B173_OUTPUT_SUFFIX}")
+endif()
 
 # Shared runtime files are copied once when either executable is requested.
 if(WIN32)
@@ -1086,7 +1121,9 @@ else()
 	)
 endif()
 add_dependencies(McBetaCpp McBetaCppResources)
+if(NOT ANDROID)
 add_dependencies(McBetaCppStress McBetaCppResources)
+endif()
 
 
 

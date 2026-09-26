@@ -40,7 +40,7 @@
 
 LevelRenderer::LevelRenderer(Minecraft &mc, Textures &textures) : mc(mc), textures(textures)
 {
-	int_t maxChunksWidth = 64;
+	int_t maxChunksWidth = 72;
 	chunkLists = MemoryTracker::genLists(maxChunksWidth * maxChunksWidth * maxChunksWidth * 3);
 	occlusionCheck = false;
 
@@ -191,8 +191,17 @@ void LevelRenderer::allChanged()
 		chunk->remove();
 	chunks.clear();
 
-	int_t dist = 64 << (3 - lastViewDistance);
-	if (dist > 400) dist = 400;
+	int_t dist;
+	if (lastViewDistance == 4)
+		dist = 1024;
+	else if (lastViewDistance == 0)
+		dist = 512;
+	else if (lastViewDistance == 1)
+		dist = 256;
+	else if (lastViewDistance == 2)
+		dist = 128;
+	else
+		dist = 64;
 
 	xChunks = dist / 16 + 1;
 	yChunks = 8;
@@ -601,8 +610,15 @@ int_t LevelRenderer::renderChunks(int_t from, int_t to, int_t layer, double alph
 
 		if (list < 0)
 		{
-			list = lists++;
-			renderLists[list].init(chunk->xRender, chunk->yRender, chunk->zRender, layer, xOff, yOff, zOff);
+			if (lists < static_cast<int_t>(renderLists.size()))
+			{
+				list = lists++;
+				renderLists[list].init(chunk->xRender, chunk->yRender, chunk->zRender, layer, xOff, yOff, zOff);
+			}
+			else
+			{
+				list = 0;
+			}
 		}
 
 		renderLists[list].add(chunk.get());

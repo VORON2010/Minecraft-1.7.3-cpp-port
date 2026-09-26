@@ -10,9 +10,10 @@ private:
     float scrollPosition = 0.0f;
     int_t guiLeft = 0;
     int_t guiTop = 0;
+    bool isDragging = false;
 
     static constexpr int_t COLUMNS = 8;
-    static constexpr int_t ROWS = 8;
+    static constexpr int_t ROWS = 7;
     static constexpr int_t SLOTS_PER_PAGE = COLUMNS * ROWS;
 
 public:

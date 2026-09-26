@@ -59,11 +59,13 @@ protected:
 public:
 	InventoryScreen(Minecraft &minecraft, int_t craftingWidth = 2, int_t craftingHeight = 2);
 
+	void init() override;
 	void render(int_t xm, int_t ym, float a) override;
 	bool isPauseScreen() override;
 	void removed() override;
 
 protected:
+	void buttonClicked(Button &button) override;
 	void keyPressed(char_t eventCharacter, int_t eventKey) override;
 	void mouseClicked(int_t x, int_t y, int_t buttonNum) override;
 };

@@ -614,6 +614,7 @@ void SPCCommand::execute(Minecraft &mc, const jstring &input)
 		{
 			mc.gameMode = std::make_shared<CreativeMode>(mc);
 			if (mc.player) {
+				mc.player->gameType = 1;
 				mc.gameMode->initPlayer(mc.player);
 				addMessage(u"Game mode updated to Creative");
 			}
@@ -622,6 +623,7 @@ void SPCCommand::execute(Minecraft &mc, const jstring &input)
 		{
 			mc.gameMode = std::make_shared<SurvivalMode>(mc);
 			if (mc.player) {
+				mc.player->gameType = 0;
 				mc.gameMode->initPlayer(mc.player);
 				addMessage(u"Game mode updated to Survival");
 			}

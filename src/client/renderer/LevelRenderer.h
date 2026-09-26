@@ -83,7 +83,7 @@ private:
 	int_t chunkFixOffs = 0;
 
 	std::vector<std::shared_ptr<Chunk>> renderChunksList;
-	std::array<OffsettedRenderList, 4> renderLists = {};
+	std::array<OffsettedRenderList, 32> renderLists = {};
 
 public:
 	int_t frame = 0;

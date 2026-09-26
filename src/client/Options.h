@@ -111,6 +111,10 @@ public:
 	bool hideGui = false;
 	bool thirdPersonView = false;
 	bool showDebugInfo = false;
+	bool showHitboxes = false;
+	bool advancedItemTooltips = false;
+	bool showRecipeButton = true;
+	bool doubleTapSprint = true;
 	bool smoothCamera = false;
 
 	jstring username = u"";
