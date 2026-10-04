@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/gui/RecipeScreen.h"
 
 #include <algorithm>
@@ -326,12 +327,12 @@ void RecipeScreen::render(int_t xm, int_t ym, float a)
 		jstring pageStr = u"Page " + String::toString(browsePage + 1) + u" / " + String::toString(maxPages);
 		drawCenteredString(font, pageStr, width / 2, topPos + 122, 0xAAAAAA);
 
-		glPushMatrix();
-		glRotatef(120.0f, 1.0f, 0.0f, 0.0f);
+		VulkanMatrixStack::get().pushMatrix();
+		VulkanMatrixStack::get().rotatef(120.0f, 1.0f, 0.0f, 0.0f);
 		Lighting::turnOn();
-		glPopMatrix();
+		VulkanMatrixStack::get().popMatrix();
 
-		glPushMatrix();
+		VulkanMatrixStack::get().pushMatrix();
 		glEnable(GL_RESCALE_NORMAL);
 		glEnable(GL_LIGHTING);
 		glEnable(GL_DEPTH_TEST);
@@ -357,7 +358,7 @@ void RecipeScreen::render(int_t xm, int_t ym, float a)
 		Lighting::turnOff();
 		glDisable(GL_LIGHTING);
 		glDisable(GL_DEPTH_TEST);
-		glPopMatrix();
+		VulkanMatrixStack::get().popMatrix();
 	}
 	else if (!filteredIndices.empty())
 	{
@@ -393,12 +394,12 @@ void RecipeScreen::render(int_t xm, int_t ym, float a)
 		drawString(font, countStr, leftPos + 10, topPos + 100, 0xAAAAAA);
 		drawString(font, u"Hint: click ingredient to view recipe", leftPos + 10, topPos + 116, 0x888888);
 
-		glPushMatrix();
-		glRotatef(120.0f, 1.0f, 0.0f, 0.0f);
+		VulkanMatrixStack::get().pushMatrix();
+		VulkanMatrixStack::get().rotatef(120.0f, 1.0f, 0.0f, 0.0f);
 		Lighting::turnOn();
-		glPopMatrix();
+		VulkanMatrixStack::get().popMatrix();
 
-		glPushMatrix();
+		VulkanMatrixStack::get().pushMatrix();
 		glEnable(GL_RESCALE_NORMAL);
 		glEnable(GL_LIGHTING);
 		glEnable(GL_DEPTH_TEST);
@@ -451,7 +452,7 @@ void RecipeScreen::render(int_t xm, int_t ym, float a)
 		Lighting::turnOff();
 		glDisable(GL_LIGHTING);
 		glDisable(GL_DEPTH_TEST);
-		glPopMatrix();
+		VulkanMatrixStack::get().popMatrix();
 	}
 
 	Screen::render(xm, ym, a);

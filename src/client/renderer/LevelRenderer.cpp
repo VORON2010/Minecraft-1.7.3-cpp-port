@@ -1,3 +1,5 @@
+#include "pc/OpenGL.h"
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/renderer/LevelRenderer.h"
 
 #include <algorithm>
@@ -46,13 +48,13 @@ LevelRenderer::LevelRenderer(Minecraft &mc, Textures &textures) : mc(mc), textur
 
 	starList = MemoryTracker::genLists(3);
 	
-	glPushMatrix();
+	VulkanMatrixStack::get().pushMatrix();
 
 	glNewList(starList, GL_COMPILE);
 	renderStars();
 	glEndList();
 	
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 
 	Tesselator &t = Tesselator::instance;
 	skyList = starList + 1;
@@ -336,20 +338,20 @@ void LevelRenderer::renderEntities(Vec3 &cam, Culler &culler, float a)
 			{
 				float brightness = level->getBrightness(spawnerEntity->x, spawnerEntity->y, spawnerEntity->z);
 				glColor3f(brightness, brightness, brightness);
-				glPushMatrix();
-				glTranslatef(
+				VulkanMatrixStack::get().pushMatrix();
+				VulkanMatrixStack::get().translatef(
 					static_cast<float>(spawnerEntity->x - EntityRenderDispatcher::xOff) + 0.5f,
 					static_cast<float>(spawnerEntity->y - EntityRenderDispatcher::yOff),
 					static_cast<float>(spawnerEntity->z - EntityRenderDispatcher::zOff) + 0.5f);
 				float s = 7.0f / 16.0f;
-				glTranslatef(0.0f, 0.4f, 0.0f);
-				glRotatef(static_cast<float>(spawnerEntity->oSpin + (spawnerEntity->spin - spawnerEntity->oSpin) * a) * 10.0f, 0.0f, 1.0f, 0.0f);
-				glRotatef(-30.0f, 1.0f, 0.0f, 0.0f);
-				glTranslatef(0.0f, -0.4f, 0.0f);
-				glScalef(s, s, s);
+				VulkanMatrixStack::get().translatef(0.0f, 0.4f, 0.0f);
+				VulkanMatrixStack::get().rotatef(static_cast<float>(spawnerEntity->oSpin + (spawnerEntity->spin - spawnerEntity->oSpin) * a) * 10.0f, 0.0f, 1.0f, 0.0f);
+				VulkanMatrixStack::get().rotatef(-30.0f, 1.0f, 0.0f, 0.0f);
+				VulkanMatrixStack::get().translatef(0.0f, -0.4f, 0.0f);
+				VulkanMatrixStack::get().scalef(s, s, s);
 				displayMob->moveTo(spawnerEntity->x, spawnerEntity->y, spawnerEntity->z, 0.0f, 0.0f);
 				EntityRenderDispatcher::instance.render(*displayMob, 0.0, 0.0, 0.0, 0.0f, a);
-				glPopMatrix();
+				VulkanMatrixStack::get().popMatrix();
 			}
 		}
 	}
@@ -687,10 +689,10 @@ void LevelRenderer::renderSky(float alpha)
 		glDisable(GL_TEXTURE_2D);
 		glShadeModel(GL_SMOOTH);
 
-		glPushMatrix();
-		glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+		VulkanMatrixStack::get().pushMatrix();
+		VulkanMatrixStack::get().rotatef(90.0f, 1.0f, 0.0f, 0.0f);
 		yp = level->getTimeOfDay(alpha);
-		glRotatef(yp > 0.5F ? 180.0f : 0.0f, 0.0f, 0.0f, 1.0f);
+		VulkanMatrixStack::get().rotatef(yp > 0.5F ? 180.0f : 0.0f, 0.0f, 0.0f, 1.0f);
 
 		t.begin(GL_TRIANGLE_FAN);
 		t.color(c[0], c[1], c[2], c[3]);
@@ -707,14 +709,14 @@ void LevelRenderer::renderSky(float alpha)
 		}
 
 		t.end();
-		glPopMatrix();
+		VulkanMatrixStack::get().popMatrix();
 		glShadeModel(GL_FLAT);
 	}
 
 	
 	glEnable(GL_TEXTURE_2D);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-	glPushMatrix();
+	VulkanMatrixStack::get().pushMatrix();
 	
 	xp = 0.0f;
 	yp = 0.0f;
@@ -722,9 +724,9 @@ void LevelRenderer::renderSky(float alpha)
 	
 	float weatherAlpha = 1.0f - level->getRainStrength(alpha);
 	glColor4f(1.0f, 1.0f, 1.0f, weatherAlpha);
-	glTranslatef(xp, yp, zp);
-	glRotatef(0.0f, 0.0f, 0.0f, 1.0f);
-	glRotatef(level->getTimeOfDay(alpha) * 360.0f, 1.0f, 0.0f, 0.0f);
+	VulkanMatrixStack::get().translatef(xp, yp, zp);
+	VulkanMatrixStack::get().rotatef(0.0f, 0.0f, 0.0f, 1.0f);
+	VulkanMatrixStack::get().rotatef(level->getTimeOfDay(alpha) * 360.0f, 1.0f, 0.0f, 0.0f);
 	
 	float ss = 30.0f;
 
@@ -759,7 +761,7 @@ void LevelRenderer::renderSky(float alpha)
 	glDisable(GL_BLEND);
 	glEnable(GL_ALPHA_TEST);
 	glEnable(GL_FOG);
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 
 	if (level->dimension->foggy)
 		glColor3f(sr * 0.2f + 0.04f, sg * 0.2f + 0.04f, sb * 0.6f + 0.1f);
@@ -894,7 +896,7 @@ void LevelRenderer::renderAdvancedClouds(float alpha)
 	int_t radius = 3;
 	float e = 1.0f / 1024.0f;
 
-	glScalef(ss, 1.0f, ss);
+	VulkanMatrixStack::get().scalef(ss, 1.0f, ss);
 
 	for (int_t pass = 0; pass < 2; pass++)
 	{
@@ -1150,7 +1152,7 @@ void LevelRenderer::renderHit(Player &player, HitResult &h, int_t mode, ItemInst
 			glBindTexture(GL_TEXTURE_2D, id);
 			glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
 
-			glPushMatrix();
+			VulkanMatrixStack::get().pushMatrix();
 
 			int_t tileId = level->getTile(h.x, h.y, h.z);
 			Tile *tile = (tileId > 0) ? Tile::tiles[tileId] : nullptr;
@@ -1181,7 +1183,7 @@ void LevelRenderer::renderHit(Player &player, HitResult &h, int_t mode, ItemInst
 			glEnable(GL_ALPHA_TEST);
 			glDepthMask(true);
 
-			glPopMatrix();
+			VulkanMatrixStack::get().popMatrix();
 		}
 	}
 

@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/gui/DeathScreen.h"
 
 #include "client/Minecraft.h"
@@ -42,10 +43,10 @@ void DeathScreen::render(int_t xm, int_t ym, float a)
 {
 	fillGradient(0, 0, width, height, 0x60500000, 0xA0803030);
 
-	glPushMatrix();
-	glScalef(2.0f, 2.0f, 2.0f);
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().scalef(2.0f, 2.0f, 2.0f);
 	drawCenteredString(font, u"Game over!", width / 4, 30, 0xFFFFFF);
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 
 	jstring scoreText = u"Score: &e" + String::toString(minecraft.player->score);
 	drawCenteredString(font, scoreText, width / 2, 100, 0xFFFFFF);

@@ -1,3 +1,5 @@
+#include "pc/OpenGL.h"
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/model/Cube.h"
 
 #include "client/MemoryTracker.h"
@@ -114,20 +116,20 @@ void Cube::render(float scale)
 
 	if (xRot != 0.0f || yRot != 0.0f || zRot != 0.0f)
 	{
-		glPushMatrix();
-		glTranslatef(x * scale, y * scale, z * scale);
-		if (zRot != 0.0f) glRotatef(zRot * c, 0.0f, 0.0f, 1.0f);
-		if (yRot != 0.0f) glRotatef(yRot * c, 0.0f, 1.0f, 0.0f);
-		if (xRot != 0.0f) glRotatef(xRot * c, 1.0f, 0.0f, 0.0f);
+		VulkanMatrixStack::get().pushMatrix();
+		VulkanMatrixStack::get().translatef(x * scale, y * scale, z * scale);
+		if (zRot != 0.0f) VulkanMatrixStack::get().rotatef(zRot * c, 0.0f, 0.0f, 1.0f);
+		if (yRot != 0.0f) VulkanMatrixStack::get().rotatef(yRot * c, 0.0f, 1.0f, 0.0f);
+		if (xRot != 0.0f) VulkanMatrixStack::get().rotatef(xRot * c, 1.0f, 0.0f, 0.0f);
 		glCallList(list);
-		glPopMatrix();
+		VulkanMatrixStack::get().popMatrix();
 	}
 	else if (x != 0.0f || y != 0.0f || z != 0.0f)
 	{
-		glPushMatrix();
-		glTranslatef(x * scale, y * scale, z * scale);
+		VulkanMatrixStack::get().pushMatrix();
+		VulkanMatrixStack::get().translatef(x * scale, y * scale, z * scale);
 		glCallList(list);
-		glPopMatrix();
+		VulkanMatrixStack::get().popMatrix();
 	}
 	else
 	{
@@ -143,14 +145,14 @@ void Cube::translateTo(float scale)
 
 	if (xRot != 0.0f || yRot != 0.0f || zRot != 0.0f)
 	{
-		glTranslatef(x * scale, y * scale, z * scale);
-		if (zRot != 0.0f) glRotatef(zRot * c, 0.0f, 0.0f, 1.0f);
-		if (yRot != 0.0f) glRotatef(yRot * c, 0.0f, 1.0f, 0.0f);
-		if (xRot != 0.0f) glRotatef(xRot * c, 1.0f, 0.0f, 0.0f);
+		VulkanMatrixStack::get().translatef(x * scale, y * scale, z * scale);
+		if (zRot != 0.0f) VulkanMatrixStack::get().rotatef(zRot * c, 0.0f, 0.0f, 1.0f);
+		if (yRot != 0.0f) VulkanMatrixStack::get().rotatef(yRot * c, 0.0f, 1.0f, 0.0f);
+		if (xRot != 0.0f) VulkanMatrixStack::get().rotatef(xRot * c, 1.0f, 0.0f, 0.0f);
 	}
 	else if (x != 0.0f || y != 0.0f || z != 0.0f)
 	{
-		glTranslatef(x * scale, y * scale, z * scale);
+		VulkanMatrixStack::get().translatef(x * scale, y * scale, z * scale);
 	}
 }
 

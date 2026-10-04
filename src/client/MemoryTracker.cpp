@@ -1,13 +1,14 @@
 #include "MemoryTracker.h"
 
-#include "OpenGL.h"
 
 std::vector<int_t> MemoryTracker::lists;
 std::vector<int_t> MemoryTracker::textures;
 
 int_t MemoryTracker::genLists(int_t count)
 {
-	GLint id = glGenLists(count);
+	static int_t list_counter = 1;
+	int_t id = list_counter;
+	list_counter += count;
 	lists.push_back(id);
 	lists.push_back(count);
 	return id;
@@ -15,24 +16,15 @@ int_t MemoryTracker::genLists(int_t count)
 
 void MemoryTracker::genTextures(std::vector<int_t> &ib)
 {
-	static_assert(sizeof(GLuint) == sizeof(int_t), "sizeof(GLuint) != sizeof(int_t)");
-	glGenTextures(static_cast<GLsizei>(ib.size()), reinterpret_cast<GLuint*>(ib.data()));
+	static int_t tex_counter = 1;
+	for (size_t i = 0; i < ib.size(); i++) {
+		ib[i] = tex_counter++;
+		textures.push_back(ib[i]);
+	}
 }
 
 void MemoryTracker::release()
 {
-	for (int_t i = 0; i < lists.size(); i += 2)
-		glDeleteLists(lists[i], lists[i + 1]);
-
-	auto ib = createIntBuffer(static_cast<int_t>(textures.size()));
-	
-	
-
-	for (int_t i = 0; i < textures.size(); i++)
-		ib[i] = textures[i];
-
-	glDeleteTextures(static_cast<GLsizei>(ib.size()), reinterpret_cast<GLuint*>(ib.data()));
-
 	lists.clear();
 	textures.clear();
 }

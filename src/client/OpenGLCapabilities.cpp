@@ -1,3 +1,4 @@
+#include "pc/OpenGL.h"
 #include "client/OpenGLCapabilities.h"
 
 #include "lwjgl/GLContext.h"

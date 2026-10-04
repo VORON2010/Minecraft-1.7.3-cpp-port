@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/renderer/entity/GiantRenderer.h"
 
 #include "OpenGL.h"
@@ -12,5 +13,5 @@ void GiantRenderer::scale(Mob &mob, float a)
 {
 	(void)mob;
 	(void)a;
-	glScalef(6.0f, 6.0f, 6.0f);
+	VulkanMatrixStack::get().scalef(6.0f, 6.0f, 6.0f);
 }

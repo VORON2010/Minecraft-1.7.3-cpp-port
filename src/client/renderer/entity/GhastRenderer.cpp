@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/renderer/entity/GhastRenderer.h"
 
 #include "client/model/GhastModel.h"
@@ -19,6 +20,6 @@ void GhastRenderer::scale(Mob &mobBase, float a)
 	attack = 1.0f / (attack * attack * attack * attack * attack * 2.0f + 1.0f);
 	float scaleY = (8.0f + attack) / 2.0f;
 	float scaleXZ = (8.0f + 1.0f / attack) / 2.0f;
-	glScalef(scaleXZ, scaleY, scaleXZ);
+	VulkanMatrixStack::get().scalef(scaleXZ, scaleY, scaleXZ);
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 }

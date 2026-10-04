@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/ProgressRenderer.h"
 
 #include <thread>
@@ -42,12 +43,12 @@ void ProgressRenderer::_progressStart(const jstring &title)
 	int_t screenHeight = ssc.getHeight();
 
 	glClear(GL_DEPTH_BUFFER_BIT);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0.0, screenWidth, screenHeight, 0.0, 100.0, 300.0);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glTranslatef(0.0f, 0.0f, -200.0f);
+	VulkanMatrixStack::get().matrixMode(VulkanMatrixMode::PROJECTION);
+	VulkanMatrixStack::get().loadIdentity();
+	VulkanMatrixStack::get().ortho(0.0, screenWidth, screenHeight, 0.0, 100.0, 300.0);
+	VulkanMatrixStack::get().matrixMode(VulkanMatrixMode::MODELVIEW);
+	VulkanMatrixStack::get().loadIdentity();
+	VulkanMatrixStack::get().translatef(0.0f, 0.0f, -200.0f);
 }
 
 void ProgressRenderer::progressStage(const jstring &status)
@@ -81,12 +82,12 @@ void ProgressRenderer::progressStagePercentage(int_t i)
 	int_t screenHeight = ssc.getHeight();
 
 	glClear(GL_DEPTH_BUFFER_BIT);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0.0, screenWidth, screenHeight, 0.0, 100.0, 300.0);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glTranslatef(0.0f, 0.0f, -200.0f);
+	VulkanMatrixStack::get().matrixMode(VulkanMatrixMode::PROJECTION);
+	VulkanMatrixStack::get().loadIdentity();
+	VulkanMatrixStack::get().ortho(0.0, screenWidth, screenHeight, 0.0, 100.0, 300.0);
+	VulkanMatrixStack::get().matrixMode(VulkanMatrixMode::MODELVIEW);
+	VulkanMatrixStack::get().loadIdentity();
+	VulkanMatrixStack::get().translatef(0.0f, 0.0f, -200.0f);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

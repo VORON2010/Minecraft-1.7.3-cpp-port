@@ -1,3 +1,5 @@
+#include "pc/OpenGL.h"
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "Minecraft.h"
 
 #include <iostream>
@@ -12,6 +14,7 @@
 #include "client/gui/ConnectingScreen.h"
 #include "client/gui/InventoryScreen.h"
 #include "client/gui/CreativeInventoryScreen.h"
+#include "pc/vulkan/VulkanContext.h"
 #include "client/gui/ScreenSizeCalculator.h"
 #include "client/gui/ChatScreen.h"
 #include "client/gui/PauseScreen.h"
@@ -100,7 +103,7 @@ void Minecraft::init(std::shared_ptr<File> directory)
 		lwjgl::Display::setDisplayMode(lwjgl::DisplayMode(width, height));
 	}
 
-	lwjgl::Display::setTitle(VERSION_STRING);
+	lwjgl::Display::setTitle(VERSION_STRING + u" Vulkan");
 
 	lwjgl::Display::create(unattended);
 
@@ -136,9 +139,9 @@ void Minecraft::init(std::shared_ptr<File> directory)
 	glEnable(GL_ALPHA_TEST);
 	glAlphaFunc(GL_GREATER, 0.1f);
 	glCullFace(GL_BACK);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
+	VulkanMatrixStack::get().matrixMode(VulkanMatrixMode::PROJECTION);
+	VulkanMatrixStack::get().loadIdentity();
+	VulkanMatrixStack::get().matrixMode(VulkanMatrixMode::MODELVIEW);
 
 	checkGlError("Startup");
 
@@ -164,13 +167,13 @@ void Minecraft::renderLoadingScreen()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0.0, w, h, 0.0, 1000.0, 3000.0);
+	VulkanMatrixStack::get().matrixMode(VulkanMatrixMode::PROJECTION);
+	VulkanMatrixStack::get().loadIdentity();
+	VulkanMatrixStack::get().ortho(0.0, w, h, 0.0, 1000.0, 3000.0);
 
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glTranslatef(0.0f, 0.0f, -2000.0f);
+	VulkanMatrixStack::get().matrixMode(VulkanMatrixMode::MODELVIEW);
+	VulkanMatrixStack::get().loadIdentity();
+	VulkanMatrixStack::get().translatef(0.0f, 0.0f, -2000.0f);
 
 	glViewport(0, 0, width, height);
 
@@ -303,6 +306,8 @@ void Minecraft::checkGlError(const std::string &at)
 
 Minecraft::~Minecraft()
 {
+	VkDevice device = VulkanContext::getInstance().getDevice();
+	if (device) vkDeviceWaitIdle(device);
 	SPCCommand::setMessageFont(nullptr);
 	for (std::thread &thread : connectionThreads)
 	{
@@ -610,13 +615,13 @@ void Minecraft::renderFpsMeter(long_t tickNanos)
 	
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0.0, width, height, 0.0, 1000.0, 3000.0);
+	VulkanMatrixStack::get().matrixMode(VulkanMatrixMode::PROJECTION);
+	VulkanMatrixStack::get().loadIdentity();
+	VulkanMatrixStack::get().ortho(0.0, width, height, 0.0, 1000.0, 3000.0);
 
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glTranslatef(0.0f, 0.0f, -2000.0f);
+	VulkanMatrixStack::get().matrixMode(VulkanMatrixMode::MODELVIEW);
+	VulkanMatrixStack::get().loadIdentity();
+	VulkanMatrixStack::get().translatef(0.0f, 0.0f, -2000.0f);
 
 	glLineWidth(1.0f);
 	glDisable(GL_TEXTURE_2D);

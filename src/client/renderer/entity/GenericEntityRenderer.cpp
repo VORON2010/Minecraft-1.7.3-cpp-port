@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/renderer/entity/GenericEntityRenderer.h"
 
 #include "OpenGL.h"
@@ -13,7 +14,7 @@ void GenericEntityRenderer::render(Entity &entity, double x, double y, double z,
 {
 	(void)rot;
 	(void)a;
-	glPushMatrix();
+	VulkanMatrixStack::get().pushMatrix();
 	EntityRenderer::render(entity.bb, x - entity.xOld, y - entity.yOld, z - entity.zOld);
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 }

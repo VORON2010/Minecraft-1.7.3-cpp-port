@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/renderer/entity/ArrowRenderer.h"
 
 #include "OpenGL.h"
@@ -19,10 +20,10 @@ void ArrowRenderer::render(Entity &entity, double x, double y, double z, float r
 		return;
 
 	bindTexture(u"/item/arrows.png");
-	glPushMatrix();
-	glTranslatef(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
-	glRotatef(arrow.yRotO + (arrow.yRot - arrow.yRotO) * a - 90.0f, 0.0f, 1.0f, 0.0f);
-	glRotatef(arrow.xRotO + (arrow.xRot - arrow.xRotO) * a, 0.0f, 0.0f, 1.0f);
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().translatef(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
+	VulkanMatrixStack::get().rotatef(arrow.yRotO + (arrow.yRot - arrow.yRotO) * a - 90.0f, 0.0f, 1.0f, 0.0f);
+	VulkanMatrixStack::get().rotatef(arrow.xRotO + (arrow.xRot - arrow.xRotO) * a, 0.0f, 0.0f, 1.0f);
 	Tesselator &t = Tesselator::instance;
 	float u0 = 0.0f;
 	float u1 = 0.5f;
@@ -33,10 +34,10 @@ void ArrowRenderer::render(Entity &entity, double x, double y, double z, float r
 	glEnable(GL_RESCALE_NORMAL);
 	float shake = arrow.arrowShake - a;
 	if (shake > 0.0f)
-		glRotatef(-Mth::sin(shake * 3.0f) * shake, 0.0f, 0.0f, 1.0f);
-	glRotatef(45.0f, 1.0f, 0.0f, 0.0f);
-	glScalef(scale, scale, scale);
-	glTranslatef(-4.0f, 0.0f, 0.0f);
+		VulkanMatrixStack::get().rotatef(-Mth::sin(shake * 3.0f) * shake, 0.0f, 0.0f, 1.0f);
+	VulkanMatrixStack::get().rotatef(45.0f, 1.0f, 0.0f, 0.0f);
+	VulkanMatrixStack::get().scalef(scale, scale, scale);
+	VulkanMatrixStack::get().translatef(-4.0f, 0.0f, 0.0f);
 	glNormal3f(scale, 0.0f, 0.0f);
 	t.begin();
 	t.vertexUV(-7.0, -2.0, -2.0, 0.0, v1);
@@ -53,7 +54,7 @@ void ArrowRenderer::render(Entity &entity, double x, double y, double z, float r
 	t.end();
 	for (int_t i = 0; i < 4; ++i)
 	{
-		glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+		VulkanMatrixStack::get().rotatef(90.0f, 1.0f, 0.0f, 0.0f);
 		glNormal3f(0.0f, 0.0f, scale);
 		t.begin();
 		t.vertexUV(-8.0, -2.0, 0.0, u0, v0);
@@ -63,5 +64,5 @@ void ArrowRenderer::render(Entity &entity, double x, double y, double z, float r
 		t.end();
 	}
 	glDisable(GL_RESCALE_NORMAL);
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 }

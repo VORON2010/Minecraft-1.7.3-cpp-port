@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/renderer/MapItemRenderer.h"
 
 #include "client/gui/Font.h"
@@ -81,11 +82,11 @@ void MapItemRenderer::render(MapData &data, Textures &textures)
 
 	for (const auto &coord : data.mapCoords)
 	{
-		glPushMatrix();
-		glTranslatef(coord->x / 2.0f + 64.0f, coord->z / 2.0f + 64.0f, -0.02f);
-		glRotatef(coord->rot * 360.0f / 16.0f, 0.0f, 0.0f, 1.0f);
-		glScalef(4.0f, 4.0f, 3.0f);
-		glTranslatef(-(2.0f / 16.0f), 2.0f / 16.0f, 0.0f);
+		VulkanMatrixStack::get().pushMatrix();
+		VulkanMatrixStack::get().translatef(coord->x / 2.0f + 64.0f, coord->z / 2.0f + 64.0f, -0.02f);
+		VulkanMatrixStack::get().rotatef(coord->rot * 360.0f / 16.0f, 0.0f, 0.0f, 1.0f);
+		VulkanMatrixStack::get().scalef(4.0f, 4.0f, 3.0f);
+		VulkanMatrixStack::get().translatef(-(2.0f / 16.0f), 2.0f / 16.0f, 0.0f);
 
 		float u0 = (coord->icon % 4 + 0) / 4.0f;
 		float v0 = (coord->icon / 4 + 0) / 4.0f;
@@ -99,12 +100,12 @@ void MapItemRenderer::render(MapData &data, Textures &textures)
 		t.vertexUV(-1.0, -1.0, 0.0, u0, v1);
 		t.end();
 
-		glPopMatrix();
+		VulkanMatrixStack::get().popMatrix();
 	}
 
-	glPushMatrix();
-	glTranslatef(0.0f, 0.0f, -0.04f);
-	glScalef(1.0f, 1.0f, 1.0f);
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().translatef(0.0f, 0.0f, -0.04f);
+	VulkanMatrixStack::get().scalef(1.0f, 1.0f, 1.0f);
 	font.draw(data.id, 0, 0, 0xFF000000);
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 }

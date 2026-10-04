@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/renderer/entity/SlimeRenderer.h"
 
 #include "client/model/SlimeModel.h"
@@ -37,5 +38,5 @@ void SlimeRenderer::scale(Mob &mobBase, float a)
 	float squish = (slime.squishOld + (slime.squish - slime.squishOld) * a) / (size * 0.5f + 1.0f);
 	float invSquish = 1.0f / (squish + 1.0f);
 	float scale = static_cast<float>(size);
-	glScalef(invSquish * scale, 1.0f / invSquish * scale, invSquish * scale);
+	VulkanMatrixStack::get().scalef(invSquish * scale, 1.0f / invSquish * scale, invSquish * scale);
 }

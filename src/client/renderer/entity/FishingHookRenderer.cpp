@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/renderer/entity/FishingHookRenderer.h"
 
 #include "OpenGL.h"
@@ -13,10 +14,10 @@ void FishingHookRenderer::render(Entity &entity, double x, double y, double z, f
 {
 	(void)rot;
 	EntityFish &fish = static_cast<EntityFish &>(entity);
-	glPushMatrix();
-	glTranslatef(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().translatef(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
 	glEnable(GL_RESCALE_NORMAL);
-	glScalef(0.5f, 0.5f, 0.5f);
+	VulkanMatrixStack::get().scalef(0.5f, 0.5f, 0.5f);
 	const int_t textureX = 1;
 	const int_t textureY = 2;
 	bindTexture(u"/particles.png");
@@ -28,8 +29,8 @@ void FishingHookRenderer::render(Entity &entity, double x, double y, double z, f
 	float size = 1.0f;
 	float halfWidth = 0.5f;
 	float halfHeight = 0.5f;
-	glRotatef(180.0f - entityRenderDispatcher.playerRotY, 0.0f, 1.0f, 0.0f);
-	glRotatef(-entityRenderDispatcher.playerRotX, 1.0f, 0.0f, 0.0f);
+	VulkanMatrixStack::get().rotatef(180.0f - entityRenderDispatcher.playerRotY, 0.0f, 1.0f, 0.0f);
+	VulkanMatrixStack::get().rotatef(-entityRenderDispatcher.playerRotX, 1.0f, 0.0f, 0.0f);
 	t.begin();
 	t.normal(0.0f, 1.0f, 0.0f);
 	t.vertexUV(0.0f - halfWidth, 0.0f - halfHeight, 0.0, u0, v1);
@@ -38,7 +39,7 @@ void FishingHookRenderer::render(Entity &entity, double x, double y, double z, f
 	t.vertexUV(0.0f - halfWidth, 1.0f - halfHeight, 0.0, u0, v0);
 	t.end();
 	glDisable(GL_RESCALE_NORMAL);
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 
 	if (fish.angler != nullptr)
 	{

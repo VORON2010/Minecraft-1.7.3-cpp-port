@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/renderer/entity/ItemRenderer.h"
 
 #include "client/renderer/entity/EntityRenderDispatcher.h"
@@ -30,7 +31,7 @@ void ItemRenderer::render(Entity &entity, double x, double y, double z, float ro
 	ItemInstance &item = itemEntity.item;
 
 	random.setSeed(187);
-	glPushMatrix();
+	VulkanMatrixStack::get().pushMatrix();
 	float bob = Mth::sin((itemEntity.age + a) / 10.0f + itemEntity.bobOffs) * 0.1f + 0.1f;
 	float spin = ((itemEntity.age + a) / 20.0f + itemEntity.bobOffs) * (180.0f / Mth::PI);
 	int_t count = 1;
@@ -38,13 +39,13 @@ void ItemRenderer::render(Entity &entity, double x, double y, double z, float ro
 	if (item.stackSize > 5) count = 3;
 	if (item.stackSize > 20) count = 4;
 
-	glTranslatef((float)x, (float)(y + bob), (float)z);
+	VulkanMatrixStack::get().translatef((float)x, (float)(y + bob), (float)z);
 	glEnable(GL_RESCALE_NORMAL);
 
 	Tile *tile = item.itemID >= 0 && item.itemID < static_cast<int_t>(Tile::tiles.size()) ? Tile::tiles[item.itemID] : nullptr;
 	if (tile != nullptr && TileRenderer::canRender(tile->getRenderShape()))
 	{
-		glRotatef(spin, 0.0f, 1.0f, 0.0f);
+		VulkanMatrixStack::get().rotatef(spin, 0.0f, 1.0f, 0.0f);
 		bindTexture(u"/terrain.png");
 		int_t tileColor = tile->getItemColor(item.getAuxValue());
 		bool useColorMaterial = tileColor != 0xFFFFFF;
@@ -60,16 +61,16 @@ void ItemRenderer::render(Entity &entity, double x, double y, double z, float ro
 		float scale = 0.5f;
 		if (tile->isCubeShaped() || tile->id == Tile::pistonBase.id || tile->id == Tile::pistonStickyBase.id)
 			scale = 0.25f;
-		glScalef(scale, scale, scale);
+		VulkanMatrixStack::get().scalef(scale, scale, scale);
 		for (int_t i = 0; i < count; ++i)
 		{
-			glPushMatrix();
+			VulkanMatrixStack::get().pushMatrix();
 			if (i > 0)
-				glTranslatef((random.nextFloat() * 2.0f - 1.0f) * 0.2f / scale,
+				VulkanMatrixStack::get().translatef((random.nextFloat() * 2.0f - 1.0f) * 0.2f / scale,
 					(random.nextFloat() * 2.0f - 1.0f) * 0.2f / scale,
 					(random.nextFloat() * 2.0f - 1.0f) * 0.2f / scale);
 			tileRenderer.renderTile(*tile, item.getAuxValue());
-			glPopMatrix();
+			VulkanMatrixStack::get().popMatrix();
 		}
 		if (useColorMaterial)
 			glDisable(GL_COLOR_MATERIAL);
@@ -77,7 +78,7 @@ void ItemRenderer::render(Entity &entity, double x, double y, double z, float ro
 	}
 	else
 	{
-		glScalef(0.5f, 0.5f, 0.5f);
+		VulkanMatrixStack::get().scalef(0.5f, 0.5f, 0.5f);
 		int_t icon = item.getIcon();
 		if (item.itemID < 256)
 			bindTexture(u"/terrain.png");
@@ -94,12 +95,12 @@ void ItemRenderer::render(Entity &entity, double x, double y, double z, float ro
 		float yo = 0.25f;
 		for (int_t i = 0; i < count; ++i)
 		{
-			glPushMatrix();
+			VulkanMatrixStack::get().pushMatrix();
 			if (i > 0)
-				glTranslatef((random.nextFloat() * 2.0f - 1.0f) * 0.3f,
+				VulkanMatrixStack::get().translatef((random.nextFloat() * 2.0f - 1.0f) * 0.3f,
 					(random.nextFloat() * 2.0f - 1.0f) * 0.3f,
 					(random.nextFloat() * 2.0f - 1.0f) * 0.3f);
-			glRotatef(180.0f - entityRenderDispatcher.playerRotY, 0.0f, 1.0f, 0.0f);
+			VulkanMatrixStack::get().rotatef(180.0f - entityRenderDispatcher.playerRotY, 0.0f, 1.0f, 0.0f);
 			t.begin();
 			t.normal(0.0f, 1.0f, 0.0f);
 			t.vertexUV(0.0f - xo, 0.0f - yo, 0.0, u0, v1);
@@ -107,12 +108,12 @@ void ItemRenderer::render(Entity &entity, double x, double y, double z, float ro
 			t.vertexUV(1.0f - xo, 1.0f - yo, 0.0, u1, v0);
 			t.vertexUV(0.0f - xo, 1.0f - yo, 0.0, u0, v0);
 			t.end();
-			glPopMatrix();
+			VulkanMatrixStack::get().popMatrix();
 		}
 	}
 
 	glDisable(GL_RESCALE_NORMAL);
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 }
 
 void ItemRenderer::renderGuiItem(Font &font, Textures &textures, ItemInstance &item, int_t x, int_t y)
@@ -130,18 +131,18 @@ void ItemRenderer::renderGuiItem(Font &font, Textures &textures, ItemInstance &i
 	if (tile != nullptr && TileRenderer::canRender(tile->getRenderShape()))
 	{
 		textures.bind(textures.loadTexture(u"/terrain.png"));
-		glPushMatrix();
-		glTranslatef(static_cast<float>(x - 2), static_cast<float>(y + 3), -3.0f);
-		glScalef(10.0f, 10.0f, 10.0f);
-		glTranslatef(1.0f, 0.5f, 1.0f);
-		glScalef(1.0f, 1.0f, -1.0f);
-		glRotatef(210.0f, 1.0f, 0.0f, 0.0f);
-		glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
+		VulkanMatrixStack::get().pushMatrix();
+		VulkanMatrixStack::get().translatef(static_cast<float>(x - 2), static_cast<float>(y + 3), -3.0f);
+		VulkanMatrixStack::get().scalef(10.0f, 10.0f, 10.0f);
+		VulkanMatrixStack::get().translatef(1.0f, 0.5f, 1.0f);
+		VulkanMatrixStack::get().scalef(1.0f, 1.0f, -1.0f);
+		VulkanMatrixStack::get().rotatef(210.0f, 1.0f, 0.0f, 0.0f);
+		VulkanMatrixStack::get().rotatef(45.0f, 0.0f, 1.0f, 0.0f);
 		if (renderWithColor)
 			glColor4f(r, g, b, 1.0f);
-		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		VulkanMatrixStack::get().rotatef(-90.0f, 0.0f, 1.0f, 0.0f);
 		tileRenderer.renderGuiTile(*tile, item.getAuxValue());
-		glPopMatrix();
+		VulkanMatrixStack::get().popMatrix();
 	}
 	else if (item.getIcon() >= 0)
 	{

@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/renderer/TileRenderer.h"
 
 #include "client/renderer/Tesselator.h"
@@ -1617,7 +1618,7 @@ void TileRenderer::renderCube(Tile &tile, float alpha)
 	if (shape == Tile::SHAPE_BLOCK)
 	{
 		tile.updateDefaultShape();
-		glTranslatef(-0.5f, -0.5f, -0.5f);
+		VulkanMatrixStack::get().translatef(-0.5f, -0.5f, -0.5f);
 		
 		float sd = 0.5f;
 		float su = 1.0f;
@@ -1639,13 +1640,13 @@ void TileRenderer::renderCube(Tile &tile, float alpha)
 		
 		t.end();
 		
-		glTranslatef(0.5f, 0.5f, 0.5f);
+		VulkanMatrixStack::get().translatef(0.5f, 0.5f, 0.5f);
 	}
 	else if (shape == Tile::SHAPE_CACTUS)
 	{
 		tile.updateDefaultShape();
 		float s = 1.0f / 16.0f;
-		glTranslatef(-0.5f, -0.5f, -0.5f);
+		VulkanMatrixStack::get().translatef(-0.5f, -0.5f, -0.5f);
 		
 		t.begin();
 		t.normal(0.0f, -1.0f, 0.0f);
@@ -1685,7 +1686,7 @@ void TileRenderer::renderCube(Tile &tile, float alpha)
 		t.addOffset(s, 0.0f, 0.0f);
 		t.end();
 		
-		glTranslatef(0.5f, 0.5f, 0.5f);
+		VulkanMatrixStack::get().translatef(0.5f, 0.5f, 0.5f);
 	}
 	
 }
@@ -1700,7 +1701,7 @@ void TileRenderer::renderTile(Tile &tile, int_t data)
 
 		if (shape == Tile::SHAPE_BLOCK)
 		{
-			glTranslatef(-0.5f, -0.5f, -0.5f);
+			VulkanMatrixStack::get().translatef(-0.5f, -0.5f, -0.5f);
 			t.begin();
 			t.normal(0.0f, -1.0f, 0.0f);
 			renderFaceUp(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::DOWN, data));
@@ -1725,12 +1726,12 @@ void TileRenderer::renderTile(Tile &tile, int_t data)
 			t.normal(1.0f, 0.0f, 0.0f);
 			renderEast(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::EAST, data));
 			t.end();
-			glTranslatef(0.5f, 0.5f, 0.5f);
+			VulkanMatrixStack::get().translatef(0.5f, 0.5f, 0.5f);
 		}
 		else if (shape == Tile::SHAPE_CACTUS)
 		{
 			float s = 1.0f / 16.0f;
-			glTranslatef(-0.5f, -0.5f, -0.5f);
+			VulkanMatrixStack::get().translatef(-0.5f, -0.5f, -0.5f);
 			t.begin();
 			t.normal(0.0f, -1.0f, 0.0f);
 			renderFaceUp(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::DOWN));
@@ -1763,7 +1764,7 @@ void TileRenderer::renderTile(Tile &tile, int_t data)
 			renderEast(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::EAST));
 			t.addOffset(s, 0.0f, 0.0f);
 			t.end();
-			glTranslatef(0.5f, 0.5f, 0.5f);
+			VulkanMatrixStack::get().translatef(0.5f, 0.5f, 0.5f);
 		}
 		else if (shape == Tile::SHAPE_TORCH)
 		{
@@ -1806,7 +1807,7 @@ void TileRenderer::renderTile(Tile &tile, int_t data)
 
 			int_t tex = tile.getTexture(Facing::NORTH, data);
 
-			glTranslatef(-0.5f, -0.5f, -0.5f);
+			VulkanMatrixStack::get().translatef(-0.5f, -0.5f, -0.5f);
 
 			
 			t.begin();
@@ -1840,7 +1841,7 @@ void TileRenderer::renderTile(Tile &tile, int_t data)
 			t.end();
 
 			tile.setShape(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-			glTranslatef(0.5f, 0.5f, 0.5f);
+			VulkanMatrixStack::get().translatef(0.5f, 0.5f, 0.5f);
 		}
 		else if (shape == Tile::SHAPE_FENCE)
 		{
@@ -1861,7 +1862,7 @@ void TileRenderer::renderTile(Tile &tile, int_t data)
 					tile.setShape(0.5f - width, 0.5f - width * 3.0f, -width * 2.0f,
 						0.5f + width, 0.5f - width, 1.0f + width * 2.0f);
 
-				glTranslatef(-0.5f, -0.5f, -0.5f);
+				VulkanMatrixStack::get().translatef(-0.5f, -0.5f, -0.5f);
 				t.begin();
 				t.normal(0.0f, -1.0f, 0.0f);
 				renderFaceUp(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::DOWN));
@@ -1886,13 +1887,13 @@ void TileRenderer::renderTile(Tile &tile, int_t data)
 				t.normal(1.0f, 0.0f, 0.0f);
 				renderEast(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::EAST));
 				t.end();
-				glTranslatef(0.5f, 0.5f, 0.5f);
+				VulkanMatrixStack::get().translatef(0.5f, 0.5f, 0.5f);
 			}
 			tile.setShape(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
 		}
 		else if (shape == Tile::SHAPE_STAIRS)
 		{
-			glTranslatef(-0.5f, -0.5f, -0.5f);
+			VulkanMatrixStack::get().translatef(-0.5f, -0.5f, -0.5f);
 			for (int_t piece = 0; piece < 2; ++piece)
 			{
 				StairTile::setPieceShape(tile, data & 3, piece);
@@ -1922,12 +1923,12 @@ void TileRenderer::renderTile(Tile &tile, int_t data)
 				t.end();
 			}
 			tile.updateDefaultShape();
-			glTranslatef(0.5f, 0.5f, 0.5f);
+			VulkanMatrixStack::get().translatef(0.5f, 0.5f, 0.5f);
 		}
 		else if (shape == Tile::SHAPE_PISTON_BASE)
 		{
 			int_t pistonData = (tile.id == Tile::pistonBase.id || tile.id == Tile::pistonStickyBase.id) ? 1 : data;
-			glTranslatef(-0.5f, -0.5f, -0.5f);
+			VulkanMatrixStack::get().translatef(-0.5f, -0.5f, -0.5f);
 			t.begin();
 			t.normal(0.0f, -1.0f, 0.0f);
 			renderFaceUp(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::DOWN, pistonData));
@@ -1952,11 +1953,11 @@ void TileRenderer::renderTile(Tile &tile, int_t data)
 			t.normal(1.0f, 0.0f, 0.0f);
 			renderEast(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::EAST, pistonData));
 			t.end();
-			glTranslatef(0.5f, 0.5f, 0.5f);
+			VulkanMatrixStack::get().translatef(0.5f, 0.5f, 0.5f);
 		}
 		else if (shape == Tile::SHAPE_PISTON_EXTENSION)
 		{
-			glTranslatef(-0.5f, -0.5f, -0.5f);
+			VulkanMatrixStack::get().translatef(-0.5f, -0.5f, -0.5f);
 			t.begin();
 			t.normal(0.0f, -1.0f, 0.0f);
 			renderFaceUp(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::DOWN, data));
@@ -1981,7 +1982,7 @@ void TileRenderer::renderTile(Tile &tile, int_t data)
 			t.normal(1.0f, 0.0f, 0.0f);
 			renderEast(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::EAST, data));
 			t.end();
-			glTranslatef(0.5f, 0.5f, 0.5f);
+			VulkanMatrixStack::get().translatef(0.5f, 0.5f, 0.5f);
 		}
 	}
 

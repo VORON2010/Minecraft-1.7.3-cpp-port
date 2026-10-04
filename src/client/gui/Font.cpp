@@ -1,3 +1,5 @@
+#include "pc/OpenGL.h"
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/gui/Font.h"
 
 #include "SharedConstants.h"
@@ -46,9 +48,9 @@ void Font::initialize(Options &options, const jstring &name, Textures &textures)
 		charWidths[i] = (128 * x + 256) / w;
 	}
 
-	fontTexture = textures.getTexture(img);
+	fontTexture = textures.getTexture(img); 
 
-	listPos = MemoryTracker::genLists(256 + 32);
+	listPos = MemoryTracker::genLists(256 + 32); 
 	Tesselator &t = Tesselator::instance;
 	for (int_t j = 0; j < 256; j++)
 	{
@@ -71,7 +73,7 @@ void Font::initialize(Options &options, const jstring &name, Textures &textures)
 
 		t.end();
 
-		glTranslatef(charWidths[j], 0.0f, 0.0f);
+		VulkanMatrixStack::get().translatef(charWidths[j], 0.0f, 0.0f);
 		glEndList();
 	}
 
@@ -146,8 +148,8 @@ void Font::draw(const jstring &str, int_t x, int_t y, int_t color, bool darken)
 	glEnable(GL_ALPHA_TEST);
 
 	ib.clear();
-	glPushMatrix();
-	glTranslatef(x, y, 0.0f);
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().translatef(x, y, 0.0f);
 	
 	auto flushGlyphs = [&]() {
 		if (!ib.empty())
@@ -183,7 +185,7 @@ void Font::draw(const jstring &str, int_t x, int_t y, int_t color, bool darken)
 	}
 	
 	flushGlyphs();
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 }
 
 int_t Font::width(const jstring &str)

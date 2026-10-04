@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/gui/EditSignScreen.h"
 
 #include <utility>
@@ -47,19 +48,19 @@ void EditSignScreen::render(int_t xm, int_t ym, float a)
 	renderBackground(0);
 	drawCenteredString(font, u"Edit sign message:", width / 2, 40, 0xFFFFFF);
 
-	glPushMatrix();
-	glTranslatef(static_cast<float>(width / 2), 0.0f, 50.0f);
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().translatef(static_cast<float>(width / 2), 0.0f, 50.0f);
 	float s = 93.75f;
-	glScalef(-s, -s, -s);
-	glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
+	VulkanMatrixStack::get().scalef(-s, -s, -s);
+	VulkanMatrixStack::get().rotatef(180.0f, 0.0f, 1.0f, 0.0f);
 
 	int_t tileId = (sign->level != nullptr) ? sign->level->getTile(sign->x, sign->y, sign->z) : 0;
 	bool isPost = (tileId == 63);
 	if (isPost)
 	{
 		float rot = static_cast<float>(sign->getData() * 360) / 16.0f;
-		glRotatef(rot, 0.0f, 1.0f, 0.0f);
-		glTranslatef(0.0f, -1.0625f, 0.0f);
+		VulkanMatrixStack::get().rotatef(rot, 0.0f, 1.0f, 0.0f);
+		VulkanMatrixStack::get().translatef(0.0f, -1.0625f, 0.0f);
 	}
 	else
 	{
@@ -71,8 +72,8 @@ void EditSignScreen::render(int_t xm, int_t ym, float a)
 			rot = 90.0f;
 		else if (data == 5)
 			rot = -90.0f;
-		glRotatef(rot, 0.0f, 1.0f, 0.0f);
-		glTranslatef(0.0f, -1.0625f, 0.0f);
+		VulkanMatrixStack::get().rotatef(rot, 0.0f, 1.0f, 0.0f);
+		VulkanMatrixStack::get().translatef(0.0f, -1.0625f, 0.0f);
 	}
 
 	if (updateCounter / 6 % 2 == 0)
@@ -83,7 +84,7 @@ void EditSignScreen::render(int_t xm, int_t ym, float a)
 	SignRenderer::renderSign(*sign, -0.5, -0.75, -0.5, 0.0f, font, minecraft.textures);
 	sign->lineBeingEdited = -1;
 
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 	Screen::render(xm, ym, a);
 }
 

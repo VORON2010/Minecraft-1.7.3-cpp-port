@@ -18,7 +18,7 @@ HellDimension::HellDimension(Level &level) : Dimension(level)
 
 void HellDimension::updateLightRamp()
 {
-	float f = 0.1f;
+	float f = 0.2f; // Beta uses 0.1, a bit brighter here
 	for (int_t i = 0; i < 16; i++)
 	{
 		float f1 = 1.0f - i / 15.0f;

@@ -3,7 +3,8 @@
 #include "util/Mth.h"
 
 #include "OpenGL.h"
-
+#include "vulkan/VulkanMatrixStack.h"
+#include <glm/gtc/type_ptr.hpp>
 Frustum Frustum::frustum;
 
 FrustumData &Frustum::getFrustum()
@@ -35,11 +36,15 @@ void Frustum::calculateFrustum()
 	
 	
 	
-	glGetFloatv(GL_PROJECTION_MATRIX, proj.data());
+	auto projMat = VulkanMatrixStack::get().getProjection();
+	const float* projPtr = glm::value_ptr(projMat);
+	for(int i = 0; i < 16; i++) proj[i] = projPtr[i];
 
 	
 	
-	glGetFloatv(GL_MODELVIEW_MATRIX, modl.data());
+	auto modlMat = VulkanMatrixStack::get().getModelView();
+	const float* modlPtr = glm::value_ptr(modlMat);
+	for(int i = 0; i < 16; i++) modl[i] = modlPtr[i];
 
 	
 	

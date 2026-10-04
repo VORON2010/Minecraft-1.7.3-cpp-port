@@ -1,3 +1,8 @@
+#include "pc/OpenGL.h"
+#include "pc/vulkan/VulkanMatrixStack.h"
+#include "pc/vulkan/VulkanContext.h"
+#include "pc/vulkan/VulkanTexture.h"
+#include "pc/vulkan/GLState.h"
 #include "client/renderer/Chunk.h"
 
 #include "client/renderer/Tesselator.h"
@@ -48,16 +53,12 @@ void Chunk::setPos(int_t x, int_t y, int_t z)
 	float g = 6.0f;
 	bb.reset(AABB::newPermanent(x - g, y - g, z - g, x + xs + g, y + ys + g, z + zs + g));
 
-	glNewList(lists + 2, GL_COMPILE);
-	EntityRenderer::renderFlat(*bb);
-	glEndList();
-
 	setDirty();
 }
 
 void Chunk::translateToPos()
 {
-	glTranslatef(static_cast<float>(xRenderOffs), static_cast<float>(yRenderOffs), static_cast<float>(zRenderOffs));
+	VulkanMatrixStack::get().translatef(static_cast<float>(xRenderOffs), static_cast<float>(yRenderOffs), static_cast<float>(zRenderOffs));
 }
 
 void Chunk::rebuild()
@@ -122,6 +123,7 @@ void Chunk::rebuild()
 						}
 
 						Tile *tile = Tile::tiles[tileId];
+						if (tile == nullptr) continue; // unknown block id in the save
 						int_t renderLayer = tile->getRenderLayer();
 						if (renderLayer != i)
 						{
@@ -143,11 +145,45 @@ void Chunk::rebuild()
 			t.end();
 			t.captureTo(nullptr);
 			t.offset(0.0, 0.0, 0.0);
-			if (meshBuffers[i] == 0)
-				glGenBuffers(1, &meshBuffers[i]);
-			glBindBuffer(GL_ARRAY_BUFFER, meshBuffers[i]);
-			glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(mesh.data.size()), mesh.data.data(), GL_STATIC_DRAW);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+			VkDevice device = VulkanContext::getInstance().getDevice();
+			if (meshBuffers[i] != VK_NULL_HANDLE || meshMemory[i] != VK_NULL_HANDLE) {
+				auto oldBuf = meshBuffers[i];
+				auto oldMem = meshMemory[i];
+				VulkanContext::getInstance().deferDeletion([device, oldBuf, oldMem]() {
+					if (oldBuf) vkDestroyBuffer(device, oldBuf, nullptr);
+					if (oldMem) vkFreeMemory(device, oldMem, nullptr);
+				});
+				meshBuffers[i] = VK_NULL_HANDLE;
+				meshMemory[i] = VK_NULL_HANDLE;
+			}
+			
+			if (mesh.data.size() > 0) {
+				VkBufferCreateInfo bufferInfo{};
+				bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+				bufferInfo.size = mesh.data.size() * sizeof(TesselatorVertex);
+				bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+				bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+				
+				if (vkCreateBuffer(device, &bufferInfo, nullptr, &meshBuffers[i]) == VK_SUCCESS) {
+					VkMemoryRequirements memRequirements;
+					vkGetBufferMemoryRequirements(device, meshBuffers[i], &memRequirements);
+					
+					VkMemoryAllocateInfo allocInfo{};
+					allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+					allocInfo.allocationSize = memRequirements.size;
+					allocInfo.memoryTypeIndex = VulkanContext::getInstance().findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+					
+					if (vkAllocateMemory(device, &allocInfo, nullptr, &meshMemory[i]) == VK_SUCCESS) {
+						vkBindBufferMemory(device, meshBuffers[i], meshMemory[i], 0);
+						void* data;
+						vkMapMemory(device, meshMemory[i], 0, bufferInfo.size, 0, &data);
+						memcpy(data, mesh.data.data(), (size_t)bufferInfo.size);
+						vkUnmapMemory(device, meshMemory[i]);
+					}
+				}
+			}
+
 			meshVertices[i] = mesh.vertices;
 			meshTexture[i] = mesh.hasTexture;
 			meshColor[i] = mesh.hasColor;
@@ -212,58 +248,29 @@ bool Chunk::hasMesh(int_t layer)
 void Chunk::draw(int_t layer)
 {
 	
-	glPushMatrix();
+	VulkanMatrixStack::get().pushMatrix();
 	translateToPos();
 
 	float ss = 1.0000001f;
-	glTranslatef(-zs / 2.0f, -ys / 2.0f, -zs / 2.0f);
-	glScalef(ss, ss, ss);
-	glTranslatef(zs / 2.0f, ys / 2.0f, zs / 2.0f);
+	VulkanMatrixStack::get().translatef(-zs / 2.0f, -ys / 2.0f, -zs / 2.0f);
+	VulkanMatrixStack::get().scalef(ss, ss, ss);
+	VulkanMatrixStack::get().translatef(zs / 2.0f, ys / 2.0f, zs / 2.0f);
 
-	if (meshVertices[layer] > 0)
+	if (meshVertices[layer] > 0 && meshBuffers[layer] != VK_NULL_HANDLE)
 	{
-		glBindBuffer(GL_ARRAY_BUFFER, meshBuffers[layer]);
-		const char *base = nullptr;
-		if (meshTexture[layer])
-		{
-			glTexCoordPointer(2, GL_FLOAT, 32, base + 12);
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		}
-		if (meshColor[layer])
-		{
-			glColorPointer(4, GL_UNSIGNED_BYTE, 32, base + 20);
-			glEnableClientState(GL_COLOR_ARRAY);
-		}
-		if (meshNormal[layer])
-		{
-			glNormalPointer(GL_BYTE, 32, base + 24);
-			glEnableClientState(GL_NORMAL_ARRAY);
-		}
-		glVertexPointer(3, GL_FLOAT, 32, base);
-		glEnableClientState(GL_VERTEX_ARRAY);
-
-		glDrawArrays(meshMode[layer], 0, meshVertices[layer]);
-
-		glDisableClientState(GL_VERTEX_ARRAY);
-		if (meshTexture[layer])
-			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		if (meshColor[layer])
-			glDisableClientState(GL_COLOR_ARRAY);
-		if (meshNormal[layer])
-			glDisableClientState(GL_NORMAL_ARRAY);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		VkCommandBuffer cmd = VulkanContext::getInstance().getCurrentCommandBuffer();
+		VkBuffer vertexBuffers[] = {meshBuffers[layer]};
+		VkDeviceSize offsets[] = {0};
+		vkCmdBindVertexBuffers(cmd, 0, 1, vertexBuffers, offsets);
+		if (GLState::bindState(cmd, meshColor[layer], false))
+			vkCmdDraw(cmd, meshVertices[layer], 1, 0, 0);
 	}
 
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 }
 
 Chunk::~Chunk()
 {
-	for (GLuint &buffer : meshBuffers)
-	{
-		if (buffer != 0)
-			glDeleteBuffers(1, &buffer);
-	}
 }
 
 void Chunk::cull(Culler &culler)
@@ -273,7 +280,8 @@ void Chunk::cull(Culler &culler)
 
 void Chunk::renderBB()
 {
-	glCallList(lists + 2);
+	EntityRenderer::renderFlat(*bb);
+	Tesselator::instance.render(VulkanContext::getInstance().getCurrentCommandBuffer());
 }
 
 bool Chunk::isEmpty()

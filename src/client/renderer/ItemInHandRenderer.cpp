@@ -1,3 +1,5 @@
+#include "pc/OpenGL.h"
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/renderer/ItemInHandRenderer.h"
 
 #include "client/Minecraft.h"
@@ -35,7 +37,7 @@ void ItemInHandRenderer::renderMapFirstPerson(float a, float h)
 	float swing = localPlayer.getAttackAnim(a);
 	float swing1 = Mth::sin(swing * Mth::PI);
 	float swing2 = Mth::sin(Mth::sqrt(swing) * Mth::PI);
-	glTranslatef(-swing2 * 0.4f, Mth::sin(Mth::sqrt(swing) * Mth::PI * 2.0f) * 0.2f, -swing1 * 0.2f);
+	VulkanMatrixStack::get().translatef(-swing2 * 0.4f, Mth::sin(Mth::sqrt(swing) * Mth::PI * 2.0f) * 0.2f, -swing1 * 0.2f);
 
 	float pitch = 1.0f - (localPlayer.xRotO + (localPlayer.xRot - localPlayer.xRotO) * a) / 45.0f + 0.1f;
 	if (pitch < 0.0f) pitch = 0.0f;
@@ -43,9 +45,9 @@ void ItemInHandRenderer::renderMapFirstPerson(float a, float h)
 	pitch = -Mth::cos(pitch * Mth::PI) * 0.5f + 0.5f;
 
 	float d = 0.8f;
-	glTranslatef(0.0f, -(1.0f - h) * 1.2f - pitch * 0.5f + 0.04f, -0.9f * d);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	glRotatef(pitch * -85.0f, 0.0f, 0.0f, 1.0f);
+	VulkanMatrixStack::get().translatef(0.0f, -(1.0f - h) * 1.2f - pitch * 0.5f + 0.04f, -0.9f * d);
+	VulkanMatrixStack::get().rotatef(90.0f, 0.0f, 1.0f, 0.0f);
+	VulkanMatrixStack::get().rotatef(pitch * -85.0f, 0.0f, 0.0f, 1.0f);
 	glEnable(GL_RESCALE_NORMAL);
 
 	
@@ -56,32 +58,32 @@ void ItemInHandRenderer::renderMapFirstPerson(float a, float h)
 		for (int i = 0; i < 2; i++)
 		{
 			int flip = i * 2 - 1;
-			glPushMatrix();
-			glTranslatef(0.0f, -0.6f, 1.1f * flip);
-			glRotatef(-45.0f * flip, 1.0f, 0.0f, 0.0f);
-			glRotatef(-90.0f, 0.0f, 0.0f, 1.0f);
-			glRotatef(59.0f, 0.0f, 0.0f, 1.0f);
-			glRotatef(-65.0f * flip, 0.0f, 1.0f, 0.0f);
+			VulkanMatrixStack::get().pushMatrix();
+			VulkanMatrixStack::get().translatef(0.0f, -0.6f, 1.1f * flip);
+			VulkanMatrixStack::get().rotatef(-45.0f * flip, 1.0f, 0.0f, 0.0f);
+			VulkanMatrixStack::get().rotatef(-90.0f, 0.0f, 0.0f, 1.0f);
+			VulkanMatrixStack::get().rotatef(59.0f, 0.0f, 0.0f, 1.0f);
+			VulkanMatrixStack::get().rotatef(-65.0f * flip, 0.0f, 1.0f, 0.0f);
 			playerRenderer.renderHand();
-			glPopMatrix();
+			VulkanMatrixStack::get().popMatrix();
 		}
 	}
 
 	swing = localPlayer.getAttackAnim(a);
 	swing1 = Mth::sin(swing * swing * Mth::PI);
 	swing2 = Mth::sin(Mth::sqrt(swing) * Mth::PI);
-	glRotatef(-swing1 * 20.0f, 0.0f, 1.0f, 0.0f);
-	glRotatef(-swing2 * 20.0f, 0.0f, 0.0f, 1.0f);
-	glRotatef(-swing2 * 80.0f, 1.0f, 0.0f, 0.0f);
+	VulkanMatrixStack::get().rotatef(-swing1 * 20.0f, 0.0f, 1.0f, 0.0f);
+	VulkanMatrixStack::get().rotatef(-swing2 * 20.0f, 0.0f, 0.0f, 1.0f);
+	VulkanMatrixStack::get().rotatef(-swing2 * 80.0f, 1.0f, 0.0f, 0.0f);
 
 	float scale = 0.38f;
-	glScalef(scale, scale, scale);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
-	glTranslatef(-1.0f, -1.0f, 0.0f);
+	VulkanMatrixStack::get().scalef(scale, scale, scale);
+	VulkanMatrixStack::get().rotatef(90.0f, 0.0f, 1.0f, 0.0f);
+	VulkanMatrixStack::get().rotatef(180.0f, 0.0f, 0.0f, 1.0f);
+	VulkanMatrixStack::get().translatef(-1.0f, -1.0f, 0.0f);
 
 	float mapScale = 2.0f / 128.0f;
-	glScalef(mapScale, mapScale, mapScale);
+	VulkanMatrixStack::get().scalef(mapScale, mapScale, mapScale);
 
 	
 	Tesselator &t = Tesselator::instance;
@@ -144,12 +146,12 @@ namespace HeldItemRenderer
 			float xo = 0.0f;
 			float yo = 0.3f;
 			glEnable(GL_RESCALE_NORMAL);
-			glTranslatef(-xo, -yo, 0.0f);
+			VulkanMatrixStack::get().translatef(-xo, -yo, 0.0f);
 			float s = 1.5f;
-			glScalef(s, s, s);
-			glRotatef(50.0f, 0.0f, 1.0f, 0.0f);
-			glRotatef(335.0f, 0.0f, 0.0f, 1.0f);
-			glTranslatef(-0.9375f, -0.0625f, 0.0f);
+			VulkanMatrixStack::get().scalef(s, s, s);
+			VulkanMatrixStack::get().rotatef(50.0f, 0.0f, 1.0f, 0.0f);
+			VulkanMatrixStack::get().rotatef(335.0f, 0.0f, 0.0f, 1.0f);
+			VulkanMatrixStack::get().translatef(-0.9375f, -0.0625f, 0.0f);
 			float dd = 0.0625f;
 	
 			t.begin();
@@ -230,9 +232,9 @@ namespace HeldItemRenderer
 
 void ItemInHandRenderer::renderItem(ItemInstance &item, float brightness)
 {
-	glPushMatrix();
+	VulkanMatrixStack::get().pushMatrix();
 	HeldItemRenderer::render(mc.textures, tileRenderer, item, brightness);
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 }
 
 void ItemInHandRenderer::render(float a)
@@ -240,11 +242,11 @@ void ItemInHandRenderer::render(float a)
 	float h = oHeight + (height - oHeight) * a;
 	auto &localPlayer = *mc.player;
 
-	glPushMatrix();
-	glRotatef(localPlayer.xRotO + (localPlayer.xRot - localPlayer.xRotO) * a, 1.0f, 0.0f, 0.0f);
-	glRotatef(localPlayer.yRotO + (localPlayer.yRot - localPlayer.yRotO) * a, 0.0f, 1.0f, 0.0f);
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().rotatef(localPlayer.xRotO + (localPlayer.xRot - localPlayer.xRotO) * a, 1.0f, 0.0f, 0.0f);
+	VulkanMatrixStack::get().rotatef(localPlayer.yRotO + (localPlayer.yRot - localPlayer.yRotO) * a, 0.0f, 1.0f, 0.0f);
 	Lighting::turnOn();
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 
 	float br = mc.level->getBrightness(Mth::floor(localPlayer.x), Mth::floor(localPlayer.y), Mth::floor(localPlayer.z));
 	glColor4f(br, br, br, 1.0f);
@@ -252,7 +254,7 @@ void ItemInHandRenderer::render(float a)
 	ItemInstance item = selectedItem;
 	if (!item.isEmpty())
 	{
-		glPushMatrix();
+		VulkanMatrixStack::get().pushMatrix();
 		if (Items::map != nullptr && item.itemID == Items::map->getShiftedIndex())
 		{
 			renderMapFirstPerson(a, h);
@@ -263,55 +265,55 @@ void ItemInHandRenderer::render(float a)
 			float swing = localPlayer.getAttackAnim(a);
 			float swing1 = Mth::sin(swing * Mth::PI);
 			float swing2 = Mth::sin(Mth::sqrt(swing) * Mth::PI);
-			glTranslatef(-swing2 * 0.4f, Mth::sin(Mth::sqrt(swing) * Mth::PI * 2.0f) * 0.2f, -swing1 * 0.2f);
-			glTranslatef(0.7f * d, -0.65f * d - (1.0f - h) * 0.6f, -0.9f * d);
-			glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
+			VulkanMatrixStack::get().translatef(-swing2 * 0.4f, Mth::sin(Mth::sqrt(swing) * Mth::PI * 2.0f) * 0.2f, -swing1 * 0.2f);
+			VulkanMatrixStack::get().translatef(0.7f * d, -0.65f * d - (1.0f - h) * 0.6f, -0.9f * d);
+			VulkanMatrixStack::get().rotatef(45.0f, 0.0f, 1.0f, 0.0f);
 			glEnable(GL_RESCALE_NORMAL);
 			swing = localPlayer.getAttackAnim(a);
 			swing1 = Mth::sin(swing * swing * Mth::PI);
 			swing2 = Mth::sin(Mth::sqrt(swing) * Mth::PI);
-			glRotatef(-swing1 * 20.0f, 0.0f, 1.0f, 0.0f);
-			glRotatef(-swing2 * 20.0f, 0.0f, 0.0f, 1.0f);
-			glRotatef(-swing2 * 80.0f, 1.0f, 0.0f, 0.0f);
+			VulkanMatrixStack::get().rotatef(-swing1 * 20.0f, 0.0f, 1.0f, 0.0f);
+			VulkanMatrixStack::get().rotatef(-swing2 * 20.0f, 0.0f, 0.0f, 1.0f);
+			VulkanMatrixStack::get().rotatef(-swing2 * 80.0f, 1.0f, 0.0f, 0.0f);
 			float scale = 0.4f;
-			glScalef(scale, scale, scale);
+			VulkanMatrixStack::get().scalef(scale, scale, scale);
 			Item *itemType = item.getItem();
 			if (itemType != nullptr && itemType->shouldRotateAroundWhenRendering())
-				glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
+				VulkanMatrixStack::get().rotatef(180.0f, 0.0f, 1.0f, 0.0f);
 			renderItem(item, localPlayer.getBrightness(1.0f));
 			glDisable(GL_RESCALE_NORMAL);
 		}
-		glPopMatrix();
+		VulkanMatrixStack::get().popMatrix();
 	}
 	else
 	{
-		glPushMatrix();
+		VulkanMatrixStack::get().pushMatrix();
 		float d = 0.8f;
 		float swing = localPlayer.getAttackAnim(a);
 		float swing1 = Mth::sin(swing * Mth::PI);
 		float swing2 = Mth::sin(Mth::sqrt(swing) * Mth::PI);
-		glTranslatef(-swing2 * 0.3f, Mth::sin(Mth::sqrt(swing) * Mth::PI * 2.0f) * 0.4f, -swing1 * 0.4f);
-		glTranslatef(0.8f * d, -0.75f * d - (1.0f - h) * 0.6f, -0.9f * d);
-		glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
+		VulkanMatrixStack::get().translatef(-swing2 * 0.3f, Mth::sin(Mth::sqrt(swing) * Mth::PI * 2.0f) * 0.4f, -swing1 * 0.4f);
+		VulkanMatrixStack::get().translatef(0.8f * d, -0.75f * d - (1.0f - h) * 0.6f, -0.9f * d);
+		VulkanMatrixStack::get().rotatef(45.0f, 0.0f, 1.0f, 0.0f);
 		glEnable(GL_RESCALE_NORMAL);
 		swing = localPlayer.getAttackAnim(a);
 		float swing3 = Mth::sin(swing * swing * Mth::PI);
 		swing2 = Mth::sin(Mth::sqrt(swing) * Mth::PI);
-		glRotatef(swing2 * 70.0f, 0.0f, 1.0f, 0.0f);
-		glRotatef(-swing3 * 20.0f, 0.0f, 0.0f, 1.0f);
+		VulkanMatrixStack::get().rotatef(swing2 * 70.0f, 0.0f, 1.0f, 0.0f);
+		VulkanMatrixStack::get().rotatef(-swing3 * 20.0f, 0.0f, 0.0f, 1.0f);
 		const jstring fallbackTexture = localPlayer.getTexture();
 		glBindTexture(GL_TEXTURE_2D, mc.textures.loadHttpTexture(localPlayer.customTextureUrl, &fallbackTexture));
-		glTranslatef(-1.0f, 3.6f, 3.5f);
-		glRotatef(120.0f, 0.0f, 0.0f, 1.0f);
-		glRotatef(200.0f, 1.0f, 0.0f, 0.0f);
-		glRotatef(-135.0f, 0.0f, 1.0f, 0.0f);
-		glScalef(1.0f, 1.0f, 1.0f);
-		glTranslatef(5.6f, 0.0f, 0.0f);
+		VulkanMatrixStack::get().translatef(-1.0f, 3.6f, 3.5f);
+		VulkanMatrixStack::get().rotatef(120.0f, 0.0f, 0.0f, 1.0f);
+		VulkanMatrixStack::get().rotatef(200.0f, 1.0f, 0.0f, 0.0f);
+		VulkanMatrixStack::get().rotatef(-135.0f, 0.0f, 1.0f, 0.0f);
+		VulkanMatrixStack::get().scalef(1.0f, 1.0f, 1.0f);
+		VulkanMatrixStack::get().translatef(5.6f, 0.0f, 0.0f);
 		auto &playerRenderer = EntityRenderDispatcher::playerRenderer;
 		float ss = 1.0f;
-		glScalef(ss, ss, ss);
+		VulkanMatrixStack::get().scalef(ss, ss, ss);
 		playerRenderer.renderHand();
-		glPopMatrix();
+		VulkanMatrixStack::get().popMatrix();
 	}
 
 	glDisable(GL_RESCALE_NORMAL);
@@ -378,7 +380,7 @@ void ItemInHandRenderer::renderTex(float a, int_t tex)
 	float brightness = mc.player->getBrightness(a);
 	brightness = 0.1f;
 	glColor4f(brightness, brightness, brightness, 0.5f);
-	glPushMatrix();
+	VulkanMatrixStack::get().pushMatrix();
 	float u0 = tex % 16 / 256.0f - 0.0078125f;
 	float u1 = (tex % 16 + 15.99f) / 256.0f + 0.0078125f;
 	float v0 = tex / 16 / 256.0f - 0.0078125f;
@@ -389,7 +391,7 @@ void ItemInHandRenderer::renderTex(float a, int_t tex)
 	t.vertexUV(1.0, 1.0, -0.5, u0, v0);
 	t.vertexUV(-1.0, 1.0, -0.5, u1, v0);
 	t.end();
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
@@ -403,7 +405,7 @@ void ItemInHandRenderer::renderWater(float a)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glPushMatrix();
+	VulkanMatrixStack::get().pushMatrix();
 
 	float uo = -mc.player->yRot / 64.0f;
 	float vo = mc.player->xRot / 64.0f;
@@ -415,7 +417,7 @@ void ItemInHandRenderer::renderWater(float a)
 	t.vertexUV(-1.0,  1.0, -0.5, 4.0 + uo, 0.0 + vo);
 	t.end();
 
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	glDisable(GL_BLEND);
@@ -432,7 +434,7 @@ void ItemInHandRenderer::renderFire(float a)
 
 	for (int_t i = 0; i < 2; i++)
 	{
-		glPushMatrix();
+		VulkanMatrixStack::get().pushMatrix();
 		int_t tex = Tile::fire.tex + i * 16;
 		int_t tx = (tex & 15) << 4;
 		int_t ty = tex & 240;
@@ -445,15 +447,15 @@ void ItemInHandRenderer::renderFire(float a)
 		float y0 = 0.0f - size / 2.0f;
 		float y1 = y0 + size;
 		float z = -0.5f;
-		glTranslatef(-(i * 2 - 1) * 0.24f, -0.3f, 0.0f);
-		glRotatef((i * 2 - 1) * 10.0f, 0.0f, 1.0f, 0.0f);
+		VulkanMatrixStack::get().translatef(-(i * 2 - 1) * 0.24f, -0.3f, 0.0f);
+		VulkanMatrixStack::get().rotatef((i * 2 - 1) * 10.0f, 0.0f, 1.0f, 0.0f);
 		t.begin();
 		t.vertexUV(x0, y0, z, u1, v1);
 		t.vertexUV(x1, y0, z, u0, v1);
 		t.vertexUV(x1, y1, z, u0, v0);
 		t.vertexUV(x0, y1, z, u1, v0);
 		t.end();
-		glPopMatrix();
+		VulkanMatrixStack::get().popMatrix();
 	}
 
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);

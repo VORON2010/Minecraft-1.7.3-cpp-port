@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/renderer/entity/CreeperRenderer.h"
 
 #include "OpenGL.h"
@@ -24,11 +25,11 @@ bool CreeperRenderer::prepareArmor(Mob &mobBase, int_t layer, float a)
 			float time = static_cast<float>(creeper.tickCount) + a;
 			entityRenderDispatcher.textures->bind(entityRenderDispatcher.textures->loadTexture(u"/armor/power.png"));
 			glMatrixMode(GL_TEXTURE);
-			glLoadIdentity();
+			VulkanMatrixStack::get().loadIdentity();
 			float xo = time * 0.01f;
 			float yo = time * 0.01f;
-			glTranslatef(xo, yo, 0.0f);
-			glMatrixMode(GL_MODELVIEW);
+			VulkanMatrixStack::get().translatef(xo, yo, 0.0f);
+			VulkanMatrixStack::get().matrixMode(VulkanMatrixMode::MODELVIEW);
 			glEnable(GL_BLEND);
 			float c = 0.5f;
 			glColor4f(c, c, c, 1.0f);
@@ -40,8 +41,8 @@ bool CreeperRenderer::prepareArmor(Mob &mobBase, int_t layer, float a)
 		if (layer == 2)
 		{
 			glMatrixMode(GL_TEXTURE);
-			glLoadIdentity();
-			glMatrixMode(GL_MODELVIEW);
+			VulkanMatrixStack::get().loadIdentity();
+			VulkanMatrixStack::get().matrixMode(VulkanMatrixMode::MODELVIEW);
 			glEnable(GL_LIGHTING);
 			glDisable(GL_BLEND);
 		}
@@ -71,7 +72,7 @@ void CreeperRenderer::scale(Mob &mobBase, float a)
 	flash *= flash;
 	float xz = (1.0f + flash * 0.4f) * scaleWobble;
 	float y = (1.0f + flash * 0.1f) / scaleWobble;
-	glScalef(xz, y, xz);
+	VulkanMatrixStack::get().scalef(xz, y, xz);
 }
 
 int_t CreeperRenderer::getOverlayColor(Mob &mobBase, float br, float a)

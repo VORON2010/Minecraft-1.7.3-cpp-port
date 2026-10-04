@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/gui/FurnaceScreen.h"
 #include "client/gui/RecipeScreen.h"
 
@@ -59,15 +60,15 @@ void FurnaceScreen::render(int_t xm, int_t ym, float a)
 	int_t relX = xm - xo;
 	int_t relY = ym - yo;
 
-	glPushMatrix();
-	glTranslatef(static_cast<float>(xo), static_cast<float>(yo), 0.0f);
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().translatef(static_cast<float>(xo), static_cast<float>(yo), 0.0f);
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	glEnable(GL_RESCALE_NORMAL);
 
-	glPushMatrix();
-	glRotatef(120.0f, 1.0f, 0.0f, 0.0f);
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().rotatef(120.0f, 1.0f, 0.0f, 0.0f);
 	Lighting::turnOn();
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 
 	int_t hoveredSlot = SLOT_NONE;
 	int_t hoveredSlotX = -1;
@@ -140,7 +141,7 @@ void FurnaceScreen::render(int_t xm, int_t ym, float a)
 	if (carried != nullptr && !carried->isEmpty())
 	{
 		static ItemRenderer itemRenderer(EntityRenderDispatcher::instance);
-		glTranslatef(0.0f, 0.0f, 32.0f);
+		VulkanMatrixStack::get().translatef(0.0f, 0.0f, 32.0f);
 		itemRenderer.renderGuiItem(font, minecraft.textures, *carried, relX - 8, relY - 8);
 		itemRenderer.renderGuiItemDecorations(font, minecraft.textures, *carried, relX - 8, relY - 8);
 	}
@@ -166,7 +167,7 @@ void FurnaceScreen::render(int_t xm, int_t ym, float a)
 	}
 	glEnable(GL_LIGHTING);
 	glEnable(GL_DEPTH_TEST);
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 }
 
 bool FurnaceScreen::isPauseScreen()

@@ -10,6 +10,7 @@
 
 #include "external/SDLException.h"
 #include "GLTrace.h"
+#include "pc/vulkan/VulkanContext.h"
 
 #include "SDL.h"
 #include "OpenGL.h"
@@ -20,6 +21,7 @@ namespace Display
 {
 
 static bool close_requested = false;
+static VkCommandBuffer active_command_buffer = VK_NULL_HANDLE;
 
 static DisplayMode current_display_mode(0, 0);
 
@@ -215,7 +217,13 @@ void processMessages()
 
 void swapBuffers()
 {
-	SDL_GL_SwapWindow(GLContext::detail::getWindow());
+	// Display::update is called before rendering the next game frame. Present
+	// the commands recorded since the previous update, then start recording
+	// the frame that the game is about to draw.
+	VulkanContext &vulkan = VulkanContext::getInstance();
+	if (active_command_buffer != VK_NULL_HANDLE)
+		vulkan.endFrame(active_command_buffer);
+	active_command_buffer = vulkan.beginFrame();
 #if defined(B173_GL_TRACE)
 	GLTrace::nextFrame();
 #endif
@@ -234,6 +242,7 @@ void create(bool hidden)
 		SDL_HideWindow(GLContext::detail::getWindow());
 	else
 		SDL_ShowWindow(GLContext::detail::getWindow());
+	active_command_buffer = VulkanContext::getInstance().beginFrame();
 }
 
 int_t getX()
