@@ -1,3 +1,5 @@
+#include "pc/OpenGL.h"
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/renderer/entity/EntityRenderer.h"
 
 #include "client/renderer/entity/EntityRenderDispatcher.h"
@@ -47,18 +49,18 @@ void EntityRenderer::renderFlame(Entity &e, double x, double y, double z, float 
 	float u1 = (uIndex + 15.99f) / 256.0f;
 	float v0 = vIndex / 256.0f;
 	float v1 = (vIndex + 15.99f) / 256.0f;
-	glPushMatrix();
-	glTranslatef(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().translatef(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
 	float scale = e.bbWidth * 1.4f;
-	glScalef(scale, scale, scale);
+	VulkanMatrixStack::get().scalef(scale, scale, scale);
 	bindTexture(u"/terrain.png");
 	Tesselator &t = Tesselator::instance;
 	float halfWidth = 0.5f;
 	float offsetX = 0.0f;
 	float height = e.bbHeight / scale;
 	float yOffset = static_cast<float>(e.y - e.bb.y0);
-	glRotatef(-entityRenderDispatcher.playerRotY, 0.0f, 1.0f, 0.0f);
-	glTranslatef(0.0f, 0.0f, -0.3f + static_cast<int_t>(height) * 0.02f);
+	VulkanMatrixStack::get().rotatef(-entityRenderDispatcher.playerRotY, 0.0f, 1.0f, 0.0f);
+	VulkanMatrixStack::get().translatef(0.0f, 0.0f, -0.3f + static_cast<int_t>(height) * 0.02f);
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	float depth = 0.0f;
 	int_t layer = 0;
@@ -82,7 +84,7 @@ void EntityRenderer::renderFlame(Entity &e, double x, double y, double z, float 
 		layer++;
 	}
 	t.end();
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 	glEnable(GL_LIGHTING);
 }
 

@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/renderer/SignRenderer.h"
 
 #include "client/gui/Font.h"
@@ -18,14 +19,14 @@ void SignRenderer::renderSign(SignTileEntity &sign, double x, double y, double z
 {
 	(void)scale;
 	int_t tileId = sign.level != nullptr ? sign.level->getTile(sign.x, sign.y, sign.z) : 0;
-	glPushMatrix();
+	VulkanMatrixStack::get().pushMatrix();
 	float signScale = 2.0f / 3.0f;
 	float rot;
 	if (tileId == 63)
 	{
-		glTranslatef(static_cast<float>(x) + 0.5f, static_cast<float>(y) + 12.0f / 16.0f * signScale, static_cast<float>(z) + 0.5f);
+		VulkanMatrixStack::get().translatef(static_cast<float>(x) + 0.5f, static_cast<float>(y) + 12.0f / 16.0f * signScale, static_cast<float>(z) + 0.5f);
 		rot = static_cast<float>(sign.getData() * 360) / 16.0f;
-		glRotatef(-rot, 0.0f, 1.0f, 0.0f);
+		VulkanMatrixStack::get().rotatef(-rot, 0.0f, 1.0f, 0.0f);
 		signModel.stick.visible = true;
 	}
 	else
@@ -38,20 +39,20 @@ void SignRenderer::renderSign(SignTileEntity &sign, double x, double y, double z
 			rot = 90.0f;
 		if (data == 5)
 			rot = -90.0f;
-		glTranslatef(static_cast<float>(x) + 0.5f, static_cast<float>(y) + 12.0f / 16.0f * signScale, static_cast<float>(z) + 0.5f);
-		glRotatef(-rot, 0.0f, 1.0f, 0.0f);
-		glTranslatef(0.0f, -(5.0f / 16.0f), -(7.0f / 16.0f));
+		VulkanMatrixStack::get().translatef(static_cast<float>(x) + 0.5f, static_cast<float>(y) + 12.0f / 16.0f * signScale, static_cast<float>(z) + 0.5f);
+		VulkanMatrixStack::get().rotatef(-rot, 0.0f, 1.0f, 0.0f);
+		VulkanMatrixStack::get().translatef(0.0f, -(5.0f / 16.0f), -(7.0f / 16.0f));
 		signModel.stick.visible = false;
 	}
 
 	glBindTexture(GL_TEXTURE_2D, textures.loadTexture(u"/item/sign.png"));
-	glPushMatrix();
-	glScalef(signScale, -signScale, -signScale);
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().scalef(signScale, -signScale, -signScale);
 	signModel.render();
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 	float textScale = (1.0f / 60.0f) * signScale;
-	glTranslatef(0.0f, 0.5f * signScale, 0.07f * signScale);
-	glScalef(textScale, -textScale, textScale);
+	VulkanMatrixStack::get().translatef(0.0f, 0.5f * signScale, 0.07f * signScale);
+	VulkanMatrixStack::get().scalef(textScale, -textScale, textScale);
 	glNormal3f(0.0f, 0.0f, -1.0f * textScale);
 	glDepthMask(GL_FALSE);
 	int_t textColor = 0;
@@ -72,5 +73,5 @@ void SignRenderer::renderSign(SignTileEntity &sign, double x, double y, double z
 
 	glDepthMask(GL_TRUE);
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 }

@@ -1,5 +1,7 @@
 #include "world/level/material/Material.h"
-
+#ifdef _MSC_VER
+#pragma init_seg(lib)
+#endif
 #include "world/level/material/MapColor.h"
 #include "world/level/material/GasMaterial.h"
 #include "world/level/material/LiquidMaterial.h"

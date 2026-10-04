@@ -1,3 +1,4 @@
+#include "pc/OpenGL.h"
 #include "GLTrace.h"
 
 #if defined(B173_GL_TRACE)

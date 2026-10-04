@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/renderer/entity/SquidRenderer.h"
 
 #include "client/model/SquidModel.h"
@@ -16,11 +17,11 @@ void SquidRenderer::setupRotations(Mob &mobBase, float bob, float bodyRot, float
 	Squid &squid = static_cast<Squid &>(mobBase);
 	float bodyXRot = squid.xBodyRotO + (squid.xBodyRot - squid.xBodyRotO) * a;
 	float bodyZRot = squid.zBodyRotO + (squid.zBodyRot - squid.zBodyRotO) * a;
-	glTranslatef(0.0f, 0.5f, 0.0f);
-	glRotatef(180.0f - bodyRot, 0.0f, 1.0f, 0.0f);
-	glRotatef(bodyXRot, 1.0f, 0.0f, 0.0f);
-	glRotatef(bodyZRot, 0.0f, 1.0f, 0.0f);
-	glTranslatef(0.0f, -1.2f, 0.0f);
+	VulkanMatrixStack::get().translatef(0.0f, 0.5f, 0.0f);
+	VulkanMatrixStack::get().rotatef(180.0f - bodyRot, 0.0f, 1.0f, 0.0f);
+	VulkanMatrixStack::get().rotatef(bodyXRot, 1.0f, 0.0f, 0.0f);
+	VulkanMatrixStack::get().rotatef(bodyZRot, 0.0f, 1.0f, 0.0f);
+	VulkanMatrixStack::get().translatef(0.0f, -1.2f, 0.0f);
 }
 
 float SquidRenderer::getBob(Mob &mobBase, float a)

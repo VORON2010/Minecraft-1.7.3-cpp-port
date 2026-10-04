@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/renderer/entity/PlayerRenderer.h"
 
 #include "client/renderer/Textures.h"
@@ -66,9 +67,9 @@ void PlayerRenderer::setupRotations(Mob &mobBase, float bob, float bodyRot, floa
 	Player &mob = static_cast<Player &>(mobBase);
 	if (mob.isAlive() && mob.sleeping)
 	{
-		glRotatef(mob.getBedOrientationInDegrees(), 0.0f, 1.0f, 0.0f);
-		glRotatef(getFlipDegrees(mob), 0.0f, 0.0f, 1.0f);
-		glRotatef(270.0f, 0.0f, 1.0f, 0.0f);
+		VulkanMatrixStack::get().rotatef(mob.getBedOrientationInDegrees(), 0.0f, 1.0f, 0.0f);
+		VulkanMatrixStack::get().rotatef(getFlipDegrees(mob), 0.0f, 0.0f, 1.0f);
+		VulkanMatrixStack::get().rotatef(270.0f, 0.0f, 1.0f, 0.0f);
 	}
 	else
 	{
@@ -112,7 +113,7 @@ bool PlayerRenderer::prepareArmor(Mob &mobBase, int_t layer, float a)
 void PlayerRenderer::scale(Mob &mob, float a)
 {
 	float s = 0.9375f;
-	glScalef(s, s, s);
+	VulkanMatrixStack::get().scalef(s, s, s);
 }
 
 
@@ -127,18 +128,18 @@ void PlayerRenderer::additionalRendering(Mob &mobBase, float a)
 	ItemInstance &headItem = mob.inventory.armorInventory[3];
 	if (!headItem.isEmpty() && headItem.getItem()->getShiftedIndex() < 256)
 	{
-		glPushMatrix();
+		VulkanMatrixStack::get().pushMatrix();
 		humanoidModel->head.translateTo(1.0f / 16.0f);
 		Tile *tile = Tile::tiles[headItem.itemID];
 		if (TileRenderer::canRender(tile->getRenderShape()))
 		{
 			float s = 0.625f;
-			glTranslatef(0.0f, -0.25f, 0.0f);
-			glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
-			glScalef(s, -s, s);
+			VulkanMatrixStack::get().translatef(0.0f, -0.25f, 0.0f);
+			VulkanMatrixStack::get().rotatef(180.0f, 0.0f, 1.0f, 0.0f);
+			VulkanMatrixStack::get().scalef(s, -s, s);
 		}
 		HeldItemRenderer::render(*textures, tileRenderer, headItem, mob.getBrightness(1.0f));
-		glPopMatrix();
+		VulkanMatrixStack::get().popMatrix();
 	}
 
 	if (mob.name == u"deadmau5" && !mob.customTextureUrl.empty())
@@ -151,17 +152,17 @@ void PlayerRenderer::additionalRendering(Mob &mobBase, float a)
 			{
 				float headYaw = mob.yRotO + (mob.yRot - mob.yRotO) * a - (mob.yBodyRotO + (mob.yBodyRot - mob.yBodyRotO) * a);
 				float headPitch = mob.xRotO + (mob.xRot - mob.xRotO) * a;
-				glPushMatrix();
-				glRotatef(headYaw, 0.0f, 1.0f, 0.0f);
-				glRotatef(headPitch, 1.0f, 0.0f, 0.0f);
-				glTranslatef(6.0f / 16.0f * (ear * 2 - 1), 0.0f, 0.0f);
-				glTranslatef(0.0f, -6.0f / 16.0f, 0.0f);
-				glRotatef(-headPitch, 1.0f, 0.0f, 0.0f);
-				glRotatef(-headYaw, 0.0f, 1.0f, 0.0f);
+				VulkanMatrixStack::get().pushMatrix();
+				VulkanMatrixStack::get().rotatef(headYaw, 0.0f, 1.0f, 0.0f);
+				VulkanMatrixStack::get().rotatef(headPitch, 1.0f, 0.0f, 0.0f);
+				VulkanMatrixStack::get().translatef(6.0f / 16.0f * (ear * 2 - 1), 0.0f, 0.0f);
+				VulkanMatrixStack::get().translatef(0.0f, -6.0f / 16.0f, 0.0f);
+				VulkanMatrixStack::get().rotatef(-headPitch, 1.0f, 0.0f, 0.0f);
+				VulkanMatrixStack::get().rotatef(-headYaw, 0.0f, 1.0f, 0.0f);
 				float s = 4.0f / 3.0f;
-				glScalef(s, s, s);
+				VulkanMatrixStack::get().scalef(s, s, s);
 				humanoidModel->renderEars(1.0f / 16.0f);
-				glPopMatrix();
+				VulkanMatrixStack::get().popMatrix();
 			}
 		}
 	}
@@ -172,8 +173,8 @@ void PlayerRenderer::additionalRendering(Mob &mobBase, float a)
 		if (cloakId >= 0)
 		{
 			textures->bind(cloakId);
-			glPushMatrix();
-			glTranslatef(0.0f, 0.0f, 2.0f / 16.0f);
+			VulkanMatrixStack::get().pushMatrix();
+			VulkanMatrixStack::get().translatef(0.0f, 0.0f, 2.0f / 16.0f);
 
 			double cloakX = mob.xCloakO + (mob.xCloak - mob.xCloakO) * a - (mob.xo + (mob.x - mob.xo) * a);
 			double cloakY = mob.yCloakO + (mob.yCloak - mob.yCloakO) * a - (mob.yo + (mob.y - mob.yo) * a);
@@ -192,12 +193,12 @@ void PlayerRenderer::additionalRendering(Mob &mobBase, float a)
 			pitch += std::sin((mob.walkDistO + (mob.walkDist - mob.walkDistO) * a) * 6.0f) * 32.0f * walkBob;
 			if (mob.isSneaking()) pitch += 25.0f;
 
-			glRotatef(6.0f + sway / 2.0f + pitch, 1.0f, 0.0f, 0.0f);
-			glRotatef(twist / 2.0f, 0.0f, 0.0f, 1.0f);
-			glRotatef(-twist / 2.0f, 0.0f, 1.0f, 0.0f);
-			glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
+			VulkanMatrixStack::get().rotatef(6.0f + sway / 2.0f + pitch, 1.0f, 0.0f, 0.0f);
+			VulkanMatrixStack::get().rotatef(twist / 2.0f, 0.0f, 0.0f, 1.0f);
+			VulkanMatrixStack::get().rotatef(-twist / 2.0f, 0.0f, 1.0f, 0.0f);
+			VulkanMatrixStack::get().rotatef(180.0f, 0.0f, 1.0f, 0.0f);
 			humanoidModel->renderCloak(1.0f / 16.0f);
-			glPopMatrix();
+			VulkanMatrixStack::get().popMatrix();
 		}
 	}
 
@@ -206,9 +207,9 @@ void PlayerRenderer::additionalRendering(Mob &mobBase, float a)
 		return;
 	ItemInstance fishingStick;
 
-	glPushMatrix();
+	VulkanMatrixStack::get().pushMatrix();
 	humanoidModel->arm0.translateTo(1.0f / 16.0f);
-	glTranslatef(-1.0f / 16.0f, 7.0f / 16.0f, 1.0f / 16.0f);
+	VulkanMatrixStack::get().translatef(-1.0f / 16.0f, 7.0f / 16.0f, 1.0f / 16.0f);
 	if (mob.fishEntity != nullptr)
 	{
 		fishingStick = ItemInstance(Items::stick->getShiftedIndex());
@@ -219,37 +220,37 @@ void PlayerRenderer::additionalRendering(Mob &mobBase, float a)
 	if (tile != nullptr && TileRenderer::canRender(tile->getRenderShape()))
 	{
 		float s = 0.5f;
-		glTranslatef(0.0f, 0.1875f, -0.3125f);
+		VulkanMatrixStack::get().translatef(0.0f, 0.1875f, -0.3125f);
 		s *= 0.75f;
-		glRotatef(20.0f, 1.0f, 0.0f, 0.0f);
-		glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
-		glScalef(s, -s, s);
+		VulkanMatrixStack::get().rotatef(20.0f, 1.0f, 0.0f, 0.0f);
+		VulkanMatrixStack::get().rotatef(45.0f, 0.0f, 1.0f, 0.0f);
+		VulkanMatrixStack::get().scalef(s, -s, s);
 	}
 	else if (item->getItem() && item->getItem()->isFull3D())
 	{
 		float s = 0.625f;
 		if (item->getItem()->shouldRotateAroundWhenRendering())
 		{
-			glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
-			glTranslatef(0.0f, -0.125f, 0.0f);
+			VulkanMatrixStack::get().rotatef(180.0f, 0.0f, 0.0f, 1.0f);
+			VulkanMatrixStack::get().translatef(0.0f, -0.125f, 0.0f);
 		}
-		glTranslatef(0.0f, 0.1875f, 0.0f);
-		glScalef(s, -s, s);
-		glRotatef(-100.0f, 1.0f, 0.0f, 0.0f);
-		glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
+		VulkanMatrixStack::get().translatef(0.0f, 0.1875f, 0.0f);
+		VulkanMatrixStack::get().scalef(s, -s, s);
+		VulkanMatrixStack::get().rotatef(-100.0f, 1.0f, 0.0f, 0.0f);
+		VulkanMatrixStack::get().rotatef(45.0f, 0.0f, 1.0f, 0.0f);
 	}
 	else
 	{
 		float s = 0.375f;
-		glTranslatef(0.25f, 0.1875f, -0.1875f);
-		glScalef(s, s, s);
-		glRotatef(60.0f, 0.0f, 0.0f, 1.0f);
-		glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-		glRotatef(20.0f, 0.0f, 0.0f, 1.0f);
+		VulkanMatrixStack::get().translatef(0.25f, 0.1875f, -0.1875f);
+		VulkanMatrixStack::get().scalef(s, s, s);
+		VulkanMatrixStack::get().rotatef(60.0f, 0.0f, 0.0f, 1.0f);
+		VulkanMatrixStack::get().rotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+		VulkanMatrixStack::get().rotatef(20.0f, 0.0f, 0.0f, 1.0f);
 	}
 
 	HeldItemRenderer::render(*textures, tileRenderer, *item, mob.getBrightness(1.0f));
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 }
 
 
@@ -275,14 +276,14 @@ void PlayerRenderer::renderName(Player &player, double x, double y, double z)
 
 	Font &font = getFont();
 	float scale = (1.0f / 60.0f) * 1.6f;
-	glPushMatrix();
-	glTranslatef(static_cast<float>(x), static_cast<float>(y) + 2.3f, static_cast<float>(z));
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().translatef(static_cast<float>(x), static_cast<float>(y) + 2.3f, static_cast<float>(z));
 	glNormal3f(0.0f, 1.0f, 0.0f);
-	glRotatef(-entityRenderDispatcher.playerRotY, 0.0f, 1.0f, 0.0f);
-	glRotatef(entityRenderDispatcher.playerRotX, 1.0f, 0.0f, 0.0f);
-	glScalef(-scale, -scale, scale);
+	VulkanMatrixStack::get().rotatef(-entityRenderDispatcher.playerRotY, 0.0f, 1.0f, 0.0f);
+	VulkanMatrixStack::get().rotatef(entityRenderDispatcher.playerRotX, 1.0f, 0.0f, 0.0f);
+	VulkanMatrixStack::get().scalef(-scale, -scale, scale);
 	glDisable(GL_LIGHTING);
-	glTranslatef(0.0f, 0.25f / scale, 0.0f);
+	VulkanMatrixStack::get().translatef(0.0f, 0.25f / scale, 0.0f);
 	glDepthMask(GL_FALSE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -302,7 +303,7 @@ void PlayerRenderer::renderName(Player &player, double x, double y, double z)
 	glEnable(GL_LIGHTING);
 	glDisable(GL_BLEND);
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 }
 
 
@@ -313,12 +314,12 @@ void PlayerRenderer::renderLivingLabel(Player &player, const jstring &name, doub
 
 	Font &font = getFont();
 	float scale = (1.0f / 60.0f) * 1.6f;
-	glPushMatrix();
-	glTranslatef(static_cast<float>(x), static_cast<float>(y) + 2.3f, static_cast<float>(z));
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().translatef(static_cast<float>(x), static_cast<float>(y) + 2.3f, static_cast<float>(z));
 	glNormal3f(0.0f, 1.0f, 0.0f);
-	glRotatef(-entityRenderDispatcher.playerRotY, 0.0f, 1.0f, 0.0f);
-	glRotatef(entityRenderDispatcher.playerRotX, 1.0f, 0.0f, 0.0f);
-	glScalef(-scale, -scale, scale);
+	VulkanMatrixStack::get().rotatef(-entityRenderDispatcher.playerRotY, 0.0f, 1.0f, 0.0f);
+	VulkanMatrixStack::get().rotatef(entityRenderDispatcher.playerRotX, 1.0f, 0.0f, 0.0f);
+	VulkanMatrixStack::get().scalef(-scale, -scale, scale);
 	glDisable(GL_LIGHTING);
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
@@ -343,7 +344,7 @@ void PlayerRenderer::renderLivingLabel(Player &player, const jstring &name, doub
 	glEnable(GL_LIGHTING);
 	glDisable(GL_BLEND);
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 }
 
 void PlayerRenderer::renderHand()

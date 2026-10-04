@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/renderer/entity/TNTPrimedRenderer.h"
 
 #include <cmath>
@@ -17,8 +18,8 @@ TNTPrimedRenderer::TNTPrimedRenderer(EntityRenderDispatcher &dispatcher)
 void TNTPrimedRenderer::render(Entity &entity, double x, double y, double z, float rot, float a)
 {
 	PrimedTNT &primed = static_cast<PrimedTNT &>(entity);
-	glPushMatrix();
-	glTranslatef(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().translatef(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
 
 	float fuseTimer = static_cast<float>(primed.fuse) - a + 1.0f;
 	if (fuseTimer < 10.0f)
@@ -29,7 +30,7 @@ void TNTPrimedRenderer::render(Entity &entity, double x, double y, double z, flo
 		scale *= scale;
 		scale *= scale;
 		float scaleFactor = 1.0f + scale * 0.3f;
-		glScalef(scaleFactor, scaleFactor, scaleFactor);
+		VulkanMatrixStack::get().scalef(scaleFactor, scaleFactor, scaleFactor);
 	}
 
 	float flashAlpha = (1.0f - fuseTimer / 100.0f) * 0.8f;
@@ -52,5 +53,5 @@ void TNTPrimedRenderer::render(Entity &entity, double x, double y, double z, flo
 		glEnable(GL_TEXTURE_2D);
 	}
 
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 }

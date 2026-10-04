@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/renderer/OffsettedRenderList.h"
 
 #include "client/renderer/Chunk.h"
@@ -38,11 +39,11 @@ void OffsettedRenderList::render()
 
 	if (!chunks.empty())
 	{
-		glPushMatrix();
-		glTranslatef(static_cast<float>(x - xOff), static_cast<float>(y - yOff), static_cast<float>(z - zOff));
+		VulkanMatrixStack::get().pushMatrix();
+		VulkanMatrixStack::get().translatef(static_cast<float>(x - xOff), static_cast<float>(y - yOff), static_cast<float>(z - zOff));
 		for (Chunk *chunk : chunks)
 			chunk->draw(layer);
-		glPopMatrix();
+		VulkanMatrixStack::get().popMatrix();
 	}
 }
 

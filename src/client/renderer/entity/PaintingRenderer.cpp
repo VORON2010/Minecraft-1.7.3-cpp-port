@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/renderer/entity/PaintingRenderer.h"
 
 #include "OpenGL.h"
@@ -14,17 +15,17 @@ void PaintingRenderer::render(Entity &entity, double x, double y, double z, floa
 	(void)a;
 	EntityPainting &painting = static_cast<EntityPainting &>(entity);
 	random.setSeed(187LL);
-	glPushMatrix();
-	glTranslatef(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
-	glRotatef(rot, 0.0f, 1.0f, 0.0f);
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().translatef(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
+	VulkanMatrixStack::get().rotatef(rot, 0.0f, 1.0f, 0.0f);
 	glEnable(GL_RESCALE_NORMAL);
 	bindTexture(u"/art/kz.png");
 	const PaintingArt &art = *painting.art;
 	float scale = 1.0f / 16.0f;
-	glScalef(scale, scale, scale);
+	VulkanMatrixStack::get().scalef(scale, scale, scale);
 	renderPainting(painting, art.sizeX, art.sizeY, art.offsetX, art.offsetY);
 	glDisable(GL_RESCALE_NORMAL);
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 }
 
 void PaintingRenderer::renderPainting(EntityPainting &painting, int_t width, int_t height, int_t textureX, int_t textureY)

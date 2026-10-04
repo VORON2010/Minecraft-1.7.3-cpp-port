@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/renderer/entity/FallingTileRenderer.h"
 
 #include "client/renderer/Tesselator.h"
@@ -24,8 +25,8 @@ void FallingTileRenderer::render(Entity &entity, double x, double y, double z, f
 	int_t zTile = Mth::floor(fallingTile.z);
 	Level &level = fallingTile.getLevel();
 
-	glPushMatrix();
-	glTranslatef(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().translatef(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
 	bindTexture(u"/terrain.png");
 	glDisable(GL_LIGHTING);
 	Tesselator::instance.begin();
@@ -35,5 +36,5 @@ void FallingTileRenderer::render(Entity &entity, double x, double y, double z, f
 	Tesselator::instance.offset(0.0, 0.0, 0.0);
 	Tesselator::instance.end();
 	glEnable(GL_LIGHTING);
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 }

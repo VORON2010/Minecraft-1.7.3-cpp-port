@@ -1,3 +1,4 @@
+#include "pc/OpenGL.h"
 #include "lwjgl/GLContext.h"
 
 #include <iostream>
@@ -7,6 +8,13 @@
 #include "external/SDLException.h"
 
 #include "SDL.h"
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#include "SDL_syswm.h"
+#endif
+#include "pc/vulkan/VulkanContext.h"
 
 
 
@@ -131,66 +139,25 @@ private:
 public:
 	GLContext()
 	{
-		// SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-		// SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-		// SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
-
-#ifdef MC_DEBUG_GL
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
-#endif
-
-		
-		window = SDL_CreateWindow("McBetaCpp", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 854, 480, SDL_WINDOW_HIDDEN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+		window = SDL_CreateWindow("McBetaCpp", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 854, 480, SDL_WINDOW_HIDDEN | SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
 		if (window == nullptr)
 			throw SDLException();
 
-		
-		gl_context = SDL_GL_CreateContext(window);
-		if (gl_context == nullptr)
-			throw SDLException();
-
-		if (SDL_GL_MakeCurrent(window, gl_context))
-			throw SDLException();
-
-		
-#ifndef __ANDROID__
-		if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(SDL_GL_GetProcAddress)))
-			throw std::runtime_error("Failed to load glad");
-#endif
-
-		
-		SDL_GL_SetSwapInterval(0);
-
-		
+#ifdef _WIN32
+		// Title bar / taskbar icon from the exe's IDI_MAIN_ICON resource
+		SDL_SysWMinfo wm;
+		SDL_VERSION(&wm.version);
+		if (SDL_GetWindowWMInfo(window, &wm))
 		{
-			const GLubyte *extensions = glGetString(GL_EXTENSIONS);
-			std::string cap;
-
-			const char *extension_p = reinterpret_cast<const char *>(extensions);
-			while (*extension_p != '\0')
-			{
-				if (*extension_p == ' ')
-				{
-					if (!cap.empty())
-					{
-						capabilties.add(cap);
-						cap.clear();
-					}
-					while (*extension_p == ' ')
-						extension_p++;
-					continue;
-				}
-
-				cap.push_back(*extension_p++);
-			}
+			HINSTANCE inst = GetModuleHandleW(nullptr);
+			HICON bigIcon = static_cast<HICON>(LoadImageW(inst, L"IDI_MAIN_ICON", IMAGE_ICON, GetSystemMetrics(SM_CXICON), GetSystemMetrics(SM_CYICON), 0));
+			HICON smallIcon = static_cast<HICON>(LoadImageW(inst, L"IDI_MAIN_ICON", IMAGE_ICON, GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), 0));
+			if (bigIcon) SendMessageW(wm.info.win.window, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(bigIcon));
+			if (smallIcon) SendMessageW(wm.info.win.window, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(smallIcon));
 		}
-
-#ifdef MC_DEBUG_GL
-		
-		glEnable(GL_DEBUG_OUTPUT);
-		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-		glDebugMessageCallback(GLDebugMessageCallback, nullptr);
 #endif
+
+		VulkanContext::getInstance().init(window);
 	}
 
 	SDL_Window *getWindow() const { return window; }
@@ -220,8 +187,6 @@ SDL_GLContext getGLContext()
 void instantiate()
 {
 	detail::getContext();
-	if (SDL_GL_MakeCurrent(detail::getContext().getWindow(), detail::getContext().getGLContext()))
-		throw SDLException();
 }
 
 const detail::GLCapabilities &getCapabilities()

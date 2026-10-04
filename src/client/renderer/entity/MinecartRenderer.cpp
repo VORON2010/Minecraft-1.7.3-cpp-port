@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/renderer/entity/MinecartRenderer.h"
 
 #include <cmath>
@@ -20,7 +21,7 @@ MinecartRenderer::MinecartRenderer(EntityRenderDispatcher &entityRenderDispatche
 void MinecartRenderer::render(Entity &entity, double x, double y, double z, float rot, float a)
 {
 	EntityMinecart &minecart = static_cast<EntityMinecart &>(entity);
-	glPushMatrix();
+	VulkanMatrixStack::get().pushMatrix();
 
 	double interpX = minecart.xOld + (minecart.x - minecart.xOld) * a;
 	double interpY = minecart.yOld + (minecart.y - minecart.yOld) * a;
@@ -49,35 +50,35 @@ void MinecartRenderer::render(Entity &entity, double x, double y, double z, floa
 		}
 	}
 
-	glTranslatef(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
-	glRotatef(180.0f - rot, 0.0f, 1.0f, 0.0f);
-	glRotatef(-pitch, 0.0f, 0.0f, 1.0f);
+	VulkanMatrixStack::get().translatef(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
+	VulkanMatrixStack::get().rotatef(180.0f - rot, 0.0f, 1.0f, 0.0f);
+	VulkanMatrixStack::get().rotatef(-pitch, 0.0f, 0.0f, 1.0f);
 
 	float hurtTime = static_cast<float>(minecart.minecartTimeSinceHit) - a;
 	float damage = static_cast<float>(minecart.minecartCurrentDamage) - a;
 	if (damage < 0.0f)
 		damage = 0.0f;
 	if (hurtTime > 0.0f)
-		glRotatef(Mth::sin(hurtTime) * hurtTime * damage / 10.0f * minecart.minecartRockDirection, 1.0f, 0.0f, 0.0f);
+		VulkanMatrixStack::get().rotatef(Mth::sin(hurtTime) * hurtTime * damage / 10.0f * minecart.minecartRockDirection, 1.0f, 0.0f, 0.0f);
 
 	if (minecart.minecartType == EntityMinecart::TYPE_CHEST || minecart.minecartType == EntityMinecart::TYPE_FURNACE)
 	{
 		bindTexture(u"/terrain.png");
 		float cargoScale = 12.0f / 16.0f;
-		glScalef(cargoScale, cargoScale, cargoScale);
-		glTranslatef(0.0f, 5.0f / 16.0f, 0.0f);
-		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		VulkanMatrixStack::get().scalef(cargoScale, cargoScale, cargoScale);
+		VulkanMatrixStack::get().translatef(0.0f, 5.0f / 16.0f, 0.0f);
+		VulkanMatrixStack::get().rotatef(90.0f, 0.0f, 1.0f, 0.0f);
 		if (minecart.minecartType == EntityMinecart::TYPE_CHEST)
 			tileRenderer.renderGuiTile(static_cast<Tile &>(Tile::chest), 0);
 		else
 			tileRenderer.renderGuiTile(static_cast<Tile &>(Tile::furnace), 0);
-		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
-		glTranslatef(0.0f, -(5.0f / 16.0f), 0.0f);
-		glScalef(1.0f / cargoScale, 1.0f / cargoScale, 1.0f / cargoScale);
+		VulkanMatrixStack::get().rotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		VulkanMatrixStack::get().translatef(0.0f, -(5.0f / 16.0f), 0.0f);
+		VulkanMatrixStack::get().scalef(1.0f / cargoScale, 1.0f / cargoScale, 1.0f / cargoScale);
 	}
 
 	bindTexture(u"/item/cart.png");
-	glScalef(-1.0f, -1.0f, 1.0f);
+	VulkanMatrixStack::get().scalef(-1.0f, -1.0f, 1.0f);
 	modelMinecart.render(0.0f, 0.0f, -0.1f, 0.0f, 0.0f, 1.0f / 16.0f);
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 }

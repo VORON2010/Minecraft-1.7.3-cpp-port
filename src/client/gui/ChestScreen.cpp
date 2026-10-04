@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/gui/ChestScreen.h"
 #include "client/gui/RecipeScreen.h"
 
@@ -90,15 +91,15 @@ void ChestScreen::render(int_t xm, int_t ym, float a)
 	int_t hoveredSlotX = -1;
 	int_t hoveredSlotY = -1;
 
-	glPushMatrix();
-	glTranslatef(static_cast<float>(xo), static_cast<float>(yo), 0.0f);
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().translatef(static_cast<float>(xo), static_cast<float>(yo), 0.0f);
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	glEnable(GL_RESCALE_NORMAL);
 
-	glPushMatrix();
-	glRotatef(120.0f, 1.0f, 0.0f, 0.0f);
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().rotatef(120.0f, 1.0f, 0.0f, 0.0f);
 	Lighting::turnOn();
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 
 	for (int_t slot = 0; slot < getChestSize(); ++slot)
 	{
@@ -152,7 +153,7 @@ void ChestScreen::render(int_t xm, int_t ym, float a)
 	if (carried != nullptr && !carried->isEmpty())
 	{
 		static ItemRenderer itemRenderer(EntityRenderDispatcher::instance);
-		glTranslatef(0.0f, 0.0f, 32.0f);
+		VulkanMatrixStack::get().translatef(0.0f, 0.0f, 32.0f);
 		itemRenderer.renderGuiItem(font, minecraft.textures, *carried, relX - 8, relY - 8);
 		itemRenderer.renderGuiItemDecorations(font, minecraft.textures, *carried, relX - 8, relY - 8);
 	}
@@ -161,7 +162,7 @@ void ChestScreen::render(int_t xm, int_t ym, float a)
 	Lighting::turnOff();
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 
 	renderLabels();
 	if (carried == nullptr && hoveredSlot != SLOT_NONE)

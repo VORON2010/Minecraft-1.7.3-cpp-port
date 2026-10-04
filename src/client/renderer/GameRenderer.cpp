@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/renderer/GameRenderer.h"
 #include "util/Profiler.h"
 
@@ -260,7 +261,7 @@ void GameRenderer::bobHurt(float a)
 	if (player.health <= 0)
 	{
 		float deathTime = static_cast<float>(player.deathTime) + a;
-		glRotatef(40.0f - 8000.0f / (deathTime + 200.0f), 0.0f, 0.0f, 1.0f);
+		VulkanMatrixStack::get().rotatef(40.0f - 8000.0f / (deathTime + 200.0f), 0.0f, 0.0f, 1.0f);
 	}
 
 	if (hurtTime >= 0.0f)
@@ -268,9 +269,9 @@ void GameRenderer::bobHurt(float a)
 		hurtTime /= static_cast<float>(player.hurtDuration);
 		hurtTime = Mth::sin(hurtTime * hurtTime * hurtTime * hurtTime * Mth::PI);
 		float yaw = player.hurtDir;
-		glRotatef(-yaw, 0.0f, 1.0f, 0.0f);
-		glRotatef(-hurtTime * 14.0f, 0.0f, 0.0f, 1.0f);
-		glRotatef(yaw, 0.0f, 1.0f, 0.0f);
+		VulkanMatrixStack::get().rotatef(-yaw, 0.0f, 1.0f, 0.0f);
+		VulkanMatrixStack::get().rotatef(-hurtTime * 14.0f, 0.0f, 0.0f, 1.0f);
+		VulkanMatrixStack::get().rotatef(yaw, 0.0f, 1.0f, 0.0f);
 	}
 }
 
@@ -281,10 +282,10 @@ void GameRenderer::bobView(float a)
 	float walkDist = -(localPlayer.walkDist + walkDelta * a);
 	float bob = localPlayer.oBob + (localPlayer.bob - localPlayer.oBob) * a;
 	float tilt = localPlayer.oTilt + (localPlayer.tilt - localPlayer.oTilt) * a;
-	glTranslatef(Mth::sin(walkDist * Mth::PI) * bob * 0.5F, -std::abs(Mth::cos(walkDist * Mth::PI) * bob), 0.0F);
-	glRotatef(Mth::sin(walkDist * Mth::PI) * bob * 3.0F, 0.0F, 0.0F, 1.0F);
-	glRotatef(std::abs(Mth::cos(walkDist * Mth::PI - 0.2F) * bob) * 5.0F, 1.0F, 0.0F, 0.0F);
-	glRotatef(tilt, 1.0F, 0.0F, 0.0F);
+	VulkanMatrixStack::get().translatef(Mth::sin(walkDist * Mth::PI) * bob * 0.5F, -std::abs(Mth::cos(walkDist * Mth::PI) * bob), 0.0F);
+	VulkanMatrixStack::get().rotatef(Mth::sin(walkDist * Mth::PI) * bob * 3.0F, 0.0F, 0.0F, 1.0F);
+	VulkanMatrixStack::get().rotatef(std::abs(Mth::cos(walkDist * Mth::PI - 0.2F) * bob) * 5.0F, 1.0F, 0.0F, 0.0F);
+	VulkanMatrixStack::get().rotatef(tilt, 1.0F, 0.0F, 0.0F);
 }
 
 void GameRenderer::moveCameraToPlayer(float a)
@@ -303,8 +304,8 @@ void GameRenderer::moveCameraToPlayer(float a)
 			int_t data = mc.level->getData(player.bedX, player.bedY, player.bedZ);
 			bedDir = data & 3;
 		}
-		glRotatef(bedDir * 90.0f, 0.0f, 1.0f, 0.0f);
-		glTranslatef(0.0f, player.heightOffset - 1.62f + 1.0f + 0.3f, 0.0f);
+		VulkanMatrixStack::get().rotatef(bedDir * 90.0f, 0.0f, 1.0f, 0.0f);
+		VulkanMatrixStack::get().translatef(0.0f, player.heightOffset - 1.62f + 1.0f + 0.3f, 0.0f);
 	}
 	else if (mc.options.thirdPersonView)
 	{
@@ -332,22 +333,22 @@ void GameRenderer::moveCameraToPlayer(float a)
 			}
 		}
 
-		glRotatef(player.xRot - xRot, 1.0f, 0.0f, 0.0f);
-		glRotatef(player.yRot - yRot, 0.0f, 1.0f, 0.0f);
-		glTranslatef(0.0f, 0.0f, static_cast<float>(-distance));
-		glRotatef(yRot - player.yRot, 0.0f, 1.0f, 0.0f);
-		glRotatef(xRot - player.xRot, 1.0f, 0.0f, 0.0f);
+		VulkanMatrixStack::get().rotatef(player.xRot - xRot, 1.0f, 0.0f, 0.0f);
+		VulkanMatrixStack::get().rotatef(player.yRot - yRot, 0.0f, 1.0f, 0.0f);
+		VulkanMatrixStack::get().translatef(0.0f, 0.0f, static_cast<float>(-distance));
+		VulkanMatrixStack::get().rotatef(yRot - player.yRot, 0.0f, 1.0f, 0.0f);
+		VulkanMatrixStack::get().rotatef(xRot - player.xRot, 1.0f, 0.0f, 0.0f);
 
-		glRotatef(player.xRotO + (player.xRot - player.xRotO) * a, 1.0f, 0.0f, 0.0f);
-		glRotatef(player.yRotO + (player.yRot - player.yRotO) * a + 180.0f, 0.0f, 1.0f, 0.0f);
-		glTranslatef(0.0f, player.heightOffset - 1.62f, 0.0f);
+		VulkanMatrixStack::get().rotatef(player.xRotO + (player.xRot - player.xRotO) * a, 1.0f, 0.0f, 0.0f);
+		VulkanMatrixStack::get().rotatef(player.yRotO + (player.yRot - player.yRotO) * a + 180.0f, 0.0f, 1.0f, 0.0f);
+		VulkanMatrixStack::get().translatef(0.0f, player.heightOffset - 1.62f, 0.0f);
 	}
 	else
 	{
-		glTranslatef(0.0f, 0.0f, -0.1f);
-		glRotatef(player.xRotO + (player.xRot - player.xRotO) * a, 1.0f, 0.0f, 0.0f);
-		glRotatef(player.yRotO + (player.yRot - player.yRotO) * a + 180.0f, 0.0f, 1.0f, 0.0f);
-		glTranslatef(0.0f, player.heightOffset - 1.62f, 0.0f);
+		VulkanMatrixStack::get().translatef(0.0f, 0.0f, -0.1f);
+		VulkanMatrixStack::get().rotatef(player.xRotO + (player.xRot - player.xRotO) * a, 1.0f, 0.0f, 0.0f);
+		VulkanMatrixStack::get().rotatef(player.yRotO + (player.yRot - player.yRotO) * a + 180.0f, 0.0f, 1.0f, 0.0f);
+		VulkanMatrixStack::get().translatef(0.0f, player.heightOffset - 1.62f, 0.0f);
 	}
 }
 
@@ -359,16 +360,16 @@ void GameRenderer::setupCamera(float a, int_t eye)
 	else
 		renderDistance = static_cast<float>(256 >> mc.options.viewDistance);
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
+	VulkanMatrixStack::get().matrixMode(VulkanMatrixMode::PROJECTION);
+	VulkanMatrixStack::get().loadIdentity();
 
 	float eyeDist = 0.07f;
 	if (mc.options.anaglyph3d)
-		glTranslatef(-(eye * 2 - 1) * eyeDist, 0.0f, 0.0f);
+		VulkanMatrixStack::get().translatef(-(eye * 2 - 1) * eyeDist, 0.0f, 0.0f);
 
 	if (zoom != 1.0)
 	{
-		glTranslatef(static_cast<float>(zoom_x), static_cast<float>(-zoom_y), 0.0f);
+		VulkanMatrixStack::get().translatef(static_cast<float>(zoom_x), static_cast<float>(-zoom_y), 0.0f);
 		glScaled(zoom, zoom, 1.0);
 		gluPerspective(getFov(a), static_cast<float>(mc.width) / static_cast<float>(mc.height), 0.05f, renderDistance * 2.0f);
 	}
@@ -377,10 +378,10 @@ void GameRenderer::setupCamera(float a, int_t eye)
 		gluPerspective(getFov(a), static_cast<float>(mc.width) / static_cast<float>(mc.height), 0.05f, renderDistance * 2.0f);
 	}
 
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+	VulkanMatrixStack::get().matrixMode(VulkanMatrixMode::MODELVIEW);
+	VulkanMatrixStack::get().loadIdentity();
 	if (mc.options.anaglyph3d)
-		glTranslatef((eye * 2 - 1) * 0.1f, 0.0f, 0.0f);
+		VulkanMatrixStack::get().translatef((eye * 2 - 1) * 0.1f, 0.0f, 0.0f);
 
 	bobHurt(a);
 	if (mc.options.bobView)
@@ -391,9 +392,9 @@ void GameRenderer::setupCamera(float a, int_t eye)
 	{
 		float scale = 5.0f / (portalTime * portalTime + 5.0f) - portalTime * 0.04f;
 		scale *= scale;
-		glRotatef((ticks + a) * 20.0f, 0.0f, 1.0f, 1.0f);
-		glScalef(1.0f / scale, 1.0f, 1.0f);
-		glRotatef(-(ticks + a) * 20.0f, 0.0f, 1.0f, 1.0f);
+		VulkanMatrixStack::get().rotatef((ticks + a) * 20.0f, 0.0f, 1.0f, 1.0f);
+		VulkanMatrixStack::get().scalef(1.0f / scale, 1.0f, 1.0f);
+		VulkanMatrixStack::get().rotatef(-(ticks + a) * 20.0f, 0.0f, 1.0f, 1.0f);
 	}
 
 	moveCameraToPlayer(a);
@@ -401,11 +402,11 @@ void GameRenderer::setupCamera(float a, int_t eye)
 
 void GameRenderer::renderItemInHand(float a, int_t eye)
 {
-	glLoadIdentity();
+	VulkanMatrixStack::get().loadIdentity();
 	if (mc.options.anaglyph3d)
-		glTranslatef((eye * 2 - 1) * 0.1f, 0.0f, 0.0f);
+		VulkanMatrixStack::get().translatef((eye * 2 - 1) * 0.1f, 0.0f, 0.0f);
 
-	glPushMatrix();
+	VulkanMatrixStack::get().pushMatrix();
 
 	bobHurt(a);
 	if (mc.options.bobView)
@@ -413,7 +414,7 @@ void GameRenderer::renderItemInHand(float a, int_t eye)
 	if (!mc.options.thirdPersonView && !mc.player->sleeping && !mc.options.hideGui)
 		itemInHandRenderer.render(a);
 
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 
 	if (!mc.options.thirdPersonView && !mc.player->sleeping)
 	{
@@ -493,10 +494,10 @@ void GameRenderer::render(float a)
 	else
 	{
 		glViewport(0, 0, mc.width, mc.height);
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
+		VulkanMatrixStack::get().matrixMode(VulkanMatrixMode::PROJECTION);
+		VulkanMatrixStack::get().loadIdentity();
+		VulkanMatrixStack::get().matrixMode(VulkanMatrixMode::MODELVIEW);
+		VulkanMatrixStack::get().loadIdentity();
 		setupGuiScreen();
 
 		if (mc.options.limitFramerate == 2)
@@ -860,12 +861,12 @@ void GameRenderer::setupGuiScreen()
 	int_t h = ssc.getHeight();
 
 	glClear(GL_DEPTH_BUFFER_BIT);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0.0, w, h, 0.0, 1000.0, 3000.0);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glTranslatef(0.0f, 0.0f, -2000.0f);
+	VulkanMatrixStack::get().matrixMode(VulkanMatrixMode::PROJECTION);
+	VulkanMatrixStack::get().loadIdentity();
+	VulkanMatrixStack::get().ortho(0.0, w, h, 0.0, 1000.0, 3000.0);
+	VulkanMatrixStack::get().matrixMode(VulkanMatrixMode::MODELVIEW);
+	VulkanMatrixStack::get().loadIdentity();
+	VulkanMatrixStack::get().translatef(0.0f, 0.0f, -2000.0f);
 }
 
 

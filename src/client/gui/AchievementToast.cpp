@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/gui/AchievementToast.h"
 
 #include "OpenGL.h"
@@ -35,20 +36,20 @@ void AchievementToast::queueAchievementInformation(Achievement &achievement)
 void AchievementToast::updateWindowScale()
 {
 	glViewport(0, 0, minecraft.width, minecraft.height);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+	VulkanMatrixStack::get().matrixMode(VulkanMatrixMode::PROJECTION);
+	VulkanMatrixStack::get().loadIdentity();
+	VulkanMatrixStack::get().matrixMode(VulkanMatrixMode::MODELVIEW);
+	VulkanMatrixStack::get().loadIdentity();
 	ScreenSizeCalculator size(minecraft.options, minecraft.width, minecraft.height);
 	windowWidth = size.getWidth();
 	windowHeight = size.getHeight();
 	glClear(GL_DEPTH_BUFFER_BIT);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0.0, windowWidth, windowHeight, 0.0, 1000.0, 3000.0);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glTranslatef(0.0f, 0.0f, -2000.0f);
+	VulkanMatrixStack::get().matrixMode(VulkanMatrixMode::PROJECTION);
+	VulkanMatrixStack::get().loadIdentity();
+	VulkanMatrixStack::get().ortho(0.0, windowWidth, windowHeight, 0.0, 1000.0, 3000.0);
+	VulkanMatrixStack::get().matrixMode(VulkanMatrixMode::MODELVIEW);
+	VulkanMatrixStack::get().loadIdentity();
+	VulkanMatrixStack::get().translatef(0.0f, 0.0f, -2000.0f);
 }
 
 void AchievementToast::render()
@@ -91,10 +92,10 @@ void AchievementToast::render()
 		minecraft.font->draw(description, x + 30, y + 18, -1);
 	}
 
-	glPushMatrix();
-	glRotatef(180.0f, 1.0f, 0.0f, 0.0f);
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().rotatef(180.0f, 1.0f, 0.0f, 0.0f);
 	Lighting::turnOn();
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 	glDisable(GL_LIGHTING);
 	glEnable(GL_RESCALE_NORMAL);
 	glEnable(GL_COLOR_MATERIAL);

@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/gui/StatisticsScreen.h"
 
 #include <algorithm>
@@ -445,10 +446,10 @@ void StatisticsScreen::drawStatsItem(int_t x, int_t y, int_t itemId)
 {
 	drawStatsTexture(x + 1, y + 1, 0, 0);
 	glEnable(GL_RESCALE_NORMAL);
-	glPushMatrix();
-	glRotatef(180.0f, 1.0f, 0.0f, 0.0f);
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().rotatef(180.0f, 1.0f, 0.0f, 0.0f);
 	Lighting::turnOn();
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 	static ItemRenderer itemRenderer(EntityRenderDispatcher::instance);
 	ItemInstance stack(itemId, 1, 0);
 	itemRenderer.renderGuiItem(font, minecraft.textures, stack, x + 2, y + 2);

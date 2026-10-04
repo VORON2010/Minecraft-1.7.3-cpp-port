@@ -2,38 +2,41 @@
 
 #include <memory>
 #include <vector>
+#include <vulkan/vulkan.h>
 
 #include "java/Type.h"
 
-#include "OpenGL.h"
+// Removed OpenGL.h
+// #include "OpenGL.h"
 
 #include "util/Memory.h"
 
+struct TesselatorVertex {
+    float pos[3];
+    float uv[2];
+    uint8_t color[4];
+    int8_t normal[4];
+};
 
 struct MeshCapture
 {
-	std::vector<char> data;
+	std::vector<TesselatorVertex> data;
 	int_t vertices = 0;
 	bool hasTexture = false;
 	bool hasColor = false;
 	bool hasNormal = false;
-	GLenum mode = 0;
+	int mode = 0; 
 };
 
 class Tesselator
 {
 private:
 	static constexpr bool TRIANGLE_MODE = true;
-	static constexpr bool USE_VBO = false;
 	static constexpr int_t MAX_MEMORY_USE = 0x1000000;
 	static constexpr int_t MAX_FLOATS = 0x200000;
 
-	
-	std::unique_ptr<char[]> buffer;
-	char *buffer_p;
-	char *buffer_e;
+	std::vector<TesselatorVertex> vertices_data;
 
-	
 	int_t vertices = 0;
 
 	double u = 0.0, v = 0.0;
@@ -46,41 +49,41 @@ private:
 	int_t count = 0;
 	bool noColorFlag = false;
 
-	GLenum draw_mode = 0;
+	int draw_mode = 0; // previously GLenum
 
 	double xo = 0.0;
 	double yo = 0.0;
 	double zo = 0.0;
 
 	int_t normalValue = 0;
+	int8_t normalBytes[3] = { 0, 0, 0 };
+
+	VkBuffer vertexBuffer = VK_NULL_HANDLE;
+	VkDeviceMemory vertexMemory = VK_NULL_HANDLE;
 
 public:
 	static Tesselator instance;
 
 private:
-	
 	bool tesselating = false;
-	bool vboMode = false;
 
-	
-	std::unique_ptr<GLuint[]> vboIds;
-	int_t vboId = 0;
-	int_t vboCounts = 10;
-
-	
 	int_t size = 0;
 	MeshCapture *capture = nullptr;
+	
+	void allocateBuffer();
+	void cleanupBuffer();
 
 public:
 	Tesselator(int_t size);
+	~Tesselator();
 
 	Tesselator getUniqueInstance(int_t size);
 
-	
 	void end();
+	void render(VkCommandBuffer cmd);
 	void clear();
 	void begin();
-	void begin(GLenum mode);
+	void begin(int mode);
 	void tex(double u, double v);
 	void color(float r, float g, float b);
 	void color(float r, float g, float b, float a);

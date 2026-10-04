@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/title/TitleScreen.h"
 
 #include <chrono>
@@ -109,14 +110,14 @@ void TitleScreen::render(int_t xm, int_t ym, float a)
 	t.vertexUV(logoX, logoY, 0.0, 0.0, 0.0);
 	t.end();
 
-	glPushMatrix();
-	glTranslatef(static_cast<float>(width / 2 + 90), 70.0f, 0.0f);
-	glRotatef(-20.0f, 0.0f, 0.0f, 1.0f);
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().translatef(static_cast<float>(width / 2 + 90), 70.0f, 0.0f);
+	VulkanMatrixStack::get().rotatef(-20.0f, 0.0f, 0.0f, 1.0f);
 	float scale = 1.8f - Mth::abs(Mth::sin(static_cast<float>(System::currentTimeMillis() % 1000L) / 1000.0f * Mth::PI * 2.0f) * 0.1f);
 	scale = scale * 100.0f / (font.width(splash) + 32);
-	glScalef(scale, scale, scale);
+	VulkanMatrixStack::get().scalef(scale, scale, scale);
 	drawCenteredString(font, splash, 0, -8, 0xFFFF00);
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 
 	drawString(font, Minecraft::VERSION_STRING, 2, 2, 0x505050);
 	jstring copyright = u"VORON";

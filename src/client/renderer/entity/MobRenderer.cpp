@@ -1,3 +1,5 @@
+#include "pc/OpenGL.h"
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/renderer/entity/MobRenderer.h"
 
 #include "client/renderer/entity/EntityRenderDispatcher.h"
@@ -22,7 +24,7 @@ void MobRenderer::render(Entity &entity, double x, double y, double z, float rot
 {
 	Mob &mob = static_cast<Mob &>(entity);
 
-	glPushMatrix();
+	VulkanMatrixStack::get().pushMatrix();
 	glDisable(GL_CULL_FACE);
 
 	model->attackTime = getAttackAnim(mob, a);
@@ -33,17 +35,17 @@ void MobRenderer::render(Entity &entity, double x, double y, double z, float rot
 	float headRot = mob.yRotO + (mob.yRot - mob.yRotO) * a;
 	float headRotx = mob.xRotO + (mob.xRot - mob.xRotO) * a;
 
-	glTranslatef(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
+	VulkanMatrixStack::get().translatef(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
 
 	float bob = getBob(mob, a);
 	setupRotations(mob, bob, bodyRot, a);
 
 	float scale = 1.0f / 16.0f;
 	glEnable(GL_RESCALE_NORMAL);
-	glScalef(-1.0f, -1.0f, 1.0f);
+	VulkanMatrixStack::get().scalef(-1.0f, -1.0f, 1.0f);
 
 	this->scale(mob, a);
-	glTranslatef(0.0f, -24.0f * scale - (1.0f / 128.0f), 0.0f);
+	VulkanMatrixStack::get().translatef(0.0f, -24.0f * scale - (1.0f / 128.0f), 0.0f);
 
 	float ws = mob.walkAnimSpeedO + (mob.walkAnimSpeed - mob.walkAnimSpeedO) * a;
 	float wp = mob.walkAnimPos - mob.walkAnimSpeed * (1.0f - a);
@@ -124,18 +126,18 @@ void MobRenderer::render(Entity &entity, double x, double y, double z, float rot
 
 	glEnable(GL_CULL_FACE);
 
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 }
 
 void MobRenderer::setupRotations(Mob &mob, float bob, float bodyRot, float a)
 {
-	glRotatef(180.0f - bodyRot, 0.0f, 1.0f, 0.0f);
+	VulkanMatrixStack::get().rotatef(180.0f - bodyRot, 0.0f, 1.0f, 0.0f);
 	if (mob.deathTime > 0)
 	{
 		float fall = (mob.deathTime + a - 1.0f) / 20.0f * 1.6f;
 		fall = Mth::sqrt(fall);
 		if (fall > 1.0f) fall = 1.0f;
-		glRotatef(fall * getFlipDegrees(mob), 0.0f, 0.0f, 1.0f);
+		VulkanMatrixStack::get().rotatef(fall * getFlipDegrees(mob), 0.0f, 0.0f, 1.0f);
 	}
 }
 

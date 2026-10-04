@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/gui/AchievementsScreen.h"
 
 #include <algorithm>
@@ -202,8 +203,8 @@ void AchievementsScreen::renderAchievementMap(int_t mouseX, int_t mouseY, float 
 	int_t mapY = panelY + 17;
 	blitOffset = 0.0f;
 	glDepthFunc(GL_GEQUAL);
-	glPushMatrix();
-	glTranslatef(0.0f, 0.0f, -200.0f);
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().translatef(0.0f, 0.0f, -200.0f);
 	glEnable(GL_TEXTURE_2D);
 	glDisable(GL_LIGHTING);
 	glEnable(GL_RESCALE_NORMAL);
@@ -273,10 +274,10 @@ void AchievementsScreen::renderAchievementMap(int_t mouseX, int_t mouseY, float 
 
 	Achievement *hovered = nullptr;
 	static ItemRenderer itemRenderer(EntityRenderDispatcher::instance);
-	glPushMatrix();
-	glRotatef(180.0f, 1.0f, 0.0f, 0.0f);
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().rotatef(180.0f, 1.0f, 0.0f, 0.0f);
 	Lighting::turnOn();
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 	glDisable(GL_LIGHTING);
 	glEnable(GL_RESCALE_NORMAL);
 	glEnable(GL_COLOR_MATERIAL);
@@ -331,7 +332,7 @@ void AchievementsScreen::renderAchievementMap(int_t mouseX, int_t mouseY, float 
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	minecraft.textures.bind(backgroundTexture);
 	blit(panelX, panelY, 0, 0, PANEL_WIDTH, PANEL_HEIGHT);
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 	blitOffset = 0.0f;
 	glDepthFunc(GL_LEQUAL);
 	glDisable(GL_DEPTH_TEST);

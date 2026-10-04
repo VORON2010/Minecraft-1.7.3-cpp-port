@@ -1,3 +1,5 @@
+#include "pc/OpenGL.h"
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/gui/CreativeInventoryScreen.h"
 #include "client/Minecraft.h"
 #include "client/renderer/entity/ItemRenderer.h"
@@ -139,13 +141,13 @@ void CreativeInventoryScreen::render(int_t xm, int_t ym, float a) {
     blit(trackX, thumbY, 2, 209, 12, 15);
 
     // Setup lighting exactly like InventoryScreen does (rotated light for bright items)
-    glPushMatrix();
-    glRotatef(120.0f, 1.0f, 0.0f, 0.0f);
+    VulkanMatrixStack::get().pushMatrix();
+    VulkanMatrixStack::get().rotatef(120.0f, 1.0f, 0.0f, 0.0f);
     Lighting::turnOn();
-    glPopMatrix();
+    VulkanMatrixStack::get().popMatrix();
 
-    glPushMatrix();
-    glTranslatef(static_cast<float>(guiLeft), static_cast<float>(guiTop), 0.0f);
+    VulkanMatrixStack::get().pushMatrix();
+    VulkanMatrixStack::get().translatef(static_cast<float>(guiLeft), static_cast<float>(guiTop), 0.0f);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glEnable(GL_RESCALE_NORMAL);
 
@@ -197,7 +199,7 @@ void CreativeInventoryScreen::render(int_t xm, int_t ym, float a) {
     if (cursorItem && !cursorItem->isEmpty()) {
         int_t relX = xm - guiLeft;
         int_t relY = ym - guiTop;
-        glTranslatef(0.0f, 0.0f, 32.0f);
+        VulkanMatrixStack::get().translatef(0.0f, 0.0f, 32.0f);
         static ItemRenderer cursorRenderer(EntityRenderDispatcher::instance);
         cursorRenderer.renderGuiItem(font, minecraft.textures, *cursorItem, relX - 8, relY - 8);
         cursorRenderer.renderGuiItemDecorations(font, minecraft.textures, *cursorItem, relX - 8, relY - 8);
@@ -208,7 +210,7 @@ void CreativeInventoryScreen::render(int_t xm, int_t ym, float a) {
     glDisable(GL_LIGHTING);
     glDisable(GL_DEPTH_TEST);
 
-    glPopMatrix();
+    VulkanMatrixStack::get().popMatrix();
 
     // Tooltips
     if (!cursorItem || cursorItem->isEmpty()) {

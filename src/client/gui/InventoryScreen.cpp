@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/gui/InventoryScreen.h"
 #include "client/gui/RecipeScreen.h"
 
@@ -112,13 +113,13 @@ void InventoryScreen::render(int_t xm, int_t ym, float a)
 	if (minecraft.player == nullptr)
 		return;
 
-	glPushMatrix();
-	glRotatef(120.0f, 1.0f, 0.0f, 0.0f);
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().rotatef(120.0f, 1.0f, 0.0f, 0.0f);
 	Lighting::turnOn();
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 
-	glPushMatrix();
-	glTranslatef(static_cast<float>(xo), static_cast<float>(yo), 0.0f);
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().translatef(static_cast<float>(xo), static_cast<float>(yo), 0.0f);
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	glEnable(GL_RESCALE_NORMAL);
 
@@ -209,7 +210,7 @@ void InventoryScreen::render(int_t xm, int_t ym, float a)
 	if (carried != nullptr && !carried->isEmpty())
 	{
 		static ItemRenderer itemRenderer(EntityRenderDispatcher::instance);
-		glTranslatef(0.0f, 0.0f, 32.0f);
+		VulkanMatrixStack::get().translatef(0.0f, 0.0f, 32.0f);
 		itemRenderer.renderGuiItem(font, minecraft.textures, *carried, relX - 8, relY - 8);
 		itemRenderer.renderGuiItemDecorations(font, minecraft.textures, *carried, relX - 8, relY - 8);
 	}
@@ -237,7 +238,7 @@ void InventoryScreen::render(int_t xm, int_t ym, float a)
 	}
 	glEnable(GL_LIGHTING);
 	glEnable(GL_DEPTH_TEST);
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
@@ -454,25 +455,25 @@ void InventoryScreen::renderPlayerModel(int_t x, int_t y, int_t scale)
 	float oldYRot = minecraft.player->yRot;
 	float oldXRot = minecraft.player->xRot;
 
-	glPushMatrix();
-	glTranslatef(static_cast<float>(x), static_cast<float>(y), 50.0f);
-	glScalef(static_cast<float>(-scale), static_cast<float>(scale), static_cast<float>(scale));
-	glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().translatef(static_cast<float>(x), static_cast<float>(y), 50.0f);
+	VulkanMatrixStack::get().scalef(static_cast<float>(-scale), static_cast<float>(scale), static_cast<float>(scale));
+	VulkanMatrixStack::get().rotatef(180.0f, 0.0f, 0.0f, 1.0f);
 
 	float xd = static_cast<float>(x) - xMouse;
 	float yd = static_cast<float>(y - 50) - yMouse;
 
-	glRotatef(135.0f, 0.0f, 1.0f, 0.0f);
+	VulkanMatrixStack::get().rotatef(135.0f, 0.0f, 1.0f, 0.0f);
 	Lighting::turnOn();
-	glRotatef(-135.0f, 0.0f, 1.0f, 0.0f);
-	glRotatef(-static_cast<float>(std::atan(yd / 40.0f)) * 20.0f, 1.0f, 0.0f, 0.0f);
+	VulkanMatrixStack::get().rotatef(-135.0f, 0.0f, 1.0f, 0.0f);
+	VulkanMatrixStack::get().rotatef(-static_cast<float>(std::atan(yd / 40.0f)) * 20.0f, 1.0f, 0.0f, 0.0f);
 
 	minecraft.player->yBodyRot = static_cast<float>(std::atan(xd / 40.0f)) * 20.0f;
 	minecraft.player->yRot = static_cast<float>(std::atan(xd / 40.0f)) * 40.0f;
 	minecraft.player->xRot = -static_cast<float>(std::atan(yd / 40.0f)) * 20.0f;
 
 	minecraft.player->entityBrightness = 1.0f;
-	glTranslatef(0.0f, minecraft.player->heightOffset, 0.0f);
+	VulkanMatrixStack::get().translatef(0.0f, minecraft.player->heightOffset, 0.0f);
 	EntityRenderDispatcher::instance.playerRotY = 180.0f;
 	EntityRenderDispatcher::instance.render(*minecraft.player, 0.0, 0.0, 0.0, 0.0f, 1.0f);
 	minecraft.player->entityBrightness = 0.0f;
@@ -481,7 +482,7 @@ void InventoryScreen::renderPlayerModel(int_t x, int_t y, int_t scale)
 	minecraft.player->yRot = oldYRot;
 	minecraft.player->xRot = oldXRot;
 
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 	Lighting::turnOff();
 }
 

@@ -1,8 +1,8 @@
 #include "client/Lighting.h"
+#include "pc/OpenGL.h"
 
 #include "world/phys/Vec3.h"
 
-#include "OpenGL.h"
 
 std::vector<float> Lighting::lb = MemoryTracker::createFloatBuffer(16);
 

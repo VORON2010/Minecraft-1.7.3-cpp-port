@@ -6,6 +6,12 @@ project(McBetaCpp
 	LANGUAGES C CXX
 )
 
+# Vulkan SDK only ships a working x64 vulkan-1.lib, 32-bit builds link the wrong one
+if(MSVC AND NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+	message(FATAL_ERROR "32-bit build. In CLion: Settings > Build > Toolchains > Visual Studio > Architecture = amd64")
+endif()
+unset(Vulkan_LIBRARY CACHE)
+
 set(McBetaCpp_SOURCES
 	"src/client/Minecraft.cpp"
 	"src/client/Minecraft.h"
@@ -948,6 +954,14 @@ add_library(McBetaCppCore OBJECT
 	"src/pc/OpenGL.h"
 	"src/pc/GLTrace.cpp"
 	"src/pc/GLTrace.h"
+	"src/pc/vulkan/VulkanContext.h"
+	"src/pc/vulkan/VulkanContext.cpp"
+	"src/pc/vulkan/VulkanMatrixStack.h"
+	"src/pc/vulkan/VulkanMatrixStack.cpp"
+	"src/pc/vulkan/GLState.cpp"
+	"src/pc/vulkan/GLState.h"
+	"src/pc/vulkan/VulkanTexture.h"
+	"src/pc/vulkan/VulkanTexture.cpp"
 
 	"src/pc/external/miniaudio.cpp"
 	"src/pc/external/SDLException.h"
@@ -967,7 +981,15 @@ add_library(McBetaCppCore OBJECT
 if (ANDROID)
 	add_library(McBetaCpp SHARED "src/pc/Main.cpp")
 else()
-	add_executable(McBetaCpp WIN32 "src/pc/Main.cpp")
+	add_executable(McBetaCpp "src/pc/Main.cpp" "src/pc/TerminateHandler.cpp")
+	# Resources inside a static library never reach the exe, so the icon goes here
+	if(WIN32)
+		target_sources(McBetaCpp PRIVATE "src/pc/win32/McBetaCpp.rc")
+	endif()
+	# No console window outside Debug
+	if(MSVC)
+		target_link_options(McBetaCpp PRIVATE $<$<NOT:$<CONFIG:Debug>>:/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup>)
+	endif()
 endif()
 target_link_libraries(McBetaCpp PRIVATE McBetaCppCore)
 
@@ -994,7 +1016,6 @@ if(WIN32)
 		"src/pc/win32/java/File.cpp"
 		"src/pc/win32/java/Resource.cpp"
 		"src/pc/win32/java/Runtime.cpp"
-		"src/pc/win32/McBetaCpp.rc"
 	)
 
 	target_compile_definitions(McBetaCppCore PUBLIC MC_WIN32)
@@ -1040,6 +1061,9 @@ else()
 		src/world/entity/Entity.cpp src/world/phys/AABB.cpp src/world/phys/Vec3.cpp
 		PROPERTIES COMPILE_OPTIONS "-fno-fast-math;-ffp-contract=off")
 endif()
+if(MSVC)
+	add_compile_options(/FS)
+endif()
 
 option(B173_ENABLE_GL_TRACE "Compile the logical GL trace in Debug builds" OFF)
 if(B173_ENABLE_GL_TRACE)
@@ -1052,14 +1076,9 @@ if(B173_ENABLE_SPC)
 endif()
 
 # Third party
-add_subdirectory("external/glad" EXCLUDE_FROM_ALL)
-target_link_libraries(McBetaCppCore PUBLIC glad)
-
-if (ANDROID)
-    add_subdirectory("external/gl4es" EXCLUDE_FROM_ALL)
-    target_link_libraries(McBetaCppCore PUBLIC GL)
-    target_include_directories(McBetaCppCore PUBLIC "external/gl4es/include")
-endif()
+# set(Vulkan_LIBRARY "${CMAKE_SOURCE_DIR}/vulkan-1.lib")  # broken x86-decorated lib, use SDK one
+find_package(Vulkan REQUIRED)
+target_link_libraries(McBetaCppCore PUBLIC Vulkan::Vulkan)
 
 add_subdirectory("external/SDL2" EXCLUDE_FROM_ALL)
 target_link_libraries(McBetaCppCore PUBLIC SDL2-static)
@@ -1076,6 +1095,7 @@ target_include_directories(McBetaCppCore PUBLIC "external/gzip-hpp/include")
 
 
 target_include_directories(McBetaCppCore PUBLIC "external/miniaudio")
+target_include_directories(McBetaCppCore PUBLIC "external/glm")
 
 # OpenAL-Soft - build from source
 add_subdirectory("external/openal-soft" EXCLUDE_FROM_ALL)
@@ -1127,3 +1147,24 @@ endif()
 
 
 
+# Vulkan Shaders
+find_program(GLSLC_EXECUTABLE glslc HINTS "$ENV{VULKAN_SDK}/Bin" "C:/VulkanSDK/1.3.296.0/Bin" "C:/VulkanSDK/1.3.290.0/Bin" "C:/VulkanSDK/1.3.283.0/Bin")
+if(NOT GLSLC_EXECUTABLE)
+    message(FATAL_ERROR "glslc not found - required for compiling Vulkan shaders")
+endif()
+
+add_custom_command(
+    OUTPUT "${CMAKE_SOURCE_DIR}/bin/shaders/basic.vert.spv"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/bin/shaders"
+    COMMAND ${GLSLC_EXECUTABLE} "${CMAKE_SOURCE_DIR}/shaders/basic.vert" -o "${CMAKE_SOURCE_DIR}/bin/shaders/basic.vert.spv"
+    DEPENDS "${CMAKE_SOURCE_DIR}/shaders/basic.vert"
+)
+add_custom_command(
+    OUTPUT "${CMAKE_SOURCE_DIR}/bin/shaders/basic.frag.spv"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/bin/shaders"
+    COMMAND ${GLSLC_EXECUTABLE} "${CMAKE_SOURCE_DIR}/shaders/basic.frag" -o "${CMAKE_SOURCE_DIR}/bin/shaders/basic.frag.spv"
+    DEPENDS "${CMAKE_SOURCE_DIR}/shaders/basic.frag"
+)
+
+add_custom_target(McBetaCppShaders DEPENDS "${CMAKE_SOURCE_DIR}/bin/shaders/basic.vert.spv" "${CMAKE_SOURCE_DIR}/bin/shaders/basic.frag.spv")
+add_dependencies(McBetaCpp McBetaCppShaders)

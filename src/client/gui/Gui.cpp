@@ -1,3 +1,5 @@
+#include "pc/OpenGL.h"
+#include "pc/vulkan/VulkanMatrixStack.h"
 #include "client/gui/Gui.h"
 
 #include "client/spc/SPCCommand.h"
@@ -360,10 +362,10 @@ void Gui::render(float a, bool inScreen, int_t xm, int_t ym)
 
 	glDisable(GL_BLEND);
 	glEnable(GL_RESCALE_NORMAL);
-	glPushMatrix();
-	glRotatef(120.0f, 1.0f, 0.0f, 0.0f);
+	VulkanMatrixStack::get().pushMatrix();
+	VulkanMatrixStack::get().rotatef(120.0f, 1.0f, 0.0f, 0.0f);
 	Lighting::turnOn();
-	glPopMatrix();
+	VulkanMatrixStack::get().popMatrix();
 	for (int_t i = 0; i < 9; i++)
 	{
 		int_t x = width / 2 - 90 + i * 20 + 2;
@@ -435,8 +437,8 @@ void Gui::render(float a, bool inScreen, int_t xm, int_t ym)
 			alpha = 255;
 		if (alpha > 0)
 		{
-			glPushMatrix();
-			glTranslatef(static_cast<float>(width / 2), static_cast<float>(height - 48), 0.0f);
+			VulkanMatrixStack::get().pushMatrix();
+			VulkanMatrixStack::get().translatef(static_cast<float>(width / 2), static_cast<float>(height - 48), 0.0f);
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			int_t color = 0xffffff;
@@ -445,7 +447,7 @@ void Gui::render(float a, bool inScreen, int_t xm, int_t ym)
 			font.draw(nowPlayingString, -font.width(nowPlayingString) / 2, -4,
 				static_cast<int_t>(static_cast<uint_t>(color) | (static_cast<uint_t>(alpha) << 24)));
 			glDisable(GL_BLEND);
-			glPopMatrix();
+			VulkanMatrixStack::get().popMatrix();
 		}
 	}
 
@@ -525,17 +527,17 @@ void Gui::renderSlot(int_t slot, int_t x, int_t y, float a)
 	float pop = static_cast<float>(stack.popTime) - a;
 	if (pop > 0.0f)
 	{
-		glPushMatrix();
+		VulkanMatrixStack::get().pushMatrix();
 		float scale = 1.0f + pop / 5.0f;
-		glTranslatef(static_cast<float>(x + 8), static_cast<float>(y + 12), 0.0f);
-		glScalef(1.0f / scale, (scale + 1.0f) / 2.0f, 1.0f);
-		glTranslatef(static_cast<float>(-(x + 8)), static_cast<float>(-(y + 12)), 0.0f);
+		VulkanMatrixStack::get().translatef(static_cast<float>(x + 8), static_cast<float>(y + 12), 0.0f);
+		VulkanMatrixStack::get().scalef(1.0f / scale, (scale + 1.0f) / 2.0f, 1.0f);
+		VulkanMatrixStack::get().translatef(static_cast<float>(-(x + 8)), static_cast<float>(-(y + 12)), 0.0f);
 	}
 
 	itemRenderer.renderGuiItem(*minecraft.font, minecraft.textures, stack, x, y);
 
 	if (pop > 0.0f)
-		glPopMatrix();
+		VulkanMatrixStack::get().popMatrix();
 
 	itemRenderer.renderGuiItemDecorations(*minecraft.font, minecraft.textures, stack, x, y);
 }

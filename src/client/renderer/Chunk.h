@@ -21,12 +21,13 @@ private:
 	static Tesselator &t;
 	
 	
-	GLuint meshBuffers[2] = {0, 0};
-	GLsizei meshVertices[2] = {0, 0};
+	VkBuffer meshBuffers[2] = {VK_NULL_HANDLE, VK_NULL_HANDLE};
+	VkDeviceMemory meshMemory[2] = {VK_NULL_HANDLE, VK_NULL_HANDLE};
+	uint32_t meshVertices[2] = {0, 0};
 	bool meshTexture[2] = {false, false};
 	bool meshColor[2] = {false, false};
 	bool meshNormal[2] = {false, false};
-	GLenum meshMode[2] = {0, 0};
+	int meshMode[2] = {0, 0};
 
 public:
 	int_t x = 0, y = 0, z = 0;

@@ -1,3 +1,4 @@
+#include "pc/vulkan/VulkanTexture.h"
 #pragma once
 
 #include <vector>
@@ -41,6 +42,7 @@ public:
 
 private:
 	std::unordered_map<int_t, BufferedImage> loadedImages;
+	std::unordered_map<int_t, std::shared_ptr<VulkanTexture>> vulkanTextures;
 
 	std::vector<int_t> ib = MemoryTracker::createIntBuffer(1);
 	std::vector<byte_t> pixels = MemoryTracker::createByteBuffer(0x100000);
@@ -96,3 +98,6 @@ private:
 public:
 	void bind(int_t id);
 };
+
+
+

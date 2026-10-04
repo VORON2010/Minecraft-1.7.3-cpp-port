@@ -1,3 +1,4 @@
+#include "pc/OpenGL.h"
 
 #include "tools/stress/StressHarness.h"
 
