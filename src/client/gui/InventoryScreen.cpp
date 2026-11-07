@@ -1,4 +1,6 @@
 #include "client/gui/InventoryScreen.h"
+#include "world/stats/StatCollector.h"
+#include "world/entity/effect/MobEffect.h"
 #include "client/gui/RecipeScreen.h"
 
 #include <cmath>
@@ -314,6 +316,9 @@ void InventoryScreen::mouseClicked(int_t x, int_t y, int_t buttonNum)
 
 int_t InventoryScreen::getGuiLeft() const
 {
+	// 1.0: the window moves right when active effects are listed on its left
+	if (minecraft.player != nullptr && !minecraft.player->getActiveEffects().empty() && getBackgroundTexture() == u"/gui/inventory.png")
+		return 160 + (width - imageWidth - 200) / 2;
 	return (width - imageWidth) / 2;
 }
 
@@ -431,6 +436,36 @@ void InventoryScreen::renderBg(float a)
 	int_t xo = getGuiLeft();
 	int_t yo = getGuiTop();
 	blit(xo, yo, 0, 0, imageWidth, imageHeight);
+
+	if (minecraft.player != nullptr && getBackgroundTexture() == u"/gui/inventory.png")
+	{
+		// 1.0 renderStatusEffects
+		const auto &effects = minecraft.player->getActiveEffects();
+		int_t ex = xo - 124;
+		int_t ey = yo;
+		int_t step = effects.size() > 5 ? 132 / (static_cast<int_t>(effects.size()) - 1) : 33;
+		for (const auto &kv : effects)
+		{
+			const MobEffectInstance &instance = kv.second;
+			const MobEffect *effect = MobEffect::effects[instance.getId()];
+			if (effect == nullptr)
+				continue;
+			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+			minecraft.textures.bind(tex);
+			blit(ex, ey, 0, imageHeight, 140, 32);
+			if (effect->hasIcon())
+			{
+				int_t icon = effect->getIcon();
+				blit(ex + 6, ey + 7, icon % 8 * 18, imageHeight + 32 + icon / 8 * 18, 18, 18);
+			}
+			jstring name = StatCollector::translate(effect->getDescriptionId());
+			if (instance.getAmplifier() > 0)
+				name += u" " + StatCollector::translate(u"potion.potency." + String::toString(instance.getAmplifier()));
+			font.drawShadow(name, ex + 10 + 18, ey + 6, 0xFFFFFF);
+			font.drawShadow(MobEffectInstance::formatDuration(instance), ex + 10 + 18, ey + 6 + 10, 8355711);
+			ey += step;
+		}
+	}
 
 	if (minecraft.player == nullptr || !shouldRenderPlayerModel())
 		return;
