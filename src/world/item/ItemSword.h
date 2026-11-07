@@ -15,6 +15,7 @@ public:
 	bool mineBlock(ItemInstance &stack, int_t tile, int_t x, int_t y, int_t z, Entity &miner) const override;
 	bool isFull3D() const override { return true; }
 	int_t getEnchantmentValue() const override { return toolEnchantmentValue(material); }
+	bool isValidRepairItem(const ItemInstance &stack, const ItemInstance &material) const override;
 	void use(ItemInstance &stack, Level &level, Player &player) const override;
 	UseAnim getUseAnimation(const ItemInstance &stack) const override { (void)stack; return UseAnim::BLOCK; }
 	int_t getUseDuration(const ItemInstance &stack) const override { (void)stack; return 72000; }

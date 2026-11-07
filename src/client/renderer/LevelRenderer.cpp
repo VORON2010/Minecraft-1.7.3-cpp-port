@@ -1579,6 +1579,15 @@ void LevelRenderer::levelEvent(Player *player, int_t event, int_t x, int_t y, in
 		level->playRecord(record == nullptr ? jstring() : record->getRecordName(), x, y, z);
 		break;
 	}
+	case 1020:
+		level->playSoundEffect(x + 0.5, y + 0.5, z + 0.5, u"random.anvil_break", 1.0f, level->random.nextFloat() * 0.1f + 0.9f);
+		break;
+	case 1021:
+		level->playSoundEffect(x + 0.5, y + 0.5, z + 0.5, u"random.anvil_use", 1.0f, level->random.nextFloat() * 0.1f + 0.9f);
+		break;
+	case 1022:
+		level->playSoundEffect(x + 0.5, y + 0.5, z + 0.5, u"random.anvil_land", 0.3f, level->random.nextFloat() * 0.1f + 0.9f);
+		break;
 	case 2002:
 	{
 		// 1.0: splash potion breaks

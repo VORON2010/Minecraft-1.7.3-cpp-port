@@ -56,3 +56,9 @@ void ItemSword::use(ItemInstance &stack, Level &level, Player &player) const
 	(void)level;
 	player.startUsingItem(stack, getUseDuration(stack));
 }
+
+bool ItemSword::isValidRepairItem(const ItemInstance &stack, const ItemInstance &repair) const
+{
+	(void)stack;
+	return repair.itemID == toolRepairItem(material);
+}

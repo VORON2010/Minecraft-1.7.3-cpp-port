@@ -7,6 +7,10 @@
 
 class TileRenderer
 {
+public:
+	// block data to use instead of the level (falling blocks)
+	int_t forcedData = -1;
+
 private:
 	LevelSource *level = nullptr;
 	int_t fixedTexture = -1;

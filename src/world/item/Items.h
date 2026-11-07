@@ -55,6 +55,7 @@ namespace Items
 	extern Item *glassBottle;
 	extern Item *brewingStand;
 	extern Item *cauldron;
+	extern Item *enchantedBook;
 
 	extern Item *reed;
 	extern Item *doorWood;

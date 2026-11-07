@@ -23,6 +23,7 @@ struct ToolMaterialData
 
 const ToolMaterialData &getToolMaterialData(ToolMaterialType material);
 int_t toolEnchantmentValue(ToolMaterialType material);
+int_t toolRepairItem(ToolMaterialType material);
 
 class ItemTool : public Item
 {
@@ -35,6 +36,7 @@ public:
 	bool mineBlock(ItemInstance &stack, int_t tile, int_t x, int_t y, int_t z, Entity &miner) const override;
 	bool isFull3D() const override { return true; }
 	int_t getEnchantmentValue() const override;
+	bool isValidRepairItem(const ItemInstance &stack, const ItemInstance &material) const override;
 
 protected:
 	bool isEffectiveAgainst(Tile &tile) const;

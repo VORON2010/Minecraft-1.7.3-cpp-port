@@ -23,6 +23,7 @@ public:
 
 	virtual void onPickup(ItemInstance &item);
 	virtual bool mayPlace(const ItemInstance &item) const;
+	virtual bool mayPickup(Player &player) const { (void)player; return true; }
 	ItemInstance *getItem();
 	const ItemInstance *getItem() const;
 	bool hasItem() const;

@@ -1,4 +1,5 @@
 #include "world/item/enchantment/Enchantment.h"
+#include "world/item/Items.h"
 
 #include "world/entity/Mob.h"
 #include "world/entity/player/InventoryPlayer.h"
@@ -270,9 +271,11 @@ std::map<int_t, EnchantmentHelper::Entry> EnchantmentHelper::getAvailableEnchant
 	Item *type = item.getItem();
 	if (type == nullptr)
 		return results;
+	// 1.4.7: a book takes any enchantment
+	bool book = type == Items::book;
 	for (Enchantment *e : Enchantment::enchantments)
 	{
-		if (e == nullptr || !canEnchant(e->category, *type))
+		if (e == nullptr || (!canEnchant(e->category, *type) && !book))
 			continue;
 		for (int_t level = e->getMinLevel(); level <= e->getMaxLevel(); ++level)
 			if (value >= e->getMinCost(level) && value <= e->getMaxCost(level))

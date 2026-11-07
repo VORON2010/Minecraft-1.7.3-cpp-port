@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "java/Type.h"
+#include "java/String.h"
 
 class Entity;
 class Tile;
@@ -58,6 +59,10 @@ public:
 	int_t popTime = 0;
 	// 1.0 ItemStack tag "ench": enchantment id and level pairs
 	std::vector<std::pair<short_t, short_t>> enchantments;
+	// 1.4.7 tag.StoredEnchantments (enchanted books), tag.RepairCost, tag.display.Name
+	std::vector<std::pair<short_t, short_t>> storedEnchantments;
+	int_t repairCost = 0;
+	jstring customName;
 
 	ItemInstance() = default;
 	ItemInstance(const ItemInstance &other);
@@ -101,5 +106,8 @@ public:
 	void enchant(int_t id, int_t level) { enchantments.emplace_back(static_cast<short_t>(id), static_cast<short_t>(level)); }
 	bool isEnchantable() const;
 	bool isFoil() const;
+	// copies the tag data (enchantments, name, repair cost) from another stack
+	void copyTagFrom(const ItemInstance &other);
+	bool sameTag(const ItemInstance &other) const;
 	std::shared_ptr<const ItemInstanceReference> retainReference() const;
 };

@@ -90,6 +90,8 @@ public:
 	virtual bool isFoil(const ItemInstance &stack) const;
 	// 1.0 getEnchantability: 0 means the enchanting table refuses it
 	virtual int_t getEnchantmentValue() const { return 0; }
+	// 1.4.7 isRepairable: the material that repairs this item on an anvil
+	virtual bool isValidRepairItem(const ItemInstance &stack, const ItemInstance &material) const { (void)stack; (void)material; return false; }
 
 	// 1.0 potion ingredient formula (see PotionBrewing)
 	Item &setPotionBrewingFormula(const jstring &formula) { potionBrewingFormula = formula; return *this; }

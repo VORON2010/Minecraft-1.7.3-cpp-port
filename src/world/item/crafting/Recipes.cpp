@@ -1,4 +1,5 @@
 #include "world/item/crafting/Recipes.h"
+#include "world/level/tile/AnvilTile.h"
 #include "world/level/tile/EnchantmentTableTile.h"
 
 #include <algorithm>
@@ -380,6 +381,10 @@ Recipes::Recipes()
 	addShapelessRecipe(ItemInstance(Items::eyeOfEnder->getShiftedIndex(), 1, 0), {
 		ItemInstance(Items::enderPearl->getShiftedIndex(), 1, 0), ItemInstance(Items::blazePowder->getShiftedIndex(), 1, 0)});
 	addShapelessRecipe(ItemInstance(Items::blazePowder->getShiftedIndex(), 2, 0), {ItemInstance(Items::blazeRod->getShiftedIndex(), 1, 0)});
+	addShapedRecipe(ItemInstance(Tile::anvil.id, 1, 0), {"III", " i ", "iii"}, {
+		{'I', ItemInstance(Tile::ironBlock.id, 1, -1)},
+		{'i', ItemInstance(Items::ingotIron->getShiftedIndex(), 1, 0)}
+	});
 	addShapedRecipe(ItemInstance(Tile::enchantTable.id, 1, 0), {" B ", "D#D", "###"}, {
 		{'#', ItemInstance(Tile::obsidian.id, 1, -1)},
 		{'B', ItemInstance(Items::book->getShiftedIndex(), 1, 0)},

@@ -31,7 +31,9 @@ void FallingTileRenderer::render(Entity &entity, double x, double y, double z, f
 	Tesselator::instance.begin();
 	tileRenderer = TileRenderer(&level);
 	Tesselator::instance.offset(-static_cast<double>(xTile) - 0.5, -static_cast<double>(yTile) - 0.5, -static_cast<double>(zTile) - 0.5);
+	tileRenderer.forcedData = fallingTile.data;
 	tileRenderer.tesselateInWorld(*tile, xTile, yTile, zTile);
+	tileRenderer.forcedData = -1;
 	Tesselator::instance.offset(0.0, 0.0, 0.0);
 	Tesselator::instance.end();
 	glEnable(GL_LIGHTING);

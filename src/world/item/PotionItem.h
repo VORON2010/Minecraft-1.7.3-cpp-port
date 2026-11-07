@@ -47,3 +47,20 @@ public:
 	TilePlanterItem(int_t baseId, int_t tileId) : Item(baseId), tileId(tileId) {}
 	bool useOn(ItemInstance &stack, Player &player, Level &level, int_t x, int_t y, int_t z, Facing face) const override;
 };
+
+// 1.4.7 BookItem: a single book can go on the enchanting table
+class BookItem : public Item
+{
+public:
+	using Item::Item;
+	int_t getEnchantmentValue() const override { return 1; }
+};
+
+// 1.4.7 EnchantedBookItem (403): holds stored enchantments for the anvil
+class EnchantedBookItem : public Item
+{
+public:
+	using Item::Item;
+	bool isFoil(const ItemInstance &stack) const override { (void)stack; return true; }
+	static void addEnchantment(ItemInstance &stack, int_t id, int_t level);
+};

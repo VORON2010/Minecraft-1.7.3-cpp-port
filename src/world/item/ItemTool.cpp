@@ -1,7 +1,9 @@
 #include "world/item/ItemTool.h"
+#include "world/item/Items.h"
 
 #include "world/item/ItemInstance.h"
 #include "world/level/tile/Tile.h"
+#include "world/level/tile/WoodTile.h"
 
 namespace
 {
@@ -100,4 +102,24 @@ int_t toolEnchantmentValue(ToolMaterialType material)
 int_t ItemTool::getEnchantmentValue() const
 {
 	return toolEnchantmentValue(toolMaterial);
+}
+
+int_t toolRepairItem(ToolMaterialType material)
+{
+	// 1.4.7 Item.Tier.getRepairIngredient
+	switch (material)
+	{
+	case ToolMaterialType::WOOD: return Tile::wood.id;
+	case ToolMaterialType::STONE: return Tile::cobblestone.id;
+	case ToolMaterialType::GOLD: return Items::ingotGold->getShiftedIndex();
+	case ToolMaterialType::IRON: return Items::ingotIron->getShiftedIndex();
+	case ToolMaterialType::DIAMOND: return Items::diamond->getShiftedIndex();
+	}
+	return 0;
+}
+
+bool ItemTool::isValidRepairItem(const ItemInstance &stack, const ItemInstance &material) const
+{
+	(void)stack;
+	return material.itemID == toolRepairItem(toolMaterial);
 }

@@ -100,6 +100,7 @@ namespace Items
 	Item *glassBottle = nullptr;
 	Item *brewingStand = nullptr;
 	Item *cauldron = nullptr;
+	Item *enchantedBook = nullptr;
 
 	Item *reed = nullptr;
 	Item *doorWood = nullptr;
@@ -442,6 +443,9 @@ namespace Items
 		brewingStand->setIconIndex(12 + 10 * 16).setDescriptionId(u"item.brewingStand");
 		cauldron = new TilePlanterItem(124, 118);
 		cauldron->setIconIndex(12 + 9 * 16).setDescriptionId(u"item.cauldron");
+		// 1.4.7; its icon sits in a free slot (208) of this items.png
+		enchantedBook = new EnchantedBookItem(147);
+		enchantedBook->setIconIndex(208).setMaxStackSize(1).setDescriptionId(u"item.enchantedBook");
 
 		// 1.0 potion ingredients
 		ghastTear->setPotionBrewingFormula(PotionBrewing::GHAST_TEAR);
@@ -560,7 +564,7 @@ namespace Items
 		paper = new Item(83);
 		paper->setIconIndex(58).setDescriptionId(u"item.paper");
 
-		book = new Item(84);
+		book = new BookItem(84);
 		book->setIconIndex(59).setDescriptionId(u"item.book");
 
 		sugar = new Item(97);

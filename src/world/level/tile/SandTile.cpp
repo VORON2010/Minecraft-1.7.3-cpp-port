@@ -17,6 +17,10 @@ SandTile::SandTile(int_t id, int_t tex) : Tile(id, tex, Material::sand)
 {
 }
 
+SandTile::SandTile(int_t id, int_t tex, const Material &material) : Tile(id, tex, material)
+{
+}
+
 void SandTile::tick(Level &level, int_t x, int_t y, int_t z, Random &random)
 {
 	checkSlide(level, x, y, z);
@@ -44,7 +48,10 @@ void SandTile::checkSlide(Level &level, int_t x, int_t y, int_t z)
 
 	if (!fallInstantly && level.hasChunksAt(x - FALLING_TILE_CHUNK_RANGE, y - FALLING_TILE_CHUNK_RANGE, z - FALLING_TILE_CHUNK_RANGE, x + FALLING_TILE_CHUNK_RANGE, y + FALLING_TILE_CHUNK_RANGE, z + FALLING_TILE_CHUNK_RANGE))
 	{
-		level.addEntity(Util::make_shared<FallingTile>(level, static_cast<double>(x) + 0.5, static_cast<double>(y) + 0.5, static_cast<double>(z) + 0.5, id));
+		auto falling = Util::make_shared<FallingTile>(level, static_cast<double>(x) + 0.5, static_cast<double>(y) + 0.5, static_cast<double>(z) + 0.5, id);
+		falling->data = level.getData(x, y, z);
+		falling->hurtEntities = id == 145;
+		level.addEntity(falling);
 		return;
 	}
 

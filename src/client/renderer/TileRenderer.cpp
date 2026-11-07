@@ -1,4 +1,6 @@
 #include "client/renderer/TileRenderer.h"
+#include "world/level/tile/AnvilTile.h"
+#include <utility>
 
 #include "client/renderer/Tesselator.h"
 #include "world/level/tile/LiquidTile.h"
@@ -164,6 +166,29 @@ bool TileRenderer::tesselateInWorld(Tile &tt, int_t x, int_t y, int_t z)
 		return tesselateFenceGateInWorld(tt, x, y, z);
 	if (shape == Tile::SHAPE_LILYPAD)
 		return tesselateLilyPadInWorld(tt, x, y, z);
+	if (shape == Tile::SHAPE_ANVIL)
+	{
+		AnvilTile &anvilTile = static_cast<AnvilTile &>(tt);
+		int_t data = forcedData >= 0 ? forcedData : level->getData(x, y, z);
+		bool rotated = (data & 3) == 1 || (data & 3) == 3;
+		static const float parts[4][3] = {{0.75f, 0.25f, 0.75f}, {0.5f, 0.0625f, 0.625f}, {0.25f, 0.3125f, 0.5f}, {0.625f, 0.375f, 1.0f}};
+		float h = 0.0f;
+		for (int_t i = 0; i < 4; ++i)
+		{
+			float sx = parts[i][0], sy = parts[i][1], sz = parts[i][2];
+			if (rotated)
+				std::swap(sx, sz);
+			sx /= 2.0f;
+			sz /= 2.0f;
+			anvilTile.renderPart = i;
+			tt.setShape(0.5f - sx, h, 0.5f - sz, 0.5f + sx, h + sy, 0.5f + sz);
+			tesselateBlockInWorld(tt, x, y, z);
+			h += sy;
+		}
+		anvilTile.renderPart = 0;
+		tt.setShape(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+		return true;
+	}
 	if (shape == Tile::SHAPE_BREWING_STAND)
 	{
 		// 1.0 tesselateBrewingStand: rod, three base plates, three crossed bottle quads

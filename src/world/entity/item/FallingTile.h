@@ -12,6 +12,9 @@ public:
 
 	int_t tile = 0;
 	int_t time = 0;
+	int_t data = 0;
+	bool hurtEntities = false;
+	bool cancelDrop = false;
 
 public:
 	FallingTile(Level &level);
@@ -30,5 +33,6 @@ protected:
 
 public:
 	float getShadowHeightOffs() override;
+	void causeFallDamage(float distance) override;
 	Level &getLevel() { return level; }
 };

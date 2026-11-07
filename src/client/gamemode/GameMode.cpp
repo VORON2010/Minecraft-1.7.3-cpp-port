@@ -178,7 +178,7 @@ bool GameMode::useItemOn(std::shared_ptr<Player> &player, Level &level, ItemInst
 	if (!canPlaceSelectedTile(level, *placedTile, placeX, placeY, placeZ, placementFace))
 		return false;
 
-	if (!level.setTileAndData(placeX, placeY, placeZ, placedTile->id, item->itemDamage))
+	if (!level.setTileAndData(placeX, placeY, placeZ, placedTile->id, placedTile->getPlacedData(item->itemDamage)))
 		return false;
 	if (level.getTile(placeX, placeY, placeZ) != placedTile->id)
 		return false;

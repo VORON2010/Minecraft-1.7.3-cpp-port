@@ -108,6 +108,7 @@ StepSoundSand Tile::soundSandFootstep(u"sand", 1.0f, 1.0f);
 #include "world/level/tile/DragonEggTile.h"
 #include "world/level/tile/BrewingStandTile.h"
 #include "world/level/tile/EnchantmentTableTile.h"
+#include "world/level/tile/AnvilTile.h"
 #include "world/level/material/DecorationMaterial.h"
 #include "world/level/tile/NetherWartTile.h"
 #include "world/level/tile/InfestedTile.h"
@@ -256,6 +257,7 @@ Tile Tile::endStone = Tile(121, 175, Material::stone);
 DragonEggTile Tile::dragonEgg = DragonEggTile(122, 167);
 BrewingStandTile Tile::brewingStand = BrewingStandTile(117);
 EnchantmentTableTile Tile::enchantTable = EnchantmentTableTile(116);
+AnvilTile Tile::anvil = AnvilTile(145);
 CauldronTile Tile::cauldron = CauldronTile(118);
 void Tile::initTiles()
 {
@@ -385,6 +387,7 @@ void Tile::initTiles()
 	endPortal.setLightEmission(15).setDestroyTime(-1.0f).setExplodeable(6000000.0f);
 	endPortalFrame.setSoundType(soundGlassFootstep).setLightEmission(1).setDestroyTime(-1.0f).setExplodeable(6000000.0f).setNotifyRenderOnDataChange();
 	endStone.setDestroyTime(3.0f).setExplodeable(15.0f).setSoundType(soundStoneFootstep);
+	anvil.setDestroyTime(5.0f).setExplodeable(2000.0f).setSoundType(soundMetalFootstep).setLightBlock(0).setNotifyRenderOnDataChange();
 	enchantTable.setDestroyTime(5.0f).setExplodeable(2000.0f).setLightBlock(0);
 	brewingStand.setDestroyTime(0.5f).setLightEmission(1).setNotifyRenderOnDataChange();
 	cauldron.setDestroyTime(2.0f).setNotifyRenderOnDataChange();
@@ -498,6 +501,7 @@ void Tile::initTiles()
 	dragonEgg.setDescriptionId(u"tile.dragonEgg");
 	brewingStand.setDescriptionId(u"tile.brewingStand");
 	enchantTable.setDescriptionId(u"tile.enchantmentTable");
+	anvil.setDescriptionId(u"tile.anvil");
 	cauldron.setDescriptionId(u"tile.cauldron");
 	portal.setDescriptionId(u"tile.portal");
 	jackOLantern.setDescriptionId(u"tile.litpumpkin");

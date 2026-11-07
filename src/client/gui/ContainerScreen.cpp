@@ -23,6 +23,8 @@ bool ContainerScreen::shouldClose(bool alive, bool removed)
 
 jstring ContainerScreen::getTooltipName(const ItemInstance &stack)
 {
+	if (!stack.customName.empty())
+		return u"\u00a7o" + stack.customName;
 	jstring key;
 	Item *item = stack.getItem();
 	if (item != nullptr)
@@ -36,6 +38,12 @@ jstring ContainerScreen::getTooltipName(const ItemInstance &stack)
 	{
 		
 		key = Tile::tiles[stack.itemID]->descriptionId;
+		if (stack.itemID == 145)
+		{
+			static const char16_t *const anvilNames[] = {u".intact", u".slightlyDamaged", u".veryDamaged"};
+			int_t d = stack.itemDamage;
+			key += anvilNames[d >= 0 && d < 3 ? d : 0];
+		}
 		if (stack.itemID == Tile::wool.id)
 			key += u"." + ItemDye::getDyeColorName(~stack.itemDamage & 15);
 	}
@@ -55,10 +63,11 @@ std::vector<jstring> ContainerScreen::getTooltipLines(const ItemInstance &stack,
 	std::vector<jstring> lines;
 	jstring name = getTooltipName(stack);
 	if (!name.empty())
-		lines.push_back(stack.isEnchanted() ? u"\u00a7b" + name : name);
-	for (const auto &e : stack.enchantments)
-		if (e.first >= 0 && e.first < 256 && Enchantment::enchantments[e.first] != nullptr)
-			lines.push_back(u"\u00a77" + Enchantment::enchantments[e.first]->getFullname(e.second));
+		lines.push_back(stack.isEnchanted() ? u"\u00a7b" + name : (!stack.storedEnchantments.empty() ? u"\u00a7e" + name : name));
+	for (const auto *list : {&stack.enchantments, &stack.storedEnchantments})
+		for (const auto &e : *list)
+			if (e.first >= 0 && e.first < 256 && Enchantment::enchantments[e.first] != nullptr)
+				lines.push_back(u"\u00a77" + Enchantment::enchantments[e.first]->getFullname(e.second));
 	if (Item *item = stack.getItem())
 		item->appendHoverText(stack, lines);
 

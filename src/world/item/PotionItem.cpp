@@ -211,3 +211,17 @@ bool TilePlanterItem::useOn(ItemInstance &stack, Player &player, Level &level, i
 	stack.stackSize--;
 	return true;
 }
+
+void EnchantedBookItem::addEnchantment(ItemInstance &stack, int_t id, int_t level)
+{
+	for (auto &e : stack.storedEnchantments)
+	{
+		if (e.first == id)
+		{
+			if (e.second < level)
+				e.second = static_cast<short_t>(level);
+			return;
+		}
+	}
+	stack.storedEnchantments.emplace_back(static_cast<short_t>(id), static_cast<short_t>(level));
+}

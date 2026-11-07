@@ -75,6 +75,8 @@ std::unique_ptr<ItemInstance> Container::click(int_t slotNumber, int_t button, b
 
 	if (shiftClick)
 	{
+		if (!getSlot(slotNumber).mayPickup(player))
+			return result;
 		result = quickMoveStack(slotNumber);
 		if (result != nullptr)
 		{
@@ -108,6 +110,8 @@ std::unique_ptr<ItemInstance> Container::click(int_t slotNumber, int_t button, b
 	}
 	else if (carried == nullptr)
 	{
+		if (!slot.mayPickup(player))
+			return result;
 		int_t count = button == 0 ? slotItem->stackSize.load(std::memory_order_relaxed)
 			: (slotItem->stackSize + 1) / 2;
 		ItemInstance removed = slot.remove(count);
@@ -144,7 +148,7 @@ std::unique_ptr<ItemInstance> Container::click(int_t slotNumber, int_t button, b
 		}
 	}
 	else if (slotItem->itemID == carried->itemID && carried->getMaxStackSize() > 1
-		&& (!slotItem->getHasSubtypes() || slotItem->itemDamage == carried->itemDamage))
+		&& (!slotItem->getHasSubtypes() || slotItem->itemDamage == carried->itemDamage) && slot.mayPickup(player))
 	{
 		int_t count = slotItem->stackSize;
 		if (count > 0 && count + carried->stackSize <= carried->getMaxStackSize())

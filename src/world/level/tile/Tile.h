@@ -99,6 +99,7 @@ class EndPortalFrameTile;
 class DragonEggTile;
 class BrewingStandTile;
 class EnchantmentTableTile;
+class AnvilTile;
 class CauldronTile;
 class EndPortalTile;
 class NetherWartTile;
@@ -139,6 +140,7 @@ public:
 		SHAPE_BREWING_STAND = 25,
 		SHAPE_END_PORTAL_FRAME = 26,
 		SHAPE_DRAGON_EGG = 27,
+		SHAPE_ANVIL = 35,
 	};
 
 	static std::array<Tile *, 256> tiles;
@@ -295,6 +297,7 @@ public:
 	static DragonEggTile dragonEgg;
 	static BrewingStandTile brewingStand;
 	static EnchantmentTableTile enchantTable;
+	static AnvilTile anvil;
 	static CauldronTile cauldron;
 	static Tile endStone;
 	static void initTiles();
@@ -396,6 +399,8 @@ public:
 	void popResource(Level &level, int_t x, int_t y, int_t z, const class ItemInstance &stack);
 
 	virtual int_t getSpawnResourcesAuxValue(int_t data);
+	// data a block gets when placed from an item with this damage value (1.4.7 BlockItem.getBlockMetadata)
+	virtual int_t getPlacedData(int_t itemData) { return itemData; }
 
 	virtual HitResult clip(Level &level, int_t x, int_t y, int_t z, Vec3 &from, Vec3 &to);
 

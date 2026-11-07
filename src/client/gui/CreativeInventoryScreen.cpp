@@ -1,4 +1,7 @@
 #include "pc/OpenGL.h"
+#include "world/item/enchantment/Enchantment.h"
+#include "world/level/tile/AnvilTile.h"
+#include "world/level/tile/EnchantmentTableTile.h"
 #include "client/gui/CreativeInventoryScreen.h"
 #include "client/Minecraft.h"
 #include "client/renderer/entity/ItemRenderer.h"
@@ -48,7 +51,7 @@ CreativeInventoryScreen::CreativeInventoryScreen(Minecraft &mc) : Screen(mc) {
         &Tile::ladder, &Tile::rail, &Tile::railPowered, &Tile::railDetector, &Tile::torch, &Tile::stairsWood, &Tile::stairsStone, &Tile::stairsBrick,
         &Tile::stairsStoneBrick, &Tile::lever, &Tile::pressurePlateStone, &Tile::pressurePlateWood, &Tile::torchRedstoneActive, &Tile::buttonStone, &Tile::trapdoor,
         // not in the 1.0 list, but asked for: blocks you otherwise cannot get
-        &Tile::endPortalFrame, &Tile::dragonEgg, &Tile::mobSpawner,
+        &Tile::endPortalFrame, &Tile::dragonEgg, &Tile::mobSpawner, &Tile::enchantTable,
     };
     int_t wool = 0, slab = 0, log = 0, sapling = 0, stoneBrick = 0, leaves = 0, tallGrass = 1;
     for (const Tile *tile : blocks) {
@@ -76,6 +79,20 @@ CreativeInventoryScreen::CreativeInventoryScreen(Minecraft &mc) : Screen(mc) {
     for (int_t p : potions)
         if (p != 16)
             allItems.emplace_back(Items::potion->getShiftedIndex(), 1, (p & ~8192) | 16384);
+    // 1.4.7 anvils and one enchanted book per enchantment level
+    for (int_t d = 0; d < 3; ++d)
+        allItems.emplace_back(Tile::anvil.id, 1, d);
+    for (Enchantment *e : Enchantment::enchantments)
+    {
+        if (e == nullptr)
+            continue;
+        for (int_t lvl = e->getMinLevel(); lvl <= e->getMaxLevel(); ++lvl)
+        {
+            ItemInstance book(Items::enchantedBook->getShiftedIndex(), 1, 0);
+            book.storedEnchantments.emplace_back(static_cast<short_t>(e->id), static_cast<short_t>(lvl));
+            allItems.push_back(book);
+        }
+    }
 }
 
 void CreativeInventoryScreen::init() {

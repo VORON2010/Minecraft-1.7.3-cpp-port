@@ -1,4 +1,5 @@
 #include "world/inventory/ContainerMenus.h"
+#include "world/item/PotionItem.h"
 #include "world/item/enchantment/Enchantment.h"
 #include "world/level/tile/EnchantmentTableTile.h"
 #include "world/level/tile/BookshelfTile.h"
@@ -425,8 +426,20 @@ bool ContainerEnchantment::clickMenuButton(Player &player, int_t id)
 			player.experienceLevel -= costs[id];
 			if (player.experienceLevel < 0)
 				player.experienceLevel = 0;
-			for (const auto &e : chosen)
-				item->enchant(e.enchantment->id, e.level);
+			// 1.4.7: a book becomes an enchanted book with one of the rolled enchantments
+			bool book = item->itemID == Items::book->getShiftedIndex();
+			int_t keep = book ? random.nextInt(static_cast<int_t>(chosen.size())) : -1;
+			if (book)
+				item->itemID = Items::enchantedBook->getShiftedIndex();
+			for (int_t i = 0; i < static_cast<int_t>(chosen.size()); ++i)
+			{
+				if (book && i != keep)
+					continue;
+				if (book)
+					EnchantedBookItem::addEnchantment(*item, chosen[i].enchantment->id, chosen[i].level);
+				else
+					item->enchant(chosen[i].enchantment->id, chosen[i].level);
+			}
 			slotsChanged();
 		}
 	}

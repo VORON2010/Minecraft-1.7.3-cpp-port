@@ -9,6 +9,13 @@
 #include "world/item/ItemInstance.h"
 #include "world/item/Items.h"
 #include "world/item/PotionItem.h"
+#include "world/inventory/ContainerRepair.h"
+#include "world/inventory/ContainerMenus.h"
+#include "world/entity/player/Player.h"
+#include "world/level/tile/AnvilTile.h"
+#include "world/level/tile/StoneTile.h"
+#include "world/level/tile/EnchantmentTableTile.h"
+#include "world/item/ItemSword.h"
 #include "world/item/ItemPickaxe.h"
 #include "world/item/enchantment/Enchantment.h"
 #include "world/item/alchemy/PotionBrewing.h"
@@ -145,6 +152,88 @@ int runAlchemySmoke()
 		ok &= expect(Enchantment::damageAll.getFullname(5) == u"Sharpness V", "Sharpness V is named like in 1.0");
 		ok &= expect(!Enchantment::untouching.isCompatibleWith(Enchantment::lootBonusDigger), "silk touch and fortune exclude each other");
 		ok &= expect(Enchantment::protection.getMinCost(4) == 49 && Enchantment::digging.getMaxCost(1) == 61, "costs follow the 1.0 formulas");
+	}
+
+	std::cerr << "alchemy-smoke: anvil and books" << std::endl;
+	{
+		{
+			std::unique_ptr<File> workdir(File::open(u"build/alchemy-smoke-workdir"));
+			Level::deleteLevel(*workdir, u"alchemy-anvil-world");
+		}
+		{
+			Level level(File::open(u"build/alchemy-smoke-workdir"), u"alchemy-anvil-world", 7LL);
+			level.getChunk(0, 0);
+			struct TestPlayer : public Player
+			{
+				using Player::Player;
+			};
+			auto player = std::make_shared<TestPlayer>(level);
+			player->moveTo(0.5, 101.0, 0.5, 0.0f, 0.0f);
+			level.addEntity(player);
+			level.setTile(1, 100, 1, Tile::anvil.id);
+			ok &= expect(level.getTile(1, 100, 1) == Tile::anvil.id, "the anvil is placed");
+			ContainerRepair menu(player->inventory, level, 1, 100, 1, *player);
+
+			int_t pickId = Items::pickaxeIron->getShiftedIndex();
+			ItemInstance worn(pickId, 1, 200);
+			menu.inputs.setInventorySlotContents(0, worn);
+			menu.inputs.setInventorySlotContents(1, ItemInstance(Items::ingotIron->getShiftedIndex(), 2, 0));
+			const ItemInstance *out = menu.result.getStackInSlot(0);
+			ok &= expect(out != nullptr && out->itemDamage == 200 - 2 * (250 / 4) && menu.repairItemCountCost == 2, "two iron ingots repair a quarter of the pickaxe each");
+			ok &= expect(menu.cost > 0 && out != nullptr && out->repairCost == 2, "repairing costs levels and raises the repair cost");
+
+			ItemInstance a1(Items::swordIron->getShiftedIndex(), 1, 0);
+			a1.enchant(Enchantment::damageAll.id, 1);
+			ItemInstance a2 = a1;
+			menu.inputs.setInventorySlotContents(0, a1);
+			menu.inputs.setInventorySlotContents(1, a2);
+			out = menu.result.getStackInSlot(0);
+			ok &= expect(out != nullptr && EnchantmentHelper::getEnchantmentLevel(Enchantment::damageAll.id, out) == 2, "two Sharpness I swords make Sharpness II");
+
+			ItemInstance book(Items::enchantedBook->getShiftedIndex(), 1, 0);
+			EnchantedBookItem::addEnchantment(book, Enchantment::knockback.id, 2);
+			menu.inputs.setInventorySlotContents(0, ItemInstance(Items::swordIron->getShiftedIndex(), 1, 0));
+			menu.inputs.setInventorySlotContents(1, book);
+			out = menu.result.getStackInSlot(0);
+			ok &= expect(out != nullptr && EnchantmentHelper::getEnchantmentLevel(Enchantment::knockback.id, out) == 2, "an enchanted book puts Knockback II on a sword");
+			int_t bookCost = menu.cost;
+
+			player->experienceLevel = 0;
+			Slot &resultSlot = *menu.slots[2];
+			ok &= expect(!resultSlot.mayPickup(*player), "without levels the result cannot be taken");
+			player->experienceLevel = 30;
+			ok &= expect(resultSlot.mayPickup(*player), "with enough levels it can");
+			ItemInstance taken = resultSlot.remove(1);
+			resultSlot.onPickup(taken);
+			ok &= expect(player->experienceLevel == 30 - bookCost, "taking the result spends the levels");
+			ok &= expect(menu.inputs.getStackInSlot(0) == nullptr && menu.inputs.getStackInSlot(1) == nullptr, "the inputs are used up");
+
+			menu.inputs.setInventorySlotContents(0, ItemInstance(Tile::rock.id, 10, 0));
+			menu.inputs.setInventorySlotContents(1, ItemInstance());
+			menu.setItemName(u"Hello");
+			out = menu.result.getStackInSlot(0);
+			ok &= expect(out != nullptr && out->customName == u"Hello" && menu.cost == 39, "renaming ten stone costs 5 a piece, capped at 39");
+			
+			ItemInstance named = *out;
+			CompoundTag tag;
+			named.save(tag);
+			ItemInstance loaded(tag);
+			ok &= expect(loaded.customName == u"Hello" && loaded.repairCost == named.repairCost, "names and repair cost are saved");
+			ItemInstance part = loaded.remove(3);
+			ok &= expect(part.customName == u"Hello", "splitting a stack keeps its name");
+
+			ContainerEnchantment table(player->inventory, level, 5, 100, 5);
+			ok &= expect(ItemInstance(Items::book->getShiftedIndex(), 1, 0).isEnchantable(), "a single book can be enchanted");
+			level.setTile(5, 100, 5, Tile::enchantTable.id);
+			table.enchantSlots.setInventorySlotContents(0, ItemInstance(Items::book->getShiftedIndex(), 1, 0));
+			ok &= expect(table.costs[0] > 0, "the table offers enchantments for a book");
+			player->experienceLevel = 30;
+			ok &= expect(table.clickMenuButton(*player, 0), "the book can be enchanted");
+			const ItemInstance *enchanted = table.enchantSlots.getStackInSlot(0);
+			ok &= expect(enchanted != nullptr && enchanted->itemID == Items::enchantedBook->getShiftedIndex() && enchanted->storedEnchantments.size() == 1 && enchanted->enchantments.empty(), "it turns into an enchanted book with one stored enchantment");
+		}
+		std::unique_ptr<File> workdir(File::open(u"build/alchemy-smoke-workdir"));
+		Level::deleteLevel(*workdir, u"alchemy-anvil-world");
 	}
 
 	std::cerr << "alchemy-smoke: " << (ok ? "PASS" : "FAIL") << std::endl;

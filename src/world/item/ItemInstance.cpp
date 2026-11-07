@@ -1,4 +1,5 @@
 #include "world/item/ItemInstance.h"
+#include "world/item/Items.h"
 #include "world/level/Level.h"
 #include "world/item/enchantment/Enchantment.h"
 #include "world/entity/player/InventoryPlayer.h"
@@ -58,14 +59,14 @@ void ItemInstanceReference::move(const ItemInstance &from, const ItemInstance &t
 ItemInstance::ItemInstance(const ItemInstance &other)
 	: stackSize(other.stackSize.load(std::memory_order_relaxed)),
 	  itemID(other.itemID.load(std::memory_order_relaxed)),
-	  itemDamage(other.itemDamage.load(std::memory_order_relaxed)), popTime(other.popTime), enchantments(other.enchantments)
+	  itemDamage(other.itemDamage.load(std::memory_order_relaxed)), popTime(other.popTime), enchantments(other.enchantments), storedEnchantments(other.storedEnchantments), repairCost(other.repairCost), customName(other.customName)
 {
 }
 
 ItemInstance::ItemInstance(ItemInstance &&other) noexcept
 	: stackSize(other.stackSize.load(std::memory_order_relaxed)),
 	  itemID(other.itemID.load(std::memory_order_relaxed)),
-	  itemDamage(other.itemDamage.load(std::memory_order_relaxed)), popTime(other.popTime), enchantments(other.enchantments)
+	  itemDamage(other.itemDamage.load(std::memory_order_relaxed)), popTime(other.popTime), enchantments(other.enchantments), storedEnchantments(other.storedEnchantments), repairCost(other.repairCost), customName(other.customName)
 {
 	moveJavaReference(other);
 }
@@ -79,7 +80,7 @@ ItemInstance &ItemInstance::operator=(const ItemInstance &other)
 	itemID.store(other.itemID.load(std::memory_order_relaxed), std::memory_order_relaxed);
 	itemDamage.store(other.itemDamage.load(std::memory_order_relaxed), std::memory_order_relaxed);
 	popTime = other.popTime;
-	enchantments = other.enchantments;
+	copyTagFrom(other);
 	return *this;
 }
 
@@ -92,7 +93,7 @@ ItemInstance &ItemInstance::operator=(ItemInstance &&other) noexcept
 	itemID.store(other.itemID.load(std::memory_order_relaxed), std::memory_order_relaxed);
 	itemDamage.store(other.itemDamage.load(std::memory_order_relaxed), std::memory_order_relaxed);
 	popTime = other.popTime;
-	enchantments = other.enchantments;
+	copyTagFrom(other);
 	moveJavaReference(other);
 	return *this;
 }
@@ -350,18 +351,32 @@ void ItemInstance::save(CompoundTag &tag) const
 	tag.putShort(u"id", static_cast<short_t>(itemID));
 	tag.putByte(u"Count", static_cast<byte_t>(stackSize));
 	tag.putShort(u"Damage", static_cast<short_t>(itemDamage));
-	if (!enchantments.empty())
+	if (!enchantments.empty() || !storedEnchantments.empty() || repairCost > 0 || !customName.empty())
 	{
-		auto list = std::make_shared<ListTag>();
-		for (const auto &e : enchantments)
-		{
-			auto entry = std::make_shared<CompoundTag>();
-			entry->putShort(u"id", e.first);
-			entry->putShort(u"lvl", e.second);
-			list->add(entry);
-		}
+		auto toList = [](const std::vector<std::pair<short_t, short_t>> &values) {
+			auto list = std::make_shared<ListTag>();
+			for (const auto &e : values)
+			{
+				auto entry = std::make_shared<CompoundTag>();
+				entry->putShort(u"id", e.first);
+				entry->putShort(u"lvl", e.second);
+				list->add(entry);
+			}
+			return list;
+		};
 		auto extra = std::make_shared<CompoundTag>();
-		extra->put(u"ench", list);
+		if (!enchantments.empty())
+			extra->put(u"ench", toList(enchantments));
+		if (!storedEnchantments.empty())
+			extra->put(u"StoredEnchantments", toList(storedEnchantments));
+		if (repairCost > 0)
+			extra->putInt(u"RepairCost", repairCost);
+		if (!customName.empty())
+		{
+			auto display = std::make_shared<CompoundTag>();
+			display->putString(u"Name", customName);
+			extra->put(u"display", display);
+		}
 		tag.put(u"tag", extra);
 	}
 }
@@ -372,18 +387,32 @@ void ItemInstance::load(CompoundTag &tag)
 	stackSize = tag.getByte(u"Count");
 	itemDamage = tag.getShort(u"Damage");
 	enchantments.clear();
+	storedEnchantments.clear();
+	repairCost = 0;
+	customName.clear();
 	if (tag.contains(u"tag"))
 	{
 		std::shared_ptr<CompoundTag> extra = tag.getCompound(u"tag");
-		if (extra != nullptr && extra->contains(u"ench"))
-		{
-			std::shared_ptr<ListTag> list = extra->getList(u"ench");
+		auto readList = [&](const jstring &name, std::vector<std::pair<short_t, short_t>> &out) {
+			if (extra == nullptr || !extra->contains(name))
+				return;
+			std::shared_ptr<ListTag> list = extra->getList(name);
 			for (int_t i = 0; list != nullptr && i < list->size(); ++i)
 			{
 				auto entry = std::dynamic_pointer_cast<CompoundTag>(list->get(i));
 				if (entry != nullptr)
-					enchantments.emplace_back(entry->getShort(u"id"), entry->getShort(u"lvl"));
+					out.emplace_back(entry->getShort(u"id"), entry->getShort(u"lvl"));
 			}
+		};
+		readList(u"ench", enchantments);
+		readList(u"StoredEnchantments", storedEnchantments);
+		if (extra != nullptr && extra->contains(u"RepairCost"))
+			repairCost = extra->getInt(u"RepairCost");
+		if (extra != nullptr && extra->contains(u"display"))
+		{
+			std::shared_ptr<CompoundTag> display = extra->getCompound(u"display");
+			if (display != nullptr && display->contains(u"Name"))
+				customName = display->getString(u"Name");
 		}
 	}
 }
@@ -392,6 +421,10 @@ bool ItemInstance::isEnchantable() const
 {
 	// 1.0 ItemStack.isEnchantable: an enchantable item that has no enchantments yet
 	Item *item = getItem();
+	if (item != nullptr && item == Items::book)
+		return stackSize == 1;
+	if (item != nullptr && item == Items::enchantedBook)
+		return false;
 	return item != nullptr && item->getMaxStackSize() == 1 && item->getMaxDamage() > 0 && !isEnchanted();
 }
 
@@ -404,10 +437,26 @@ bool ItemInstance::isFoil() const
 ItemInstance ItemInstance::remove(int_t count)
 {
 	stackSize -= count;
-	return ItemInstance(itemID, count, itemDamage);
+	ItemInstance taken(itemID, count, itemDamage);
+	taken.copyTagFrom(*this);
+	return taken;
 }
 
 bool ItemInstance::sameItem(const ItemInstance &other) const
 {
 	return itemID == other.itemID && itemDamage == other.itemDamage;
+}
+
+void ItemInstance::copyTagFrom(const ItemInstance &other)
+{
+	enchantments = other.enchantments;
+	storedEnchantments = other.storedEnchantments;
+	repairCost = other.repairCost;
+	customName = other.customName;
+}
+
+bool ItemInstance::sameTag(const ItemInstance &other) const
+{
+	return enchantments == other.enchantments && storedEnchantments == other.storedEnchantments &&
+		repairCost == other.repairCost && customName == other.customName;
 }
