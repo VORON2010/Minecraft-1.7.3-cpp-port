@@ -1,3 +1,4 @@
+#include "pc/OpenGL.h"
 #include "client/renderer/entity/EntityRenderer.h"
 
 #include "client/renderer/entity/EntityRenderDispatcher.h"
@@ -95,7 +96,7 @@ void EntityRenderer::renderShadow(Entity &e, double x, double y, double z, float
 	textures.bind(textures.loadTexture(u"%clamp%/misc/shadow.png"));
 
 	Level &level = getLevel();
-	
+
 	glDepthMask(false);
 	float r = shadowRadius;
 
@@ -149,18 +150,18 @@ void EntityRenderer::renderTileShadow(Tile &tt, double x, double y, double z, in
 	if (a < 0.0) return;
 	if (a > 1.0) a = 1.0;
 	t.color(1.0f, 1.0f, 1.0f, (float)a);
-	
+
 	double x0 = xt + tt.xx0 + xo;
 	double x1 = xt + tt.xx1 + xo;
 	double y0 = yt + tt.yy0 + yo + (1.0 / 64.0);
 	double z0 = zt + tt.zz0 + zo;
 	double z1 = zt + tt.zz1 + zo;
-	
+
 	float u0 = static_cast<float>((x - x0) / 2.0 / r + 0.5);
 	float u1 = static_cast<float>((x - x1) / 2.0 / r + 0.5);
 	float v0 = static_cast<float>((z - z0) / 2.0 / r + 0.5);
 	float v1 = static_cast<float>((z - z1) / 2.0 / r + 0.5);
-	
+
 	t.vertexUV(x0, y0, z0, u0, v0);
 	t.vertexUV(x0, y0, z1, u0, v1);
 	t.vertexUV(x1, y0, z1, u1, v1);
@@ -179,31 +180,31 @@ void EntityRenderer::render(AABB &bb, double xo, double yo, double zo)
 	t.vertex(bb.x1, bb.y1, bb.z0);
 	t.vertex(bb.x1, bb.y0, bb.z0);
 	t.vertex(bb.x0, bb.y0, bb.z0);
-	
+
 	t.normal(0.0f, 0.0f, 1.0f);
 	t.vertex(bb.x0, bb.y0, bb.z1);
 	t.vertex(bb.x1, bb.y0, bb.z1);
 	t.vertex(bb.x1, bb.y1, bb.z1);
 	t.vertex(bb.x0, bb.y1, bb.z1);
-	
+
 	t.normal(0.0f, -1.0f, 0.0f);
 	t.vertex(bb.x0, bb.y0, bb.z0);
 	t.vertex(bb.x1, bb.y0, bb.z0);
 	t.vertex(bb.x1, bb.y0, bb.z1);
 	t.vertex(bb.x0, bb.y0, bb.z1);
-	
+
 	t.normal(0.0f, 1.0f, 0.0f);
 	t.vertex(bb.x0, bb.y1, bb.z1);
 	t.vertex(bb.x1, bb.y1, bb.z1);
 	t.vertex(bb.x1, bb.y1, bb.z0);
 	t.vertex(bb.x0, bb.y1, bb.z0);
-	
+
 	t.normal(-1.0f, 0.0f, 0.0f);
 	t.vertex(bb.x0, bb.y0, bb.z1);
 	t.vertex(bb.x0, bb.y1, bb.z1);
 	t.vertex(bb.x0, bb.y1, bb.z0);
 	t.vertex(bb.x0, bb.y0, bb.z0);
-	
+
 	t.normal(1.0f, 0.0f, 0.0f);
 	t.vertex(bb.x1, bb.y0, bb.z0);
 	t.vertex(bb.x1, bb.y1, bb.z0);

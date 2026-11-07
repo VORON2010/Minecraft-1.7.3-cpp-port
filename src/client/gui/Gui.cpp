@@ -1,3 +1,4 @@
+#include "pc/OpenGL.h"
 #include "client/gui/Gui.h"
 
 #include "client/spc/SPCCommand.h"
@@ -180,17 +181,17 @@ void renderTouchControls(int_t width, int_t height)
 	glDisable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
+
 	// Semi-transparent white for buttons
 	glColor4f(1.0f, 1.0f, 1.0f, 0.3f);
-	
+
 	Tesselator &t = Tesselator::instance;
-	
+
 	// D-Pad center
 	float cx = 45.0f;
 	float cy = static_cast<float>(height) - 45.0f;
 	float s = 15.0f; // button size half
-	
+
 	t.begin();
 	// W
 	t.vertex(cx - s, cy - s*3, 0); t.vertex(cx + s, cy - s*3, 0); t.vertex(cx + s, cy - s, 0); t.vertex(cx - s, cy - s, 0);
@@ -203,14 +204,14 @@ void renderTouchControls(int_t width, int_t height)
 	// SPACE (Center)
 	t.vertex(cx - s, cy - s, 0); t.vertex(cx + s, cy - s, 0); t.vertex(cx + s, cy + s, 0); t.vertex(cx - s, cy + s, 0);
 	t.end();
-	
+
 	// Draw Jump button on the right side
 	float jx = static_cast<float>(width) - 45.0f;
 	float jy = static_cast<float>(height) - 45.0f;
 	t.begin();
 	t.vertex(jx - s*2, jy - s*2, 0); t.vertex(jx + s*2, jy - s*2, 0); t.vertex(jx + s*2, jy + s*2, 0); t.vertex(jx - s*2, jy + s*2, 0);
 	t.end();
-	
+
 	glEnable(GL_TEXTURE_2D);
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 #endif
@@ -252,7 +253,7 @@ void Gui::render(float a, bool inScreen, int_t xm, int_t ym)
 			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 			glDisable(GL_ALPHA_TEST);
 			glBindTexture(GL_TEXTURE_2D, minecraft.textures.loadTexture(u"/gui/screamer.png"));
-			
+
 			Tesselator &t = Tesselator::instance;
 			t.begin(GL_QUADS);
 			t.vertexUV(0.0, height, -90.0, 0.0, 1.0);
@@ -260,7 +261,7 @@ void Gui::render(float a, bool inScreen, int_t xm, int_t ym)
 			t.vertexUV(width, 0.0, -90.0, 1.0, 0.0);
 			t.vertexUV(0.0, 0.0, -90.0, 0.0, 0.0);
 			t.end();
-			
+
 			glDepthMask(true);
 			glEnable(GL_DEPTH_TEST);
 			glEnable(GL_ALPHA_TEST);
@@ -269,21 +270,21 @@ void Gui::render(float a, bool inScreen, int_t xm, int_t ym)
 	}
 
 
-	
+
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	glBindTexture(GL_TEXTURE_2D, minecraft.textures.loadTexture(u"/gui/gui.png"));
 
 	blit(width / 2 - 91, height - 22, 0, 0, 182, 22);
 	blit(width / 2 - 91 - 1 + minecraft.player->inventory.currentItem * 20, height - 22 - 1, 0, 22, 24, 22);
 
-	
+
 	glBindTexture(GL_TEXTURE_2D, minecraft.textures.loadTexture(u"/gui/icons.png"));
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ONE_MINUS_SRC_COLOR);
 	blit(width / 2 - 7, height / 2 - 7, 0, 0, 16, 16);
 	glDisable(GL_BLEND);
 
-	
+
 	bool flicker = (minecraft.player->invulnerableTime / 3) % 2 == 1;
 	if (minecraft.player->invulnerableTime < 10)
 		flicker = false;
@@ -297,49 +298,63 @@ void Gui::render(float a, bool inScreen, int_t xm, int_t ym)
 	{
 		int_t armor = minecraft.player->inventory.getArmorValue();
 		int_t foodLevel = minecraft.player->foodLevel;
+		int_t left = width / 2 - 91;
+		int_t right = width / 2 + 91;
+
+		// b1.8 experience bar
+		if (minecraft.player->getXpNeededForNextLevel() > 0)
+		{
+			int_t barWidth = 182;
+			int_t filled = static_cast<int_t>(minecraft.player->experienceProgress * static_cast<float>(barWidth + 1));
+			int_t yBar = height - 32 + 3;
+			blit(left, yBar, 0, 64, barWidth, 5);
+			if (filled > 0)
+				blit(left, yBar, 0, 69, filled, 5);
+		}
+
+		int_t yHealthBase = height - 39;
+		int_t yArmor = yHealthBase - 10;
+		int_t regenWave = minecraft.player->hasEffect(MobEffect::regeneration) ? tickCount % 25 : -1;
+		int_t heartBase = minecraft.player->hasEffect(MobEffect::poison) ? 52 : 16;
 
 		for (int_t x = 0; x < 10; x++)
 		{
-			int_t yHealth = height - 32;
-			if (nowHealth <= 4)
-				yHealth += random.nextInt(2);
-
-			int_t yArmor = height - 32 - 10;
-			int_t yHunger = height - 32;
-
-			// Render Armor (above health)
 			if (armor > 0)
 			{
-				int_t armorX = width / 2 - 91 + x * 8;
+				int_t armorX = left + x * 8;
 				if (x * 2 + 1 < armor) blit(armorX, yArmor, 34, 9, 9, 9);
 				if (x * 2 + 1 == armor) blit(armorX, yArmor, 25, 9, 9, 9);
 				if (x * 2 + 1 > armor) blit(armorX, yArmor, 16, 9, 9, 9);
 			}
 
-			// Render Health
-			int_t healthX = width / 2 - 91 + x * 8;
+			int_t healthX = left + x * 8;
+			int_t yHealth = yHealthBase;
+			if (nowHealth <= 4)
+				yHealth += random.nextInt(2);
+			if (x == regenWave)
+				yHealth -= 2;
 			blit(healthX, yHealth, 16 + flicker * 9, 0, 9, 9);
 			if (flicker)
 			{
-				if (x * 2 + 1 < lastHealth) blit(healthX, yHealth, 70, 0, 9, 9);
-				if (x * 2 + 1 == lastHealth) blit(healthX, yHealth, 79, 0, 9, 9);
+				if (x * 2 + 1 < lastHealth) blit(healthX, yHealth, heartBase + 54, 0, 9, 9);
+				if (x * 2 + 1 == lastHealth) blit(healthX, yHealth, heartBase + 63, 0, 9, 9);
 			}
-			if (x * 2 + 1 < nowHealth) blit(healthX, yHealth, 52, 0, 9, 9);
-			if (x * 2 + 1 == nowHealth) blit(healthX, yHealth, 61, 0, 9, 9);
+			if (x * 2 + 1 < nowHealth) blit(healthX, yHealth, heartBase + 36, 0, 9, 9);
+			if (x * 2 + 1 == nowHealth) blit(healthX, yHealth, heartBase + 45, 0, 9, 9);
+		}
 
-			// Render Hunger (where armor used to be)
-			int_t hungerX = width / 2 + 91 - x * 8 - 9;
-			if (minecraft.player->foodTickTimer > 0 && foodLevel <= 4 && (tickCount % 20) < 10)
-				yHunger += random.nextInt(2);
-			
-			// Use Beta 1.8 texture coordinates for hunger (Y=27)
-			int_t iconBg = minecraft.player->hungerEffectTimer > 0 ? 133 : 16;
-			int_t iconFull = minecraft.player->hungerEffectTimer > 0 ? 88 : 52;
-			int_t iconHalf = minecraft.player->hungerEffectTimer > 0 ? 97 : 61;
-
-			blit(hungerX, yHunger, iconBg, 27, 9, 9); // Background
-			if (x * 2 + 1 < foodLevel) blit(hungerX, yHunger, iconFull, 27, 9, 9);
-			if (x * 2 + 1 == foodLevel) blit(hungerX, yHunger, iconHalf, 27, 9, 9);
+		bool hungry = minecraft.player->hasEffect(MobEffect::hunger);
+		int_t foodBase = hungry ? 52 : 16;
+		int_t foodBg = hungry ? 13 : 0;
+		for (int_t x = 0; x < 10; x++)
+		{
+			int_t yHunger = yHealthBase;
+			if (minecraft.player->foodSaturationLevel <= 0.0f && tickCount % (foodLevel * 3 + 1) == 0)
+				yHunger += random.nextInt(3) - 1;
+			int_t hungerX = right - x * 8 - 9;
+			blit(hungerX, yHunger, 16 + foodBg * 9, 27, 9, 9);
+			if (x * 2 + 1 < foodLevel) blit(hungerX, yHunger, foodBase + 36, 27, 9, 9);
+			if (x * 2 + 1 == foodLevel) blit(hungerX, yHunger, foodBase + 45, 27, 9, 9);
 		}
 
 		if (minecraft.player->isUnderLiquid(Material::water))
@@ -349,13 +364,26 @@ void Gui::render(float a, bool inScreen, int_t xm, int_t ym)
 
 			for (int_t i = 0; i < full + partial; i++)
 			{
-				int_t bubbleX = width / 2 + 91 - i * 8 - 9; // Above hunger bar
+				int_t bubbleX = width / 2 + 91 - i * 8 - 9; // above the food bar
 				if (i < full)
-					blit(bubbleX, height - 32 - 10, 16, 18, 9, 9);
+					blit(bubbleX, height - 49, 16, 18, 9, 9);
 				else
-					blit(bubbleX, height - 32 - 10, 25, 18, 9, 9);
+					blit(bubbleX, height - 49, 25, 18, 9, 9);
 			}
 		}
+	}
+
+	if (minecraft.gameMode->canHurtPlayer() && minecraft.player->experienceLevel > 0)
+	{
+		// b1.8 experience level number above the bar
+		jstring levelText = String::toString(minecraft.player->experienceLevel);
+		int_t tx = (width - font.width(levelText)) / 2;
+		int_t ty = height - 31 - 4;
+		font.draw(levelText, tx + 1, ty, 0);
+		font.draw(levelText, tx - 1, ty, 0);
+		font.draw(levelText, tx, ty + 1, 0);
+		font.draw(levelText, tx, ty - 1, 0);
+		font.draw(levelText, tx, ty, 8453920);
 	}
 
 	glDisable(GL_BLEND);
@@ -373,7 +401,7 @@ void Gui::render(float a, bool inScreen, int_t xm, int_t ym)
 	Lighting::turnOff();
 	glDisable(GL_RESCALE_NORMAL);
 
-	
+
 	if (minecraft.player->sleepTimer > 0)
 	{
 		glDisable(GL_DEPTH_TEST);
@@ -401,7 +429,7 @@ void Gui::render(float a, bool inScreen, int_t xm, int_t ym)
 		glDisable(GL_BLEND);
 	}
 
-	
+
 	if (minecraft.options.showDebugInfo)
 	{
 		font.drawShadow(Minecraft::VERSION_STRING + u" (" + minecraft.fpsString + u")", 2, 2, 0xFFFFFF);
@@ -449,7 +477,7 @@ void Gui::render(float a, bool inScreen, int_t xm, int_t ym)
 		}
 	}
 
-	
+
 	{
 		bool chatOpen = dynamic_cast<ChatScreen*>(minecraft.screen.get()) != nullptr;
 		int_t maxVisible = chatOpen ? 20 : 10;

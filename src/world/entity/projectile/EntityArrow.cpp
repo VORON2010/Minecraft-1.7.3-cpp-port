@@ -24,7 +24,11 @@ EntityArrow::EntityArrow(Level &level, double x, double y, double z) : EntityArr
 	heightOffset = 0.0f;
 }
 
-EntityArrow::EntityArrow(Level &level, Mob &owner) : EntityArrow(level)
+EntityArrow::EntityArrow(Level &level, Mob &owner) : EntityArrow(level, owner, 1.0f)
+{
+}
+
+EntityArrow::EntityArrow(Level &level, Mob &owner, float power) : EntityArrow(level)
 {
 	this->owner = level.getEntityRef(owner);
 	doesArrowBelongToPlayer = owner.isPlayer();
@@ -37,7 +41,7 @@ EntityArrow::EntityArrow(Level &level, Mob &owner) : EntityArrow(level)
 	xd = -Mth::sin(yRot * Mth::DEGRAD) * Mth::cos(xRot * Mth::DEGRAD);
 	zd = Mth::cos(yRot * Mth::DEGRAD) * Mth::cos(xRot * Mth::DEGRAD);
 	yd = -Mth::sin(xRot * Mth::DEGRAD);
-	setArrowHeading(xd, yd, zd, 1.5f, 1.0f);
+	setArrowHeading(xd, yd, zd, power * 1.5f, 1.0f);
 }
 
 void EntityArrow::setArrowHeading(double xd, double yd, double zd, float speed, float spread)
@@ -158,9 +162,16 @@ void EntityArrow::tick()
 		if (hit.type == HitResult::Type::ENTITY && hit.entity != nullptr)
 		{
 			Entity *damageSource = ownerRef.get();
-			if (hit.entity->hurt(damageSource, 4))
+			float speed = Mth::sqrt(xd * xd + yd * yd + zd * zd);
+			int_t damage = static_cast<int_t>(std::ceil(static_cast<double>(speed) * 2.0));
+			if (critArrow)
+				damage += random.nextInt(damage / 2 + 2);
+			Entity::damageProjectile = this;
+			bool damaged = hit.entity->hurt(damageSource != nullptr ? damageSource : this, damage);
+			Entity::damageProjectile = nullptr;
+			if (damaged)
 			{
-				level.playSoundAtEntity(*this, u"random.drr", 1.0f, 1.2f / (random.nextFloat() * 0.2f + 0.9f));
+				level.playSoundAtEntity(*this, u"random.bowhit", 1.0f, 1.2f / (random.nextFloat() * 0.2f + 0.9f));
 				remove();
 			}
 			else
@@ -187,10 +198,17 @@ void EntityArrow::tick()
 			x -= xd / impactDistance * 0.05f;
 			y -= yd / impactDistance * 0.05f;
 			z -= zd / impactDistance * 0.05f;
-			level.playSoundAtEntity(*this, u"random.drr", 1.0f, 1.2f / (random.nextFloat() * 0.2f + 0.9f));
+			level.playSoundAtEntity(*this, u"random.bowhit", 1.0f, 1.2f / (random.nextFloat() * 0.2f + 0.9f));
 			inGround = true;
 			arrowShake = 7;
+			critArrow = false;
 		}
+	}
+
+	if (critArrow)
+	{
+		for (int_t i = 0; i < 4; ++i)
+			level.addParticle(u"crit", x + xd * i / 4.0, y + yd * i / 4.0, z + zd * i / 4.0, -xd, -yd + 0.2, -zd);
 	}
 
 	x += xd;

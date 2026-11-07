@@ -61,6 +61,13 @@ void LocalPlayer::updateAi()
 		yya = input->ya;
 		jumping = input->jumping;
 		isSprinting = input->sprinting;
+		if (isUsingItem())
+		{
+			// b1.8: walking slows to a crawl while eating, blocking or drawing a bow
+			xxa *= 0.2f;
+			yya *= 0.2f;
+			isSprinting = false;
+		}
 
 		if (!minecraft.gameMode->isCreativeMode()) {
 			flyActive = false;

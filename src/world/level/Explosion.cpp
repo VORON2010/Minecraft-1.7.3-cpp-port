@@ -110,9 +110,9 @@ void Explosion::doExplosionA()
 
 	explosionSize = size;
 
-	
-	
-	
+
+
+
 	if (isFlaming)
 	{
 		std::vector<TilePos> blocks(destroyedBlockPositions.begin(), destroyedBlockPositions.end());
@@ -133,6 +133,7 @@ void Explosion::doExplosionB(bool particles)
 {
 	level.playSoundEffect(explosionX, explosionY, explosionZ, u"random.explode",
 		4.0f, (1.0f + (level.random.nextFloat() - level.random.nextFloat()) * 0.2f) * 0.7f);
+	level.addParticle(u"hugeexplosion", explosionX, explosionY, explosionZ, 0.0, 0.0, 0.0);
 
 	std::vector<TilePos> blocks(destroyedBlockPositions.begin(), destroyedBlockPositions.end());
 

@@ -85,7 +85,17 @@ class LiquidTile;
 class PistonBaseTile;
 class PistonExtensionTile;
 class PistonMovingTile;
-class Tile 
+class StoneBrickTile;
+class InfestedTile;
+class HugeMushroomTile;
+class PaneTile;
+class MelonTile;
+class StemTile;
+class VineTile;
+class FenceGateTile;
+class MyceliumTile;
+class WaterlilyTile;
+class Tile
 {
 private:
 	static const jstring TILE_DESCRIPTION_PREFIX;
@@ -112,8 +122,17 @@ public:
 		SHAPE_REPEATER = 15,
 		SHAPE_PISTON_BASE = 16,
 		SHAPE_PISTON_EXTENSION = 17,
+		SHAPE_PANE = 18,
+		SHAPE_STEM = 19,
+		SHAPE_VINE = 20,
+		SHAPE_FENCE_GATE = 21,
+		SHAPE_LILYPAD = 23,
+		SHAPE_CAULDRON = 24,
+		SHAPE_BREWING_STAND = 25,
+		SHAPE_END_PORTAL_FRAME = 26,
+		SHAPE_DRAGON_EGG = 27,
 	};
-	
+
 	static std::array<Tile *, 256> tiles;
 
 	static std::array<bool, 256> shouldTick;
@@ -125,7 +144,7 @@ public:
 	static std::array<bool, 256> notifyRenderOnDataChange;
 
 
-	
+
 	static StepSound soundPowderFootstep;
 	static StepSound soundWoodFootstep;
 	static StepSound soundGravelFootstep;
@@ -135,7 +154,7 @@ public:
 	static StepSoundStone soundGlassFootstep;
 	static StepSound soundClothFootstep;
 	static StepSoundSand soundSandFootstep;
-	
+
 	static StoneTile rock;
 	static GrassTile grass;
 	static DirtTile dirt;
@@ -193,7 +212,7 @@ public:
 	static FireTile fire;
 	static SaplingTile sapling;
 
-	
+
 	static SpongeTile sponge;
 	static GlassTile glass;
 	static Tile lapisBlock;
@@ -215,7 +234,7 @@ public:
 	static MobSpawnerTile mobSpawner;
 	static CakeTile cake;
 
-	
+
 	static DoorTile doorWood;
 	static LadderTile ladder;
 	static StairTile stairsWood;
@@ -226,7 +245,7 @@ public:
 	static DoorTile doorIron;
 	static SignTile signPost;
 	static SignTile signWall;
-	
+
 	static RedStoneDustTile redstoneWire;
 	static LeverTile lever;
 	static PressurePlateTile pressurePlateStone;
@@ -240,6 +259,29 @@ public:
 	static PistonBaseTile pistonStickyBase;
 	static PistonExtensionTile pistonExtension;
 	static PistonMovingTile pistonMoving;
+
+	// b1.8
+	static InfestedTile monsterEgg;
+	static StoneBrickTile stoneBrick;
+	static HugeMushroomTile hugeMushroomBrown;
+	static HugeMushroomTile hugeMushroomRed;
+	static PaneTile ironBars;
+	static PaneTile glassPane;
+	static MelonTile melon;
+	static StemTile pumpkinStem;
+	static StemTile melonStem;
+	static VineTile vine;
+	static FenceGateTile fenceGate;
+	static StairTile stairsBrick;
+	static StairTile stairsStoneBrick;
+
+	// 1.0
+	static MyceliumTile mycelium;
+	static WaterlilyTile waterlily;
+	static Tile netherBrick;
+	static FenceTile netherFence;
+	static StairTile stairsNetherBrick;
+	static Tile endStone;
 	static void initTiles();
 
 public:
@@ -260,7 +302,7 @@ public:
 	double xx0 = 0.0;
 	double yy0 = 0.0;
 	double zz0 = 0.0;
-	
+
 	double xx1 = 0.0;
 	double yy1 = 0.0;
 	double zz1 = 0.0;
@@ -319,7 +361,7 @@ public:
 	virtual void destroy(Level &level, int_t x, int_t y, int_t z, int_t data);
 	virtual void neighborChanged(Level &level, int_t x, int_t y, int_t z, int_t tile);
 	virtual void addLights(Level &level, int_t x, int_t y, int_t z);
-	
+
 	virtual int_t getTickDelay();
 
 	virtual void onPlace(Level &level, int_t x, int_t y, int_t z);
@@ -359,6 +401,7 @@ public:
 
 	virtual void updateDefaultShape();
 	virtual bool mayPlace(Level &level, int_t x, int_t y, int_t z);
+	virtual bool mayPlaceOnFace(Level &level, int_t x, int_t y, int_t z, Facing face) { (void)face; return mayPlace(level, x, y, z); }
 
 	virtual bool getSignal(Level &level, int_t x, int_t y, int_t z, int_t dir);
 	virtual bool isSignalSource() { return false; }

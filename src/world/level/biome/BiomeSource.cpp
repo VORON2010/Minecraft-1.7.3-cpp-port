@@ -1,212 +1,223 @@
 #include "world/level/biome/BiomeSource.h"
-#include "java/Number.h"
 
 #include <algorithm>
 
+#include "java/System.h"
 #include "world/level/Level.h"
-#include "world/level/tile/Tile.h"
-#include "world/level/tile/GrassTile.h"
-#include "world/level/tile/DirtTile.h"
-#include "world/level/tile/SandTile.h"
+#include "world/level/biome/Biome.h"
+#include "world/level/biome/layer/Layer.h"
 
-namespace
+BiomeSource::BiomeSource()
 {
-	constexpr int_t BIOME_LOOKUP_SIZE = 64;
+	Biome::init();
+	playerSpawnBiomes = {Biome::forest, Biome::swampland, Biome::taiga};
+}
 
-	BiomeId pickBiomeForLookup(float temperature, float downfall)
+BiomeSource::BiomeSource(Level &level) : BiomeSource()
+{
+	std::vector<std::shared_ptr<Layer>> layers = Layer::getDefaultLayers(level.seed);
+	layer = layers[0];
+	zoomedLayer = layers[1];
+	temperatureLayer = layers[2];
+	downfallLayer = layers[3];
+}
+
+BiomeSource::CacheEntry &BiomeSource::getCacheEntry(int_t x, int_t z)
+{
+	x >>= 4;
+	z >>= 4;
+	long_t key = static_cast<long_t>(static_cast<ulong_t>(static_cast<uint_t>(x)) | static_cast<ulong_t>(static_cast<uint_t>(z)) << 32);
+	auto it = cache.find(key);
+	if (it == cache.end())
 	{
-		downfall *= temperature;
+		auto entry = std::make_unique<CacheEntry>();
+		entry->chunkX = x;
+		entry->chunkZ = z;
+		getTemperatureBlock(entry->temperatures.data(), x << 4, z << 4, 16, 16);
+		getDownfallBlock(entry->downfalls.data(), x << 4, z << 4, 16, 16);
+		std::vector<Biome *> biomes;
+		getBiomeBlock(biomes, x << 4, z << 4, 16, 16, false);
+		std::copy(biomes.begin(), biomes.begin() + 256, entry->biomes.begin());
+		it = cache.emplace(key, std::move(entry)).first;
+	}
+	it->second->lastUse = System::currentTimeMillis();
+	return *it->second;
+}
 
-		if (temperature < 0.1f)
-			return BiomeId::Tundra;
-		if (downfall < 0.2f)
+Biome *BiomeSource::getBiome(int_t x, int_t z)
+{
+	return getCacheEntry(x, z).biomes[(x & 15) | (z & 15) << 4];
+}
+
+float BiomeSource::getDownfall(int_t x, int_t z)
+{
+	return getCacheEntry(x, z).downfalls[(x & 15) | (z & 15) << 4];
+}
+
+float BiomeSource::getTemperature(int_t x, int_t y, int_t z)
+{
+	return scaleTemperature(getCacheEntry(x, z).temperatures[(x & 15) | (z & 15) << 4], y);
+}
+
+void BiomeSource::getDownfallBlock(float *out, int_t x, int_t z, int_t w, int_t h)
+{
+	std::vector<int_t> values = downfallLayer->getArea(x, z, w, h);
+	for (int_t i = 0; i < w * h; ++i)
+		out[i] = std::min(1.0f, static_cast<float>(values[i]) / 65536.0f);
+}
+
+void BiomeSource::getTemperatureBlock(float *out, int_t x, int_t z, int_t w, int_t h)
+{
+	std::vector<int_t> values = temperatureLayer->getArea(x, z, w, h);
+	for (int_t i = 0; i < w * h; ++i)
+		out[i] = std::min(1.0f, static_cast<float>(values[i]) / 65536.0f);
+}
+
+void BiomeSource::getRawBiomeBlock(std::vector<Biome *> &out, int_t x, int_t z, int_t w, int_t h)
+{
+	std::vector<int_t> values = layer->getArea(x, z, w, h);
+	out.resize(static_cast<size_t>(w * h));
+	for (int_t i = 0; i < w * h; ++i)
+		out[i] = Biome::biomes[values[i]];
+}
+
+void BiomeSource::getBiomeBlock(std::vector<Biome *> &out, int_t x, int_t z, int_t w, int_t h, bool useCache)
+{
+	out.resize(static_cast<size_t>(w * h));
+	if (useCache && w == 16 && h == 16 && (x & 15) == 0 && (z & 15) == 0)
+	{
+		CacheEntry &entry = getCacheEntry(x, z);
+		std::copy(entry.biomes.begin(), entry.biomes.end(), out.begin());
+		return;
+	}
+	std::vector<int_t> values = zoomedLayer->getArea(x, z, w, h);
+	for (int_t i = 0; i < w * h; ++i)
+		out[i] = Biome::biomes[values[i]];
+}
+
+bool BiomeSource::containsOnly(int_t x, int_t z, int_t r, const std::vector<Biome *> &allowed)
+{
+	int_t x0 = (x - r) >> 2;
+	int_t z0 = (z - r) >> 2;
+	int_t x1 = (x + r) >> 2;
+	int_t z1 = (z + r) >> 2;
+	int_t w = x1 - x0 + 1;
+	int_t h = z1 - z0 + 1;
+	std::vector<int_t> values = layer->getArea(x0, z0, w, h);
+	for (int_t i = 0; i < w * h; ++i)
+	{
+		Biome *b = Biome::biomes[values[i]];
+		if (std::find(allowed.begin(), allowed.end(), b) == allowed.end())
+			return false;
+	}
+	return true;
+}
+
+BiomeBlockPos BiomeSource::findBiome(int_t x, int_t z, int_t r, const std::vector<Biome *> &allowed, Random &random)
+{
+	int_t x0 = (x - r) >> 2;
+	int_t z0 = (z - r) >> 2;
+	int_t x1 = (x + r) >> 2;
+	int_t z1 = (z + r) >> 2;
+	int_t w = x1 - x0 + 1;
+	int_t h = z1 - z0 + 1;
+	std::vector<int_t> values = layer->getArea(x0, z0, w, h);
+	BiomeBlockPos result;
+	int_t found = 0;
+	for (int_t i = 0; i < static_cast<int_t>(values.size()); ++i)
+	{
+		int_t bx = (x0 + i % w) << 2;
+		int_t bz = (z0 + i / w) << 2;
+		Biome *b = Biome::biomes[values[i]];
+		if (std::find(allowed.begin(), allowed.end(), b) != allowed.end() && (!result.found || random.nextInt(found + 1) == 0))
 		{
-			if (temperature < 0.5f)
-				return BiomeId::Tundra;
-			if (temperature < 0.95f)
-				return BiomeId::Savanna;
-			return BiomeId::Desert;
-		}
-		if (downfall > 0.5f && temperature < 0.7f)
-			return BiomeId::Swampland;
-		if (temperature < 0.5f)
-			return BiomeId::Taiga;
-		if (temperature < 0.97f)
-			return downfall < 0.35f ? BiomeId::Shrubland : BiomeId::Forest;
-		if (downfall < 0.45f)
-			return BiomeId::Plains;
-		if (downfall < 0.9f)
-			return BiomeId::SeasonalForest;
-		return BiomeId::Rainforest;
-	}
-
-	std::array<BiomeId, BIOME_LOOKUP_SIZE * BIOME_LOOKUP_SIZE> createBiomeLookup()
-	{
-		std::array<BiomeId, BIOME_LOOKUP_SIZE * BIOME_LOOKUP_SIZE> lookup = {};
-
-		for (int_t temperatureIndex = 0; temperatureIndex < BIOME_LOOKUP_SIZE; ++temperatureIndex)
-		{
-			for (int_t downfallIndex = 0; downfallIndex < BIOME_LOOKUP_SIZE; ++downfallIndex)
-			{
-				lookup[temperatureIndex + downfallIndex * BIOME_LOOKUP_SIZE] = pickBiomeForLookup(
-					static_cast<float>(temperatureIndex) / static_cast<float>(BIOME_LOOKUP_SIZE - 1),
-					static_cast<float>(downfallIndex) / static_cast<float>(BIOME_LOOKUP_SIZE - 1));
-			}
-		}
-
-		return lookup;
-	}
-
-	const std::array<BiomeId, BIOME_LOOKUP_SIZE * BIOME_LOOKUP_SIZE> &getBiomeLookup()
-	{
-		static const std::array<BiomeId, BIOME_LOOKUP_SIZE * BIOME_LOOKUP_SIZE> lookup = createBiomeLookup();
-		return lookup;
-	}
-
-	const std::array<BiomeInfo, 11> &getBiomeInfos()
-	{
-		static const std::array<BiomeInfo, 11> infos = {{
-			{ Tile::grass.id, Tile::dirt.id, false, TreeStyle::Rainforest, 0, 10, 0, 0, true },
-			{ Tile::grass.id, Tile::dirt.id, false, TreeStyle::Default, 0, 0, 0, 0, false },
-			{ Tile::grass.id, Tile::dirt.id, false, TreeStyle::Default, 4, 2, 0, 0, false },
-			{ Tile::grass.id, Tile::dirt.id, false, TreeStyle::Forest, 2, 2, 0, 0, false },
-			{ Tile::grass.id, Tile::dirt.id, false, TreeStyle::Default, 0, 0, 0, 0, false },
-			{ Tile::grass.id, Tile::dirt.id, false, TreeStyle::Default, 0, 0, 0, 0, false },
-			{ Tile::grass.id, Tile::dirt.id, true, TreeStyle::Taiga, 2, 1, 0, 0, false },
-			{ Tile::sand.id, Tile::sand.id, false, TreeStyle::Default, 0, 0, 2, 10, false, false },
-			{ Tile::grass.id, Tile::dirt.id, false, TreeStyle::Default, 3, 10, 0, 0, false },
-			{ Tile::grass.id, Tile::dirt.id, true, TreeStyle::Default, 0, 0, 0, 0, false },
-			{ Tile::grass.id, Tile::dirt.id, false, TreeStyle::Default, 0, 0, 0, 0, false, false },
-		}};
-		return infos;
-	}
-}
-
-BiomeSource::BiomeSource(Level &level) :
-	temperatureMap(Random(Java::longFromBits(static_cast<ulong_t>(level.seed) * 9871ULL)), 4),
-	downfallMap(Random(Java::longFromBits(static_cast<ulong_t>(level.seed) * 39811ULL)), 4),
-	noiseMap(Random(Java::longFromBits(static_cast<ulong_t>(level.seed) * 543321ULL)), 2)
-{
-	
-}
-
-BiomeId BiomeSource::pickBiome(float temperature, float downfall)
-{
-	return pickBiomeForLookup(temperature, downfall);
-}
-
-BiomeId BiomeSource::getBiomeFromLookup(double temperature, double downfall)
-{
-	int_t temperatureIndex = std::max(0, std::min(BIOME_LOOKUP_SIZE - 1, static_cast<int_t>(temperature * (BIOME_LOOKUP_SIZE - 1))));
-	int_t downfallIndex = std::max(0, std::min(BIOME_LOOKUP_SIZE - 1, static_cast<int_t>(downfall * (BIOME_LOOKUP_SIZE - 1))));
-	return getBiomeLookup()[temperatureIndex + downfallIndex * BIOME_LOOKUP_SIZE];
-}
-
-double BiomeSource::getTemperature(int_t x, int_t z)
-{
-	temperatureMap.getRegion(temperatures.data(), x, z, 1, 1, tempScale, tempScale, 0.5);
-	return temperatures[0];
-}
-
-void BiomeSource::getTemperatures(double *out, int_t x, int_t z, int_t xd, int_t zd)
-{
-	noises.resize(static_cast<std::size_t>(xd) * static_cast<std::size_t>(zd));
-	temperatureMap.getRegion(out, x, z, xd, zd, tempScale, tempScale, 0.25);
-	noiseMap.getRegion(noises.data(), x, z, xd, zd, noiseScale, noiseScale, 0.5882352941176471);
-	for (int_t i = 0; i < xd * zd; ++i)
-	{
-		double noise = noises[i] * 1.1 + 0.5;
-		double blend = 0.01;
-		double inverseBlend = 1.0 - blend;
-		double temperature = (out[i] * 0.15 + 0.7) * inverseBlend + noise * blend;
-		temperature = 1.0 - (1.0 - temperature) * (1.0 - temperature);
-		if (temperature < 0.0)
-			temperature = 0.0;
-		if (temperature > 1.0)
-			temperature = 1.0;
-		out[i] = temperature;
-	}
-}
-
-BiomeId BiomeSource::getBiome(int_t x, int_t z)
-{
-	getBiomeBlock(x, z, 1, 1);
-	return biomes[0];
-}
-
-const BiomeInfo &BiomeSource::getBiomeInfo(BiomeId biome) const
-{
-	return getBiomeInfos()[static_cast<int_t>(biome)];
-}
-
-void BiomeSource::getBiomeBlock(int_t x, int_t z, int_t xd, int_t zd)
-{
-	std::size_t count = static_cast<std::size_t>(xd) * static_cast<std::size_t>(zd);
-	temperatures.resize(count);
-	downfalls.resize(count);
-	noises.resize(count);
-	biomes.resize(count);
-
-	temperatureMap.getRegion(temperatures.data(), x, z, xd, zd, tempScale, tempScale, 1.0 / 4.0);
-	downfallMap.getRegion(downfalls.data(), x, z, xd, zd, downfallScale, downfallScale, 1.0 / 3.0);
-	noiseMap.getRegion(noises.data(), x, z, xd, zd, noiseScale, noiseScale, 1.0 / 1.7);
-
-	int_t index = 0;
-
-	for (int_t xi = 0; xi < xd; ++xi)
-	{
-		for (int_t zi = 0; zi < zd; ++zi)
-		{
-			double nv = noises[index] * 1.1 + 0.5;
-
-			double blend = 0.01;
-			double inverseBlend = 1.0 - blend;
-			double temperature = (temperatures[index] * 0.15 + 0.7) * inverseBlend + nv * blend;
-
-			blend = 0.002;
-			inverseBlend = 1.0 - blend;
-			double downfall = (downfalls[index] * 0.15 + 0.5) * inverseBlend + nv * blend;
-
-			temperature = 1.0 - (1.0 - temperature) * (1.0 - temperature);
-			temperature = std::max(0.0, std::min(1.0, temperature));
-			downfall = std::max(0.0, std::min(1.0, downfall));
-
-			temperatures[index] = temperature;
-			downfalls[index] = downfall;
-			biomes[index] = getBiomeFromLookup(temperature, downfall);
-
-			++index;
+			result.x = bx;
+			result.z = bz;
+			result.found = true;
+			found++;
 		}
 	}
+	return result;
 }
 
-HellBiomeSource::HellBiomeSource(Level &level) : BiomeSource(level)
+void BiomeSource::update()
+{
+	long_t now = System::currentTimeMillis();
+	long_t elapsed = now - lastCleanup;
+	if (elapsed <= 7500 && elapsed >= 0)
+		return;
+	lastCleanup = now;
+	for (auto it = cache.begin(); it != cache.end();)
+	{
+		long_t age = now - it->second->lastUse;
+		if (age > 30000 || age < 0)
+			it = cache.erase(it);
+		else
+			++it;
+	}
+}
+
+FixedBiomeSource::FixedBiomeSource(Biome *biome, float temperature, float downfall)
+	: biome(biome), temperature(temperature), downfall(downfall)
 {
 }
 
-double HellBiomeSource::getTemperature(int_t x, int_t z)
+Biome *FixedBiomeSource::getBiome(int_t x, int_t z)
 {
 	(void)x; (void)z;
-	return 1.0;
+	return biome;
 }
 
-void HellBiomeSource::getTemperatures(double *out, int_t x, int_t z, int_t xd, int_t zd)
-{
-	std::fill(out, out + xd * zd, 1.0);
-}
-
-BiomeId HellBiomeSource::getBiome(int_t x, int_t z)
+float FixedBiomeSource::getDownfall(int_t x, int_t z)
 {
 	(void)x; (void)z;
-	return BiomeId::Hell;
+	return downfall;
 }
 
-void HellBiomeSource::getBiomeBlock(int_t x, int_t z, int_t xd, int_t zd)
+float FixedBiomeSource::getTemperature(int_t x, int_t y, int_t z)
+{
+	(void)x; (void)y; (void)z;
+	return temperature;
+}
+
+void FixedBiomeSource::getDownfallBlock(float *out, int_t x, int_t z, int_t w, int_t h)
 {
 	(void)x; (void)z;
-	std::size_t count = static_cast<std::size_t>(xd) * static_cast<std::size_t>(zd);
-	temperatures.assign(count, 1.0);
-	downfalls.assign(count, 0.0);
-	noises.assign(count, 0.0);
-	biomes.assign(count, BiomeId::Hell);
+	std::fill(out, out + w * h, downfall);
+}
+
+void FixedBiomeSource::getTemperatureBlock(float *out, int_t x, int_t z, int_t w, int_t h)
+{
+	(void)x; (void)z;
+	std::fill(out, out + w * h, temperature);
+}
+
+void FixedBiomeSource::getRawBiomeBlock(std::vector<Biome *> &out, int_t x, int_t z, int_t w, int_t h)
+{
+	(void)x; (void)z;
+	out.assign(static_cast<size_t>(w * h), biome);
+}
+
+void FixedBiomeSource::getBiomeBlock(std::vector<Biome *> &out, int_t x, int_t z, int_t w, int_t h, bool useCache)
+{
+	(void)x; (void)z; (void)useCache;
+	out.assign(static_cast<size_t>(w * h), biome);
+}
+
+bool FixedBiomeSource::containsOnly(int_t x, int_t z, int_t r, const std::vector<Biome *> &allowed)
+{
+	(void)x; (void)z; (void)r;
+	return std::find(allowed.begin(), allowed.end(), biome) != allowed.end();
+}
+
+BiomeBlockPos FixedBiomeSource::findBiome(int_t x, int_t z, int_t r, const std::vector<Biome *> &allowed, Random &random)
+{
+	BiomeBlockPos result;
+	if (std::find(allowed.begin(), allowed.end(), biome) != allowed.end())
+	{
+		result.x = x - r + random.nextInt(r * 2 + 1);
+		result.z = z - r + random.nextInt(r * 2 + 1);
+		result.found = true;
+	}
+	return result;
 }

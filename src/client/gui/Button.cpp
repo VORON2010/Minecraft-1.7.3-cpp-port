@@ -1,3 +1,4 @@
+#include "pc/OpenGL.h"
 #include "client/gui/Button.h"
 
 #include "client/Minecraft.h"

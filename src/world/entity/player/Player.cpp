@@ -19,6 +19,10 @@
 #include "world/stats/Achievement.h"
 #include "world/stats/StatBase.h"
 #include "world/stats/StatList.h"
+#include "world/phys/Vec3.h"
+#include "world/item/Items.h"
+#include "world/item/Item.h"
+#include "java/Math.h"
 
 Player::Player(Level &level) : Mob(level)
 {
@@ -38,6 +42,25 @@ void Player::feed(int_t food, float saturationModifier)
 {
 	foodLevel = std::min(std::max(foodLevel + food, 0), 20);
 	foodSaturationLevel = std::min(std::max(foodSaturationLevel + (float)food * saturationModifier * 2.0f, 0.0f), (float)foodLevel);
+}
+
+void Player::increaseXp(int_t amount)
+{
+	score += amount;
+	experienceProgress += static_cast<float>(amount) / static_cast<float>(getXpNeededForNextLevel());
+	totalExperience += amount;
+	while (experienceProgress >= 1.0f)
+	{
+		experienceProgress--;
+		experienceLevel++;
+	}
+}
+
+void Player::withdrawExperienceLevels(int_t levels)
+{
+	experienceLevel -= levels;
+	if (experienceLevel < 0)
+		experienceLevel = 0;
 }
 
 void Player::addExhaustion(float exhaustion)
@@ -75,6 +98,25 @@ void Player::tick()
 		sleepTimer++;
 		if (sleepTimer >= 110)
 			sleepTimer = 0;
+	}
+
+	if (takeXpDelay > 0)
+		takeXpDelay--;
+
+	if (usingItem)
+	{
+		ItemInstance *selected = getSelectedItem();
+		if (selected == nullptr || selected->isEmpty() || inventory.currentItem != useItemSlot || selected->itemID != useItemId)
+		{
+			stopUsingItem();
+		}
+		else
+		{
+			if (useItemDuration <= 25 && useItemDuration % 4 == 0)
+				spawnItemUseEffects(*selected, 5);
+			if (--useItemDuration == 0 && !level.isOnline)
+				completeUsingItem();
+		}
 	}
 
 	Mob::tick();
@@ -379,11 +421,6 @@ void Player::aiStep()
 			foodTickTimer = 0;
 		}
 
-		if (hungerEffectTimer > 0)
-		{
-			hungerEffectTimer--;
-			addExhaustion(0.025f);
-		}
 	}
 
 	inventory.tick();
@@ -428,20 +465,61 @@ void Player::swing()
 void Player::attack(const std::shared_ptr<Entity> &entity)
 {
 	int_t attackDamage = inventory.getAttackDamage(*entity);
+	if (const MobEffectInstance *strength = getEffect(MobEffect::damageBoost))
+		attackDamage += 3 << strength->getAmplifier();
+	if (const MobEffectInstance *weak = getEffect(MobEffect::weakness))
+		attackDamage -= 2 << weak->getAmplifier();
 	if (attackDamage <= 0)
 		return;
-	if (yd < 0.0)
-		attackDamage++;
 
-	entity->hurt(this, attackDamage);
+	Mob *target = dynamic_cast<Mob *>(entity.get());
+	int_t knockback = isSprinting ? 1 : 0;
+
+	// b1.8 critical hit: hitting while falling
+	bool critical = fallDistance > 0.0f && !onGround && !onLadder() && !isInWater() &&
+		!hasEffect(MobEffect::blindness) && riding == nullptr && target != nullptr;
+	if (critical)
+		attackDamage += random.nextInt(attackDamage / 2 + 2);
+
+	bool damaged = entity->hurt(this, attackDamage);
+	if (damaged)
+	{
+		if (knockback > 0)
+		{
+			entity->push(-Mth::sin(yRot * Mth::PI / 180.0f) * knockback * 0.5f, 0.1, Mth::cos(yRot * Mth::PI / 180.0f) * knockback * 0.5f);
+			xd *= 0.6;
+			zd *= 0.6;
+			isSprinting = false;
+		}
+		if (critical)
+		{
+			for (int_t burst = 0; burst < 3; ++burst)
+			{
+				for (int_t i = 0; i < 16; ++i)
+				{
+					double ox = random.nextFloat() * 2.0f - 1.0f;
+					double oy = random.nextFloat() * 2.0f - 1.0f;
+					double oz = random.nextFloat() * 2.0f - 1.0f;
+					if (ox * ox + oy * oy + oz * oz > 1.0)
+						continue;
+					level.addParticle(u"crit",
+						entity->x + ox * entity->bbWidth / 4.0,
+						entity->bb.y0 + entity->bbHeight / 2.0f + oy * entity->bbHeight / 4.0,
+						entity->z + oz * entity->bbWidth / 4.0,
+						ox, oy + 0.2, oz);
+				}
+			}
+		}
+	}
+
 	ItemInstance *selected = getSelectedItem();
-	if (selected != nullptr && dynamic_cast<Mob *>(entity.get()) != nullptr)
+	if (selected != nullptr && target != nullptr)
 	{
 		selected->hurtEnemy(*entity, *this);
 		if (selected->isEmpty())
 			removeSelectedItem();
 	}
-	if (dynamic_cast<Mob *>(entity.get()) != nullptr)
+	if (target != nullptr)
 		addStat(*StatList::damageDealtStat, attackDamage);
 	addExhaustion(0.3f);
 }
@@ -462,6 +540,10 @@ void Player::addStat(const StatBase &stat, int_t amount)
 float Player::getDestroySpeed(Tile &tile)
 {
 	float speed = inventory.getDestroySpeed(tile);
+	if (const MobEffectInstance *haste = getEffect(MobEffect::digSpeed))
+		speed *= 1.0f + static_cast<float>(haste->getAmplifier() + 1) * 0.2f;
+	if (const MobEffectInstance *fatigue = getEffect(MobEffect::digSlowdown))
+		speed *= 1.0f - static_cast<float>(fatigue->getAmplifier() + 1) * 0.2f;
 	if (isUnderLiquid(static_cast<const Material &>(Material::water)))
 		speed /= 5.0f;
 	if (!onGround)
@@ -477,6 +559,9 @@ bool Player::canDestroy(Tile &tile)
 void Player::readAdditionalSaveData(CompoundTag &tag)
 {
 	Mob::readAdditionalSaveData(tag);
+	experienceProgress = tag.getFloat(u"XpP");
+	experienceLevel = tag.getInt(u"XpLevel");
+	totalExperience = tag.getInt(u"XpTotal");
 	dimension = tag.getInt(u"Dimension");
 	gameType = tag.getInt(u"GameType");
 	auto inventoryTag = tag.getList(u"Inventory");
@@ -504,7 +589,10 @@ void Player::readAdditionalSaveData(CompoundTag &tag)
 	}
 	if (tag.contains(u"hungerEffectTimer"))
 	{
-		hungerEffectTimer = tag.getInt(u"hungerEffectTimer");
+		// old saves stored the rotten flesh hunger as a plain timer
+		int_t legacyHunger = tag.getInt(u"hungerEffectTimer");
+		if (legacyHunger > 0)
+			addEffect(MobEffectInstance(MobEffect::hunger.id, legacyHunger, 0));
 	}
 
 	if (sleeping)
@@ -518,6 +606,9 @@ void Player::readAdditionalSaveData(CompoundTag &tag)
 void Player::addAdditionalSaveData(CompoundTag &tag)
 {
 	Mob::addAdditionalSaveData(tag);
+	tag.putFloat(u"XpP", experienceProgress);
+	tag.putInt(u"XpLevel", experienceLevel);
+	tag.putInt(u"XpTotal", totalExperience);
 	tag.putInt(u"Dimension", dimension);
 	tag.putInt(u"GameType", gameType);
 	auto inventoryTag = std::make_shared<ListTag>();
@@ -536,7 +627,6 @@ void Player::addAdditionalSaveData(CompoundTag &tag)
 	tag.putInt(u"foodTickTimer", foodTickTimer);
 	tag.putFloat(u"foodExhaustionLevel", foodExhaustionLevel);
 	tag.putFloat(u"foodSaturationLevel", foodSaturationLevel);
-	tag.putInt(u"hungerEffectTimer", hungerEffectTimer);
 }
 
 const TilePos *Player::getPlayerSpawnPosition() const
@@ -608,11 +698,16 @@ bool Player::hurt(Entity *source, int_t dmg)
 
 void Player::actuallyHurt(int_t dmg)
 {
-	int_t armorValue = 25 - inventory.getArmorValue();
-	int_t totalDamage = dmg * armorValue + dmgSpill;
-	inventory.hurtArmor(dmg);
-	dmg = totalDamage / 25;
-	dmgSpill = totalDamage % 25;
+	if (!hurtBypassesArmor && isBlocking())
+		dmg = (1 + dmg) >> 1;
+	if (!hurtBypassesArmor)
+	{
+		int_t armorValue = 25 - inventory.getArmorValue();
+		int_t totalDamage = dmg * armorValue + dmgSpill;
+		inventory.hurtArmor(dmg);
+		dmg = totalDamage / 25;
+		dmgSpill = totalDamage % 25;
+	}
 	Mob::actuallyHurt(dmg);
 }
 
@@ -635,6 +730,113 @@ void Player::interact(const std::shared_ptr<Entity> &entity)
 
 void Player::take(Entity &entity, int_t count)
 {
+}
+
+ItemInstance *Player::getUseItem()
+{
+	if (!usingItem)
+		return nullptr;
+	ItemInstance *selected = getSelectedItem();
+	if (selected == nullptr || selected->isEmpty() || selected->itemID != useItemId)
+		return nullptr;
+	return selected;
+}
+
+int_t Player::getTicksUsingItem()
+{
+	ItemInstance *item = getUseItem();
+	return item != nullptr ? item->getUseDuration() - useItemDuration : 0;
+}
+
+void Player::startUsingItem(ItemInstance &stack, int_t duration)
+{
+	if (usingItem && useItemSlot == inventory.currentItem && useItemId == stack.itemID)
+		return;
+	usingItem = true;
+	useItemSlot = inventory.currentItem;
+	useItemId = stack.itemID;
+	useItemDuration = duration;
+}
+
+void Player::releaseUsingItem()
+{
+	ItemInstance *item = getUseItem();
+	int_t remaining = useItemDuration;
+	stopUsingItem();
+	if (item != nullptr)
+	{
+		item->releaseUsing(level, *this, remaining);
+		if (item->isEmpty())
+			removeSelectedItem();
+	}
+}
+
+void Player::stopUsingItem()
+{
+	usingItem = false;
+	useItemSlot = -1;
+	useItemId = -1;
+	useItemDuration = 0;
+}
+
+bool Player::isBlocking()
+{
+	ItemInstance *item = getUseItem();
+	return item != nullptr && item->getUseAnimation() == UseAnim::BLOCK;
+}
+
+void Player::completeUsingItem()
+{
+	ItemInstance *item = getUseItem();
+	if (item != nullptr)
+	{
+		spawnItemUseEffects(*item, 16);
+		item->useTimeDepleted(level, *this);
+		if (item->isEmpty())
+			removeSelectedItem();
+	}
+	stopUsingItem();
+}
+
+void Player::spawnItemUseEffects(ItemInstance &stack, int_t particles)
+{
+	UseAnim anim = stack.getUseAnimation();
+	if (anim == UseAnim::DRINK)
+		level.playSoundAtEntity(*this, u"random.drink", 0.5f, level.random.nextFloat() * 0.1f + 0.9f);
+	if (anim != UseAnim::EAT)
+		return;
+
+	float yaw = -yRot * Mth::PI / 180.0f;
+	float pitch = -xRot * Mth::PI / 180.0f;
+	for (int_t i = 0; i < particles; ++i)
+	{
+		Vec3 *dir = Vec3::newTemp((static_cast<double>(random.nextFloat()) - 0.5) * 0.1, Math::random() * 0.1 + 0.1, 0.0);
+		dir->xRot(pitch);
+		dir->yRot(yaw);
+		Vec3 *pos = Vec3::newTemp((static_cast<double>(random.nextFloat()) - 0.5) * 0.3, static_cast<double>(-random.nextFloat()) * 0.6 - 0.3, 0.6);
+		pos->xRot(pitch);
+		pos->yRot(yaw);
+		level.addParticle(u"iconcrack_" + String::toString(stack.itemID), x + pos->x, y + getHeadHeight() + pos->y, z + pos->z,
+			dir->x, dir->y + 0.05, dir->z);
+	}
+	level.playSoundAtEntity(*this, u"random.eat", 0.5f + 0.5f * static_cast<float>(random.nextInt(2)),
+		(random.nextFloat() - random.nextFloat()) * 0.2f + 1.0f);
+}
+
+int_t Player::getItemIcon(ItemInstance &stack)
+{
+	int_t icon = stack.getIcon();
+	if (usingItem && Items::bow != nullptr && stack.itemID == Items::bow->getShiftedIndex() && stack.itemID == useItemId)
+	{
+		int_t ticks = stack.getUseDuration() - useItemDuration;
+		if (ticks >= 18)
+			return 133;
+		if (ticks > 13)
+			return 117;
+		if (ticks > 0)
+			return 101;
+	}
+	return icon;
 }
 
 ItemInstance *Player::getSelectedItem()

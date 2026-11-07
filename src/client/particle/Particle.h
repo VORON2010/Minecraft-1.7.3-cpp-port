@@ -35,6 +35,9 @@ public:
 
 	Particle &setPower(float power);
 	Particle &scale(float scale);
+	void setColor(float r, float g, float b) { rCol = r; gCol = g; bCol = b; }
+	void setTex(int_t tex) { this->tex = tex; }
+	void multiplyColor(float r, float g, float b) { rCol *= r; gCol *= g; bCol *= b; }
 
 	virtual void tick() override;
 

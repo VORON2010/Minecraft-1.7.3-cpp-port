@@ -46,19 +46,35 @@ double PerlinNoise::getValue(double x, double y, double z)
 	return result;
 }
 
-void PerlinNoise::getRegion(double *out, double x, double y, double z, int_t xSize, int_t ySize, int_t zSize, double xScale, double yScale, double zScale)
+void PerlinNoise::getRegion(double *out, int_t x, int_t y, int_t z, int_t xSize, int_t ySize, int_t zSize, double xScale, double yScale, double zScale)
 {
 	std::fill(out, out + xSize * ySize * zSize, 0.0);
 
 	double scale = 1.0;
 	for (auto &i : noiseLevels)
 	{
-		i.add(out, x, y, z, xSize, ySize, zSize, xScale * scale, yScale * scale, zScale * scale, scale);
+		double xx = static_cast<double>(x) * scale * xScale;
+		double yy = static_cast<double>(y) * scale * yScale;
+		double zz = static_cast<double>(z) * scale * zScale;
+		long_t xl = static_cast<long_t>(xx);
+		if (xx < static_cast<double>(xl))
+			xl--;
+		long_t zl = static_cast<long_t>(zz);
+		if (zz < static_cast<double>(zl))
+			zl--;
+		xx -= static_cast<double>(xl);
+		zz -= static_cast<double>(zl);
+		xl %= 16777216LL;
+		zl %= 16777216LL;
+		xx += static_cast<double>(xl);
+		zz += static_cast<double>(zl);
+		i.add(out, xx, yy, zz, xSize, ySize, zSize, xScale * scale, yScale * scale, zScale * scale, scale);
 		scale /= 2.0;
 	}
 }
 
-void PerlinNoise::getRegion(double *out, double x, double y, int_t xSize, int_t ySize, double xScale, double yScale, double unknown)
+void PerlinNoise::getRegion(double *out, int_t x, int_t z, int_t xSize, int_t zSize, double xScale, double zScale, double unknown)
 {
-	getRegion(out, x, 10.0, y, xSize, 1, ySize, xScale, 1.0, yScale);
+	(void)unknown;
+	getRegion(out, x, 10, z, xSize, 1, zSize, xScale, 1.0, zScale);
 }

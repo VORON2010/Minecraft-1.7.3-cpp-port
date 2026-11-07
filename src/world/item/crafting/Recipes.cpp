@@ -38,6 +38,11 @@
 #include "world/level/tile/LadderTile.h"
 #include "world/level/tile/TrapDoorTile.h"
 #include "world/level/tile/StairTile.h"
+#include "world/level/tile/StoneBrickTile.h"
+#include "world/level/tile/PaneTile.h"
+#include "world/level/tile/MelonTile.h"
+#include "world/level/tile/FenceGateTile.h"
+#include "world/level/tile/GlassTile.h"
 #include "world/level/tile/PumpkinTile.h"
 #include "world/level/tile/TorchTile.h"
 #include "world/level/tile/DispenserTile.h"
@@ -129,7 +134,7 @@ Recipes::Recipes()
 {
 	ItemInstance stick(Items::stick->getShiftedIndex(), 1, 0);
 
-	
+
 	{
 		const std::vector<std::string> patterns[4] = {
 			{"XXX", " # ", " # "},
@@ -165,7 +170,7 @@ Recipes::Recipes()
 		});
 	}
 
-	
+
 	{
 		const ItemInstance materials[5] = {
 			ItemInstance(Tile::wood.id, 1, -1),
@@ -193,7 +198,7 @@ Recipes::Recipes()
 		});
 	}
 
-	
+
 	{
 		Tile *blocks[4] = {&Tile::goldBlock, &Tile::ironBlock, &Tile::diamondBlock, &Tile::lapisBlock};
 		const ItemInstance stacks[4] = {
@@ -209,7 +214,7 @@ Recipes::Recipes()
 		}
 	}
 
-	
+
 	addShapedRecipe(ItemInstance(Items::bowlSoup->getShiftedIndex(), 1, 0), {"Y", "X", "#"}, {
 		{'X', ItemInstance(Tile::brownMushroom.id, 1, -1)},
 		{'Y', ItemInstance(Tile::redMushroom.id, 1, -1)},
@@ -225,7 +230,7 @@ Recipes::Recipes()
 		{'#', ItemInstance(Items::wheat->getShiftedIndex(), 1, 0)}
 	});
 
-	
+
 	addShapedRecipe(ItemInstance(Tile::chest.id, 1, 0), {"###", "# #", "###"}, {
 		{'#', ItemInstance(Tile::wood.id, 1, -1)}
 	});
@@ -239,7 +244,7 @@ Recipes::Recipes()
 		{'#', ItemInstance(Tile::sand.id, 1, -1)}
 	});
 
-	
+
 	{
 		const std::vector<std::string> patterns[4] = {
 			{"XXX", "X X"},
@@ -271,11 +276,11 @@ Recipes::Recipes()
 		}
 	}
 
-	
+
 	{
 		for (int_t i = 0; i < 16; ++i)
 		{
-			
+
 			addShapelessRecipe(ItemInstance(Tile::wool.id, 1, ~i & 15), {
 				ItemInstance(Items::dyePowder->getShiftedIndex(), 1, i),
 				ItemInstance(Tile::wool.id, 1, 0)
@@ -338,7 +343,7 @@ Recipes::Recipes()
 		});
 	}
 
-	
+
 	addShapedRecipe(ItemInstance(Items::paper->getShiftedIndex(), 3, 0), {"###"}, {
 		{'#', ItemInstance(Items::reed->getShiftedIndex(), 1, 0)}
 	});
@@ -348,6 +353,20 @@ Recipes::Recipes()
 	addShapedRecipe(ItemInstance(Tile::fence.id, 2, 0), {"###", "###"}, {
 		{'#', stick}
 	});
+
+	// b1.8
+	addShapedRecipe(ItemInstance(Tile::fenceGate.id, 1, 0), {"#W#", "#W#"}, {
+		{'#', stick},
+		{'W', ItemInstance(Tile::wood.id, 1, -1)}
+	});
+	addShapedRecipe(ItemInstance(Tile::stoneBrick.id, 4, 0), {"##", "##"}, {{'#', ItemInstance(Tile::rock.id, 1, -1)}});
+	addShapedRecipe(ItemInstance(Tile::ironBars.id, 16, 0), {"###", "###"}, {{'#', ItemInstance(Items::ingotIron->getShiftedIndex(), 1, 0)}});
+	addShapedRecipe(ItemInstance(Tile::glassPane.id, 16, 0), {"###", "###"}, {{'#', ItemInstance(Tile::glass.id, 1, -1)}});
+	addShapedRecipe(ItemInstance(Tile::melon.id, 1, 0), {"MMM", "MMM", "MMM"}, {{'M', ItemInstance(Items::melon->getShiftedIndex(), 1, 0)}});
+	addShapedRecipe(ItemInstance(Items::melonSeeds->getShiftedIndex(), 1, 0), {"M"}, {{'M', ItemInstance(Items::melon->getShiftedIndex(), 1, 0)}});
+	addShapedRecipe(ItemInstance(Items::pumpkinSeeds->getShiftedIndex(), 4, 0), {"M"}, {{'M', ItemInstance(Tile::pumpkin.id, 1, -1)}});
+	addShapedRecipe(ItemInstance(Tile::stairsBrick.id, 4, 0), {"#  ", "## ", "###"}, {{'#', ItemInstance(Tile::brick.id, 1, -1)}});
+	addShapedRecipe(ItemInstance(Tile::stairsStoneBrick.id, 4, 0), {"#  ", "## ", "###"}, {{'#', ItemInstance(Tile::stoneBrick.id, 1, -1)}});
 	addShapedRecipe(ItemInstance(Tile::jukebox.id, 1, 0), {"###", "#X#", "###"}, {
 		{'#', ItemInstance(Tile::wood.id, 1, -1)},
 		{'X', ItemInstance(Items::diamond->getShiftedIndex(), 1, 0)}
@@ -383,6 +402,8 @@ Recipes::Recipes()
 	addShapedRecipe(ItemInstance(Tile::slabSingle.id, 3, 0), {"###"}, {{'#', ItemInstance(Tile::rock.id, 1, -1)}});
 	addShapedRecipe(ItemInstance(Tile::slabSingle.id, 3, 1), {"###"}, {{'#', ItemInstance(Tile::sandstone.id, 1, -1)}});
 	addShapedRecipe(ItemInstance(Tile::slabSingle.id, 3, 2), {"###"}, {{'#', ItemInstance(Tile::wood.id, 1, -1)}});
+	addShapedRecipe(ItemInstance(Tile::slabSingle.id, 3, 4), {"###"}, {{'#', ItemInstance(Tile::brick.id, 1, -1)}});
+	addShapedRecipe(ItemInstance(Tile::slabSingle.id, 3, 5), {"###"}, {{'#', ItemInstance(Tile::stoneBrick.id, 1, -1)}});
 	addShapedRecipe(ItemInstance(Tile::ladder.id, 2, 0), {"# #", "###", "# #"}, {
 		{'#', stick}
 	});
@@ -535,7 +556,7 @@ Recipes::Recipes()
 		{'X', ItemInstance(Tile::wood.id, 1, -1)}
 	});
 
-	
+
 	std::stable_sort(recipes.begin(), recipes.end(), [](const Recipe &a, const Recipe &b) {
 		if (!a.shapeless && b.shapeless)
 			return true;

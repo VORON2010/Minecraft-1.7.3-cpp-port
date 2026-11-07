@@ -1,3 +1,4 @@
+#include "pc/OpenGL.h"
 #include "client/model/Cube.h"
 
 #include "client/MemoryTracker.h"
@@ -52,10 +53,10 @@ void Cube::addBox(float x0, float y0, float z0, int_t w, int_t h, int_t d, float
 
 	polygons[0] = Polygon(std::array<Vertex, 4>{ l1, u1, u2, l2 }, xTexOffs + d + w, yTexOffs + d, xTexOffs + d + w + d, yTexOffs + d + h);
 	polygons[1] = Polygon(std::array<Vertex, 4>{ u0, l0, l3, u3 }, xTexOffs + 0, yTexOffs + d, xTexOffs + d, yTexOffs + d + h);
-	
+
 	polygons[2] = Polygon(std::array<Vertex, 4>{ l1, l0, u0, u1 }, xTexOffs + d, yTexOffs + 0, xTexOffs + d + w, yTexOffs + d);
 	polygons[3] = Polygon(std::array<Vertex, 4>{ u2, u3, l3, l2 }, xTexOffs + d + w, yTexOffs + 0, xTexOffs + d + w + w, yTexOffs + d);
-	
+
 	polygons[4] = Polygon(std::array<Vertex, 4>{ u1, u0, u3, u2 }, xTexOffs + d, yTexOffs + d, xTexOffs + d + w, yTexOffs + d + h);
 	polygons[5] = Polygon(std::array<Vertex, 4>{ l0, l1, l2, l3 }, xTexOffs + d + w + d, yTexOffs + d, xTexOffs + d + w + d + w, yTexOffs + d + h);
 

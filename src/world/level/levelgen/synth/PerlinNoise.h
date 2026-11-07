@@ -23,6 +23,7 @@ public:
 	double getValue(double x, double y) override;
 	double getValue(double x, double y, double z);
 
-	void getRegion(double *out, double x, double y, double z, int_t xSize, int_t ySize, int_t zSize, double xScale, double yScale, double zScale);
-	void getRegion(double *out, double x, double y, int_t xSize, int_t ySize, double xScale, double yScale, double unknown);
+	// 1.0: integer origin, wrapped at 2^24 so terrain stays precise far from 0,0
+	void getRegion(double *out, int_t x, int_t y, int_t z, int_t xSize, int_t ySize, int_t zSize, double xScale, double yScale, double zScale);
+	void getRegion(double *out, int_t x, int_t z, int_t xSize, int_t zSize, double xScale, double zScale, double unknown);
 };

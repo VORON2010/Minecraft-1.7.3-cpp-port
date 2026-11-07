@@ -5,6 +5,7 @@
 class Squid : public Animal
 {
 public:
+	int_t getExperienceReward() override { return 1 + random.nextInt(3); }
 	float xBodyRot = 0.0f;
 	float xBodyRotO = 0.0f;
 	float zBodyRot = 0.0f;

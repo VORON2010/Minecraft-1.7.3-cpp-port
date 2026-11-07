@@ -1,5 +1,7 @@
 #include "world/level/material/MapColor.h"
-
+#ifdef _MSC_VER
+#pragma init_seg(lib)
+#endif
 MapColor *MapColor::mapColorArray[MapColor::COUNT] = {};
 
 MapColor MapColor::airColor(0, 0);

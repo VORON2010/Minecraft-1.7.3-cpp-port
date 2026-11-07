@@ -1,3 +1,4 @@
+#include "pc/OpenGL.h"
 #include "client/renderer/LevelRenderer.h"
 
 #include <algorithm>
@@ -37,6 +38,9 @@
 
 #include "util/Mth.h"
 #include "util/Memory.h"
+#include "client/particle/CritParticle.h"
+#include "client/particle/SpellParticle.h"
+#include "client/particle/NewParticles.h"
 
 LevelRenderer::LevelRenderer(Minecraft &mc, Textures &textures) : mc(mc), textures(textures)
 {
@@ -45,13 +49,13 @@ LevelRenderer::LevelRenderer(Minecraft &mc, Textures &textures) : mc(mc), textur
 	occlusionCheck = false;
 
 	starList = MemoryTracker::genLists(3);
-	
+
 	glPushMatrix();
 
 	glNewList(starList, GL_COMPILE);
 	renderStars();
 	glEndList();
-	
+
 	glPopMatrix();
 
 	Tesselator &t = Tesselator::instance;
@@ -306,7 +310,7 @@ void LevelRenderer::renderEntities(Vec3 &cam, Culler &culler, float a)
 		}
 	}
 
-	
+
 	for (auto &tileEntity : renderableTileEntities)
 	{
 		auto signEntity = std::dynamic_pointer_cast<SignTileEntity>(tileEntity);
@@ -600,7 +604,7 @@ int_t LevelRenderer::renderChunks(int_t from, int_t to, int_t layer, double alph
 	for (int_t i = 0; i < renderChunksList.size(); i++)
 	{
 		auto &chunk = renderChunksList[i];
-		
+
 		int_t list = -1;
 		for (int_t l = 0; l < lists; l++)
 		{
@@ -647,7 +651,7 @@ void LevelRenderer::renderSky(float alpha)
 
 	glDisable(GL_TEXTURE_2D);
 
-	
+
 	Vec3 *sc = level->getSkyColor(*mc.player, alpha);
 	float sr = static_cast<float>(sc->x);
 	float sg = static_cast<float>(sc->y);
@@ -665,22 +669,22 @@ void LevelRenderer::renderSky(float alpha)
 	}
 
 	glColor3f(sr, sg, sb);
-	
+
 	Tesselator &t = Tesselator::instance;
 
 	glDepthMask(false);
 	glEnable(GL_FOG);
 	glColor3f(sr, sg, sb);
-	
+
 	glCallList(skyList);
-	
+
 	glDisable(GL_FOG);
 	glDisable(GL_ALPHA_TEST);
 
-	
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
+
 	float *c = level->dimension->getSunriseColor(level->getTimeOfDay(alpha), alpha);
 	if (c != nullptr)
 	{
@@ -711,21 +715,21 @@ void LevelRenderer::renderSky(float alpha)
 		glShadeModel(GL_FLAT);
 	}
 
-	
+
 	glEnable(GL_TEXTURE_2D);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	glPushMatrix();
-	
+
 	xp = 0.0f;
 	yp = 0.0f;
 	float zp = 0.0f;
-	
+
 	float weatherAlpha = 1.0f - level->getRainStrength(alpha);
 	glColor4f(1.0f, 1.0f, 1.0f, weatherAlpha);
 	glTranslatef(xp, yp, zp);
 	glRotatef(0.0f, 0.0f, 0.0f, 1.0f);
 	glRotatef(level->getTimeOfDay(alpha) * 360.0f, 1.0f, 0.0f, 0.0f);
-	
+
 	float ss = 30.0f;
 
 	glBindTexture(GL_TEXTURE_2D, textures.loadTexture(u"/terrain/sun.png"));
@@ -754,7 +758,7 @@ void LevelRenderer::renderSky(float alpha)
 		glCallList(starList);
 	}
 
-	
+
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	glDisable(GL_BLEND);
 	glEnable(GL_ALPHA_TEST);
@@ -810,7 +814,7 @@ void LevelRenderer::renderClouds(float alpha)
 	}
 
 	float scale = 1.0f / 2048.0f;
-	
+
 	double xo = mc.player->xo + (mc.player->x - mc.player->xo) * alpha + ((ticks + alpha) * 0.03f);
 	double zo = mc.player->zo + (mc.player->z - mc.player->zo) * alpha;
 	int_t xOffs = Mth::floor(xo / 2048.0);
@@ -933,7 +937,7 @@ void LevelRenderer::renderAdvancedClouds(float alpha)
 				}
 
 				t.color(cr * 0.9F, cg * 0.9F, cb * 0.9F, 0.8F);
-				
+
 				if (xPos > -1)
 				{
 					t.normal(-1.0F, 0.0F, 0.0F);
@@ -1045,7 +1049,7 @@ bool LevelRenderer::updateDirtyChunks(Player &player, bool force)
 	{
 		DirtyChunkSorter dirtyChunkSorter(player);
 
-		
+
 		std::array<std::shared_ptr<Chunk>, 2> toAdd = {};
 		std::vector<std::shared_ptr<Chunk>> nearChunks;
 
@@ -1128,7 +1132,7 @@ bool LevelRenderer::updateDirtyChunks(Player &player, bool force)
 		}
 		while (--cursor >= target)
 			dirtyChunks.erase(dirtyChunks.begin() + cursor);
-	
+
 		return pendingChunkSize == (pendingChunkRemoved + secondaryRemoved);
 	}
 }
@@ -1199,7 +1203,7 @@ void LevelRenderer::renderHitOutline(Player &player, HitResult &h, int_t mode, I
 		glLineWidth(2.0f);
 		glDisable(GL_TEXTURE_2D);
 		glDepthMask(false);
-		
+
 		float ss = 0.002F;
 		int tileId = level->getTile(h.x, h.y, h.z);
 		if (tileId > 0)
@@ -1307,7 +1311,7 @@ void LevelRenderer::playStreamingMusic(const jstring &name, int_t x, int_t y, in
 {
 	if (!name.empty())
 		mc.gui.setRecordPlayingMessage(u"C418 - " + name);
-	
+
 	if (name == u"error404")
 		mc.horrorActive = true;
 
@@ -1316,8 +1320,8 @@ void LevelRenderer::playStreamingMusic(const jstring &name, int_t x, int_t y, in
 
 void LevelRenderer::playSound(const jstring &name, double x, double y, double z, float volume, float pitch)
 {
-	
-	
+
+
 	float dd = 16.0f;
 	if (volume > 1.0f)
 		dd *= volume;
@@ -1330,14 +1334,26 @@ void LevelRenderer::addParticle(const jstring &name, double x, double y, double 
 {
 	if (mc.player == nullptr || level == nullptr)
 		return;
-	
+
+	// these two are visible from far away
+	if (name == u"hugeexplosion")
+	{
+		mc.particleEngine.add(std::make_unique<HugeExplosionParticle>(*level, x, y, z));
+		return;
+	}
+	if (name == u"largeexplode")
+	{
+		mc.particleEngine.add(std::make_unique<LargeExplosionParticle>(mc.textures, *level, x, y, z, xa));
+		return;
+	}
+
 	double dx = mc.player->x - x;
 	double dy = mc.player->y - y;
 	double dz = mc.player->z - z;
 	constexpr double particleDistance = 16.0;
 	if (dx * dx + dy * dy + dz * dz > particleDistance * particleDistance)
 		return;
-	
+
 	if (name == u"bubble")
 		mc.particleEngine.add(std::make_unique<BubbleParticle>(*level, x, y, z, xa, ya, za));
 	else if (name == u"splash")
@@ -1364,6 +1380,50 @@ void LevelRenderer::addParticle(const jstring &name, double x, double y, double 
 		mc.particleEngine.add(std::make_unique<ItemParticle>(*level, x, y, z, *Items::slimeball));
 	else if (name == u"heart")
 		mc.particleEngine.add(std::make_unique<HeartParticle>(*level, x, y, z, xa, ya, za));
+	else if (name == u"crit")
+		mc.particleEngine.add(std::make_unique<CritParticle>(*level, x, y, z, xa, ya, za));
+	else if (name == u"magicCrit")
+	{
+		auto particle = std::make_unique<CritParticle>(*level, x, y, z, xa, ya, za);
+		particle->multiplyColor(0.3f, 0.8f, 1.0f);
+		particle->setTex(66);
+		mc.particleEngine.add(std::move(particle));
+	}
+	else if (name == u"suspended")
+		mc.particleEngine.add(std::make_unique<SuspendedParticle>(*level, x, y, z, xa, ya, za));
+	else if (name == u"depthsuspend" || name == u"townaura")
+		mc.particleEngine.add(std::make_unique<DepthSuspendParticle>(*level, x, y, z, xa, ya, za));
+	else if (name == u"enchantmenttable")
+		mc.particleEngine.add(std::make_unique<EnchantingParticle>(*level, x, y, z, xa, ya, za));
+	else if (name == u"cloud")
+		mc.particleEngine.add(std::make_unique<CloudParticle>(*level, x, y, z, xa, ya, za));
+	else if (name == u"dripWater")
+		mc.particleEngine.add(std::make_unique<DripParticle>(*level, x, y, z, false));
+	else if (name == u"dripLava")
+		mc.particleEngine.add(std::make_unique<DripParticle>(*level, x, y, z, true));
+	else if (name == u"instantSpell")
+	{
+		auto particle = std::make_unique<SpellParticle>(*level, x, y, z, xa, ya, za);
+		particle->setBaseTex(144);
+		mc.particleEngine.add(std::move(particle));
+	}
+	else if (name == u"spell" || name == u"mobSpell")
+	{
+		auto particle = std::make_unique<SpellParticle>(*level, x, y, z, name == u"mobSpell" ? 0.0 : xa, name == u"mobSpell" ? 0.0 : ya, name == u"mobSpell" ? 0.0 : za);
+		if (name == u"mobSpell")
+		{
+			particle->setColor(static_cast<float>(xa), static_cast<float>(ya), static_cast<float>(za));
+		}
+		mc.particleEngine.add(std::move(particle));
+	}
+	else if (name.rfind(u"iconcrack_", 0) == 0)
+	{
+		int_t itemId = 0;
+		for (size_t i = 10; i < name.size() && name[i] >= u'0' && name[i] <= u'9'; ++i)
+			itemId = itemId * 10 + (name[i] - u'0');
+		if (itemId > 0 && itemId < static_cast<int_t>(Item::items.size()) && Item::items[itemId] != nullptr)
+			mc.particleEngine.add(std::make_unique<ItemParticle>(*level, x, y, z, xa, ya, za, *Item::items[itemId]));
+	}
 }
 
 void LevelRenderer::playMusic(const jstring &name, double x, double y, double z, float songOffset)

@@ -6,6 +6,8 @@
 #include "world/level/LevelSource.h"
 #include "world/level/material/Material.h"
 #include "world/level/GrassColor.h"
+#include "world/level/biome/Biome.h"
+#include "world/level/biome/BiomeSource.h"
 
 GrassTile::GrassTile(int_t id) : Tile(id, Material::grassMaterial)
 {
@@ -32,10 +34,7 @@ int_t GrassTile::getTexture(Facing face, int_t data)
 
 int_t GrassTile::getColor(LevelSource &level, int_t x, int_t y, int_t z)
 {
-	level.getBiomeSource().getBiomeBlock(x, z, 1, 1);
-	double temperature = level.getBiomeSource().temperatures[0];
-	double downfall = level.getBiomeSource().downfalls[0];
-	return GrassColor::get(temperature, downfall);
+	return level.getBiomeSource().getBiome(x, z)->getGrassColor(level, x, y, z);
 }
 
 int_t GrassTile::getItemColor(int_t data)
@@ -55,14 +54,18 @@ void GrassTile::tick(Level &level, int_t x, int_t y, int_t z, Random &random)
 	}
 	else if (level.getRawBrightness(x, y + 1, z) >= 9)
 	{
-		int_t targetX = x + random.nextInt(3) - 1;
-		int_t targetY = y + random.nextInt(5) - 3;
-		int_t targetZ = z + random.nextInt(3) - 1;
-		int_t above = level.getTile(targetX, targetY + 1, targetZ);
-		if (level.getTile(targetX, targetY, targetZ) == Tile::dirt.id
-			&& level.getRawBrightness(targetX, targetY + 1, targetZ) >= 4
-			&& Tile::lightBlock[above] <= 2)
-			level.setTile(targetX, targetY, targetZ, Tile::grass.id);
+		// 1.0: four spread attempts per tick
+		for (int_t i = 0; i < 4; ++i)
+		{
+			int_t targetX = x + random.nextInt(3) - 1;
+			int_t targetY = y + random.nextInt(5) - 3;
+			int_t targetZ = z + random.nextInt(3) - 1;
+			int_t above = level.getTile(targetX, targetY + 1, targetZ);
+			if (level.getTile(targetX, targetY, targetZ) == Tile::dirt.id
+				&& level.getRawBrightness(targetX, targetY + 1, targetZ) >= 4
+				&& Tile::lightBlock[above] <= 2)
+				level.setTile(targetX, targetY, targetZ, Tile::grass.id);
+		}
 	}
 }
 

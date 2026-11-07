@@ -16,7 +16,7 @@
 ParticleEngine::ParticleEngine(Level *level, Textures *textures)
 	: level(level), textures(textures), random(Random())
 {
-	
+
 	for (int_t i = 0; i < 4; i++)
 	{
 		particles[i].clear();
@@ -25,7 +25,7 @@ ParticleEngine::ParticleEngine(Level *level, Textures *textures)
 
 void ParticleEngine::add(std::unique_ptr<Particle> p)
 {
-	
+
 	int_t t = p->getParticleTexture();
 	if (t >= 0 && t < 4)
 	{
@@ -35,7 +35,7 @@ void ParticleEngine::add(std::unique_ptr<Particle> p)
 
 void ParticleEngine::tick()
 {
-	
+
 	for (int_t tt = 0; tt < 4; tt++)
 	{
 		for (int_t i = 0; i < (int_t)particles[tt].size(); i++)
@@ -52,19 +52,19 @@ void ParticleEngine::tick()
 
 void ParticleEngine::render(Entity &player, float a)
 {
-	
+
 	float xa = Mth::cos(player.yRot * Mth::PI / 180.0f);
 	float za = Mth::sin(player.yRot * Mth::PI / 180.0f);
 	float xa2 = -za * Mth::sin(player.xRot * Mth::PI / 180.0f);
 	float za2 = xa * Mth::sin(player.xRot * Mth::PI / 180.0f);
 	float ya = Mth::cos(player.xRot * Mth::PI / 180.0f);
 
-	
+
 	Particle::xOff = player.xOld + (player.x - player.xOld) * a;
 	Particle::yOff = player.yOld + (player.y - player.yOld) * a;
 	Particle::zOff = player.zOld + (player.z - player.zOld) * a;
 
-	
+
 	for (int_t tt = 0; tt < 3; tt++)
 	{
 		if (!particles[tt].empty())
@@ -99,15 +99,20 @@ void ParticleEngine::render(Entity &player, float a)
 
 void ParticleEngine::renderLit(Entity &player, float a)
 {
-	
+
 	int_t tt = 3;
 	if (!particles[tt].empty())
 	{
 		Tesselator &t = Tesselator::instance;
+		float xa = Mth::cos(player.yRot * Mth::PI / 180.0f);
+		float za = Mth::sin(player.yRot * Mth::PI / 180.0f);
+		float xa2 = -za * Mth::sin(player.xRot * Mth::PI / 180.0f);
+		float za2 = xa * Mth::sin(player.xRot * Mth::PI / 180.0f);
+		float ya = Mth::cos(player.xRot * Mth::PI / 180.0f);
 
 		for (auto &p : particles[tt])
 		{
-			p->render(t, a, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+			p->render(t, a, xa, ya, za, xa2, za2);
 		}
 	}
 }
@@ -116,7 +121,7 @@ void ParticleEngine::setLevel(Level *level)
 {
 	this->level = level;
 
-	
+
 	for (int_t tt = 0; tt < 4; tt++)
 	{
 		particles[tt].clear();
@@ -135,7 +140,7 @@ void ParticleEngine::destroy(int_t x, int_t y, int_t z, int_t tileId, int_t data
 	if (level == nullptr)
 		return;
 
-	
+
 	if (tileId != 0 && tileId >= 0 && tileId < static_cast<int_t>(Tile::tiles.size()) && Tile::tiles[tileId] != nullptr)
 	{
 		Tile *tile = Tile::tiles[tileId];
@@ -166,7 +171,7 @@ void ParticleEngine::crack(int_t x, int_t y, int_t z, int_t face)
 	if (level == nullptr)
 		return;
 
-	
+
 	int_t tid = level->getTile(x, y, z);
 	if (tid != 0 && Tile::tiles[tid] != nullptr)
 	{
@@ -177,7 +182,7 @@ void ParticleEngine::crack(int_t x, int_t y, int_t z, int_t face)
 		double yp = y + random.nextDouble() * (tile->yy1 - tile->yy0 - r * 2.0f) + r + tile->yy0;
 		double zp = z + random.nextDouble() * (tile->zz1 - tile->zz0 - r * 2.0f) + r + tile->zz0;
 
-		
+
 		if (face == 0)
 		{
 			yp = y + tile->yy0 - r;
@@ -213,7 +218,7 @@ void ParticleEngine::crack(int_t x, int_t y, int_t z, int_t face)
 
 jstring ParticleEngine::countParticles()
 {
-	
+
 	int_t count = (int_t)particles[0].size() + (int_t)particles[1].size() + (int_t)particles[2].size();
 	return String::toString(count);
 }

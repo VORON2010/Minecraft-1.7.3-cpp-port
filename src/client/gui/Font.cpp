@@ -1,3 +1,4 @@
+#include "pc/OpenGL.h"
 #include "client/gui/Font.h"
 
 #include "SharedConstants.h"
@@ -20,7 +21,7 @@ void Font::initialize(Options &options, const jstring &name, Textures &textures)
 	const unsigned char *rawPixels = img.getRawPixels();
 	int_t cellSize = w / 16;
 
-	
+
 	for (int_t i = 0; i < 256; i++)
 	{
 		int_t xt = i % 16;
@@ -55,7 +56,7 @@ void Font::initialize(Options &options, const jstring &name, Textures &textures)
 		glNewList(listPos + j, GL_COMPILE);
 
 		t.begin();
-		
+
 		int_t ix = j % 16 * 8;
 		int_t iy = j / 16 * 8;
 
@@ -83,9 +84,9 @@ void Font::initialize(Options &options, const jstring &name, Textures &textures)
 		int_t b = ((j >> 0) & 1) * 170 + br;
 		if (j == 6)
 			r += 85;
-	
+
 		bool darken = (j >= 16);
-	
+
 		if (options.anaglyph3d)
 		{
 			int_t cr = (r * 30 + g * 59 + b * 11) / 100;
@@ -95,16 +96,16 @@ void Font::initialize(Options &options, const jstring &name, Textures &textures)
 			g = cg;
 			b = cb;
 		}
-	
+
 		if (darken)
 		{
 			r /= 4;
 			g /= 4;
 			b /= 4;
 		}
-	
+
 		colorCodes[j] = (r << 16) | (g << 8) | b;
-	
+
 		glNewList(listPos + 256 + j, GL_COMPILE);
 		glColor3f(r / 255.0f, g / 255.0f, b / 255.0f);
 		glEndList();
@@ -138,9 +139,9 @@ void Font::draw(const jstring &str, int_t x, int_t y, int_t color, bool darken)
 	float b = (color & 0xFF) / 255.0f;
 	float a = ((color >> 24) & 0xFF) / 255.0f;
 	if ((color & 0xFF000000) == 0) a = 1.0f;
-	
+
 	glColor4f(r, g, b, a);
-	
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_ALPHA_TEST);
@@ -148,7 +149,7 @@ void Font::draw(const jstring &str, int_t x, int_t y, int_t color, bool darken)
 	ib.clear();
 	glPushMatrix();
 	glTranslatef(x, y, 0.0f);
-	
+
 	auto flushGlyphs = [&]() {
 		if (!ib.empty())
 		{
@@ -156,7 +157,7 @@ void Font::draw(const jstring &str, int_t x, int_t y, int_t color, bool darken)
 			ib.clear();
 		}
 	};
-	
+
 	for (int_t i = 0; i < str.length(); i++)
 	{
 		if (str[i] == 167 && str.length() > i + 1)
@@ -176,12 +177,12 @@ void Font::draw(const jstring &str, int_t x, int_t y, int_t color, bool darken)
 			i++;
 			continue;
 		}
-	
+
 		int_t ch = SharedConstants::acceptableLetters.find(str[i]);
 		if (ch != jstring::npos)
 			ib.push_back(listPos + ch + 32);
 	}
-	
+
 	flushGlyphs();
 	glPopMatrix();
 }

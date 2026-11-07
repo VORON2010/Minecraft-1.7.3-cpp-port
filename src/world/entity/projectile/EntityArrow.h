@@ -22,11 +22,14 @@ protected:
 public:
 	bool doesArrowBelongToPlayer = false;
 	int_t arrowShake = 0;
+	bool critArrow = false;
 	std::weak_ptr<Entity> owner;
 
 	EntityArrow(Level &level);
 	EntityArrow(Level &level, double x, double y, double z);
 	EntityArrow(Level &level, Mob &owner);
+	// b1.8 bow: power 0..2 from how long the string was drawn
+	EntityArrow(Level &level, Mob &owner, float power);
 
 	jstring getEncodeId() const override { return u"Arrow"; }
 	void setArrowHeading(double xd, double yd, double zd, float speed, float spread);

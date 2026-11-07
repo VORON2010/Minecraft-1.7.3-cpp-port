@@ -34,6 +34,7 @@ public:
 	void tick();
 	bool add(ItemInstance &item);
 	bool consumeItem(int_t itemId);
+	bool hasItem(int_t itemId) const;
 	void dropAll();
 	float getDestroySpeed(Tile &tile);
 	bool canDestroySpecial(Tile &tile);

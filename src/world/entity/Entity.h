@@ -64,7 +64,7 @@ public:
 	bool removed = false;
 
 	float heightOffset = 0.0f;
-	
+
 	float entityBrightness = 0.0f;
 
 	float bbWidth = 0.6f, bbHeight = 1.8f;
@@ -105,7 +105,7 @@ public:
 protected:
 	int_t airCapacity = TOTAL_AIR_SUPPLY;
 	bool wasInWater = false;
-	
+
 public:
 	int_t invulnerableTime = 0;
 	int_t airSupply = TOTAL_AIR_SUPPLY;
@@ -119,6 +119,13 @@ public:
 
 protected:
 	bool fireImmune = false;
+
+public:
+	virtual bool hurtByFire(int_t dmg) { return hurt(nullptr, dmg); }
+	// set while a projectile (arrow) is dealing damage, so targets can react to it (endermen dodge)
+	static Entity *damageProjectile;
+
+protected:
 	DataWatcher dataWatcher;
 
 private:

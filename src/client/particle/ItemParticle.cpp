@@ -15,6 +15,14 @@ ItemParticle::ItemParticle(Level &level, double x, double y, double z, Item &ite
 	size /= 2.0f;
 }
 
+ItemParticle::ItemParticle(Level &level, double x, double y, double z, double xa, double ya, double za, Item &item)
+	: ItemParticle(level, x, y, z, item)
+{
+	xd = xd * 0.1 + xa;
+	yd = yd * 0.1 + ya;
+	zd = zd * 0.1 + za;
+}
+
 int_t ItemParticle::getParticleTexture() const
 {
 	return 2;

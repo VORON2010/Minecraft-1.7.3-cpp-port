@@ -22,7 +22,11 @@
 #include "world/entity/monster/Slime.h"
 #include "world/entity/monster/Giant.h"
 #include "world/entity/monster/Ghast.h"
+#include "world/entity/monster/Enderman.h"
+#include "world/entity/monster/CaveSpider.h"
+#include "world/entity/monster/Silverfish.h"
 #include "world/entity/item/EntityItem.h"
+#include "world/entity/item/ExperienceOrb.h"
 #include "world/entity/item/EntityBoat.h"
 #include "world/entity/item/EntityMinecart.h"
 #include "world/entity/item/EntityPainting.h"
@@ -55,7 +59,7 @@ std::shared_ptr<Entity> newEntity(int_t id, Level &level)
 {
 	if (id == 48)
 	{
-		
+
 		std::cout << "Skipping Entity with id " << id << '\n';
 		return nullptr;
 	}

@@ -1,94 +1,93 @@
 #pragma once
 
+#include <array>
+#include <memory>
+#include <unordered_map>
 #include <vector>
 
-#include "world/level/levelgen/synth/PerlinSimplexNoise.h"
-
+#include "java/Random.h"
 #include "java/Type.h"
 
 class Level;
+class Layer;
+class Biome;
 
-enum class TreeStyle
+struct BiomeBlockPos
 {
-	Default,
-	Rainforest,
-	Forest,
-	Taiga,
+	int_t x = 0;
+	int_t z = 0;
+	bool found = false;
 };
 
-enum class BiomeId
-{
-	Rainforest,
-	Swampland,
-	SeasonalForest,
-	Forest,
-	Savanna,
-	Shrubland,
-	Taiga,
-	Desert,
-	Plains,
-	Tundra,
-	Hell,
-};
-
-struct BiomeInfo
-{
-	int_t topTileId = 0;
-	int_t fillerTileId = 0;
-	bool enableSnow = false;
-	TreeStyle treeStyle = TreeStyle::Default;
-	int_t yellowFlowerCount = 0;
-	int_t tallGrassCount = 0;
-	int_t deadBushCount = 0;
-	int_t cactusCount = 0;
-	bool prefersFern = false;
-	bool enableRain = true;
-
-	bool canSpawnLightningBolt() const { return !enableSnow && enableRain; }
-};
-
+// 1.0 biome source: biomes come from the layer stack, cached per chunk.
 class BiomeSource
 {
 private:
-	PerlinSimplexNoise temperatureMap;
-	PerlinSimplexNoise downfallMap;
-	PerlinSimplexNoise noiseMap;
+	struct CacheEntry
+	{
+		std::array<float, 256> temperatures = {};
+		std::array<float, 256> downfalls = {};
+		std::array<Biome *, 256> biomes = {};
+		int_t chunkX = 0;
+		int_t chunkZ = 0;
+		long_t lastUse = 0;
+	};
+
+	std::shared_ptr<Layer> layer;
+	std::shared_ptr<Layer> zoomedLayer;
+	std::shared_ptr<Layer> temperatureLayer;
+	std::shared_ptr<Layer> downfallLayer;
+
+	std::unordered_map<long_t, std::unique_ptr<CacheEntry>> cache;
+	long_t lastCleanup = 0;
+
+	CacheEntry &getCacheEntry(int_t x, int_t z);
+
+protected:
+	BiomeSource();
 
 public:
-	std::vector<double> temperatures = std::vector<double>(16 * 16);
-	std::vector<double> downfalls = std::vector<double>(16 * 16);
-	std::vector<double> noises = std::vector<double>(16 * 16);
-	std::vector<BiomeId> biomes = std::vector<BiomeId>(16 * 16);
+	std::vector<Biome *> playerSpawnBiomes;
 
-private:
-	static constexpr float zoom = 2.0f;
-	static constexpr float tempScale = 0.025f;
-	static constexpr float downfallScale = 0.05f;
-	static constexpr float noiseScale = 0.25f;
-
-	static BiomeId pickBiome(float temperature, float downfall);
-	static BiomeId getBiomeFromLookup(double temperature, double downfall);
-
-public:
-	BiomeSource(Level &level);
+	explicit BiomeSource(Level &level);
 	virtual ~BiomeSource() {}
 
-	virtual double getTemperature(int_t x, int_t z);
-	virtual void getTemperatures(double *out, int_t x, int_t z, int_t xd, int_t zd);
-	virtual BiomeId getBiome(int_t x, int_t z);
-	const BiomeInfo &getBiomeInfo(BiomeId biome) const;
+	virtual Biome *getBiome(int_t x, int_t z);
+	virtual float getDownfall(int_t x, int_t z);
+	virtual float getTemperature(int_t x, int_t y, int_t z);
+	float getTemperature(int_t x, int_t z) { return getTemperature(x, 64, z); }
+	virtual float scaleTemperature(float temperature, int_t y) { (void)y; return temperature; }
 
-	virtual void getBiomeBlock(int_t x, int_t z, int_t xd, int_t zd);
+	virtual void getDownfallBlock(float *out, int_t x, int_t z, int_t w, int_t h);
+	virtual void getTemperatureBlock(float *out, int_t x, int_t z, int_t w, int_t h);
+	virtual void getRawBiomeBlock(std::vector<Biome *> &out, int_t x, int_t z, int_t w, int_t h);
+	virtual void getBiomeBlock(std::vector<Biome *> &out, int_t x, int_t z, int_t w, int_t h, bool useCache = true);
+
+	virtual bool containsOnly(int_t x, int_t z, int_t r, const std::vector<Biome *> &allowed);
+	virtual BiomeBlockPos findBiome(int_t x, int_t z, int_t r, const std::vector<Biome *> &allowed, Random &random);
+
+	virtual void update();
 };
 
-
-class HellBiomeSource : public BiomeSource
+// Single-biome source (Nether, End)
+class FixedBiomeSource : public BiomeSource
 {
-public:
-	HellBiomeSource(Level &level);
+private:
+	Biome *biome;
+	float temperature;
+	float downfall;
 
-	double getTemperature(int_t x, int_t z) override;
-	void getTemperatures(double *out, int_t x, int_t z, int_t xd, int_t zd) override;
-	BiomeId getBiome(int_t x, int_t z) override;
-	void getBiomeBlock(int_t x, int_t z, int_t xd, int_t zd) override;
+public:
+	FixedBiomeSource(Biome *biome, float temperature, float downfall);
+
+	Biome *getBiome(int_t x, int_t z) override;
+	float getDownfall(int_t x, int_t z) override;
+	float getTemperature(int_t x, int_t y, int_t z) override;
+	void getDownfallBlock(float *out, int_t x, int_t z, int_t w, int_t h) override;
+	void getTemperatureBlock(float *out, int_t x, int_t z, int_t w, int_t h) override;
+	void getRawBiomeBlock(std::vector<Biome *> &out, int_t x, int_t z, int_t w, int_t h) override;
+	void getBiomeBlock(std::vector<Biome *> &out, int_t x, int_t z, int_t w, int_t h, bool useCache = true) override;
+	bool containsOnly(int_t x, int_t z, int_t r, const std::vector<Biome *> &allowed) override;
+	BiomeBlockPos findBiome(int_t x, int_t z, int_t r, const std::vector<Biome *> &allowed, Random &random) override;
+	void update() override {}
 };

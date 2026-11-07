@@ -11,15 +11,9 @@ ItemSoup::ItemSoup(int_t baseId, int_t healAmount)
 	setMaxStackSize(1);
 }
 
-void ItemSoup::use(ItemInstance &stack, Level &level, Player &player) const
+void ItemSoup::useTimeDepleted(ItemInstance &stack, Level &level, Player &player) const
 {
-	(void)level;
-	if (stack.isEmpty())
-		return;
-	if (player.foodLevel >= 20)
-		return;
-	stack.stackSize--;
-	player.feed(getHealAmount(), getSaturationModifier());
+	ItemFood::useTimeDepleted(stack, level, player);
 	if (stack.isEmpty())
 		stack = ItemInstance(Items::bowlEmpty->getShiftedIndex(), 1, 0);
 }

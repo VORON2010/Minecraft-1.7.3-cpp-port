@@ -7,6 +7,9 @@
 #include "world/item/ItemInstance.h"
 
 #include "util/Mth.h"
+#include "nbt/CompoundTag.h"
+#include "nbt/ListTag.h"
+#include "world/entity/item/ExperienceOrb.h"
 
 Mob::Mob(Level &level) : Entity(level)
 {
@@ -74,7 +77,7 @@ void Mob::baseTick()
 	if (fireImmune || level.isOnline)
 		onFire = 0;
 
-	if (isAlive() && isUnderLiquid(static_cast<const Material &>(Material::water)) && !isWaterMob())
+	if (isAlive() && isUnderLiquid(static_cast<const Material &>(Material::water)) && !isWaterMob() && !hasEffect(MobEffect::waterBreathing))
 	{
 		airSupply--;
 		if (airSupply == -20)
@@ -101,10 +104,21 @@ void Mob::baseTick()
 	if (attackTime > 0) attackTime--;
 	if (hurtTime > 0) hurtTime--;
 	if (invulnerableTime > 0) invulnerableTime--;
+	if (lastHurtByPlayerTime > 0) lastHurtByPlayerTime--;
 
 	if (health <= 0)
 	{
 		deathTime++;
+		if (deathTime == 20 && !level.isOnline && (lastHurtByPlayerTime > 0 || alwaysDropsExperience()))
+		{
+			int_t xp = getExperienceReward();
+			while (xp > 0)
+			{
+				int_t orbValue = ExperienceOrb::getExperienceValue(xp);
+				xp -= orbValue;
+				level.addEntity(std::make_shared<ExperienceOrb>(level, x, y, z, orbValue));
+			}
+		}
 		if (deathTime > 20)
 		{
 			beforeRemove();
@@ -123,6 +137,8 @@ void Mob::baseTick()
 			}
 		}
 	}
+
+	tickEffects();
 
 	animStepO = animStep;
 	yBodyRotO = yBodyRot;
@@ -183,7 +199,7 @@ void Mob::superTick()
 void Mob::tick()
 {
 	Entity::tick();
-	
+
 	aiStep();
 
 	double fxd = x - xo;
@@ -268,6 +284,7 @@ bool Mob::hurt(Entity *source, int_t dmg)
 	if (health <= 0)
 		return false;
 
+	dmg = applyEffectDamageReduction(dmg);
 	walkAnimSpeed = 1.5f;
 	bool playEffects = true;
 
@@ -289,6 +306,8 @@ bool Mob::hurt(Entity *source, int_t dmg)
 	}
 
 	hurtDir = 0.0f;
+	if (source != nullptr && source->isPlayer())
+		lastHurtByPlayerTime = 60;
 	if (playEffects)
 	{
 		markHurt();
@@ -473,6 +492,7 @@ void Mob::travel(float x, float z)
 		}
 
 		float acceleration = 0.16277136f / (friction * friction * friction);
+		acceleration *= getSpeedModifier();
 		if (isSprinting && onGround) acceleration *= 1.5f;
 		// Creative flight has its own air-control speed.  Sprint doubles it,
 		// matching the expected accelerated flight behaviour.
@@ -544,6 +564,19 @@ void Mob::addAdditionalSaveData(CompoundTag &tag)
 	tag.putShort(u"HurtTime", static_cast<short_t>(hurtTime));
 	tag.putShort(u"DeathTime", static_cast<short_t>(deathTime));
 	tag.putShort(u"AttackTime", static_cast<short_t>(attackTime));
+	if (!activeEffects.empty())
+	{
+		auto list = std::make_shared<ListTag>();
+		for (const auto &entry : activeEffects)
+		{
+			auto effectTag = std::make_shared<CompoundTag>();
+			effectTag->putByte(u"Id", static_cast<byte_t>(entry.second.getId()));
+			effectTag->putByte(u"Amplifier", static_cast<byte_t>(entry.second.getAmplifier()));
+			effectTag->putInt(u"Duration", entry.second.getDuration());
+			list->add(effectTag);
+		}
+		tag.put(u"ActiveEffects", list);
+	}
 }
 
 void Mob::readAdditionalSaveData(CompoundTag &tag)
@@ -554,6 +587,21 @@ void Mob::readAdditionalSaveData(CompoundTag &tag)
 	hurtTime = tag.getShort(u"HurtTime");
 	deathTime = tag.getShort(u"DeathTime");
 	attackTime = tag.getShort(u"AttackTime");
+	if (tag.contains(u"ActiveEffects"))
+	{
+		std::shared_ptr<ListTag> list = tag.getList(u"ActiveEffects");
+		for (int_t i = 0; i < list->size(); ++i)
+		{
+			auto effectTag = std::dynamic_pointer_cast<CompoundTag>(list->get(i));
+			if (effectTag == nullptr)
+				continue;
+			int_t id = effectTag->getByte(u"Id");
+			if (id <= 0 || id >= 32 || MobEffect::effects[id] == nullptr)
+				continue;
+			activeEffects[id] = MobEffectInstance(id, effectTag->getInt(u"Duration"), effectTag->getByte(u"Amplifier"));
+		}
+		effectsDirty = true;
+	}
 }
 
 bool Mob::isAlive()
@@ -599,7 +647,7 @@ void Mob::aiStep()
 		updateAi();
 	}
 
-	
+
 	bool inWater = isInWater();
 	bool inLava = isInLava();
 
@@ -613,7 +661,7 @@ void Mob::aiStep()
 			jumpFromGround();
 	}
 
-	
+
 	xxa *= 0.98f;
 	yya *= 0.98f;
 	yRotA *= 0.9f;
@@ -633,6 +681,8 @@ void Mob::aiStep()
 void Mob::jumpFromGround()
 {
 	yd = 0.42;
+	if (const MobEffectInstance *jumpBoost = getEffect(MobEffect::jump))
+		yd += static_cast<double>((jumpBoost->getAmplifier() + 1) * 0.1f);
 }
 
 void Mob::updateAi()
@@ -848,4 +898,156 @@ void Mob::handleEntityEvent(byte_t event)
 	{
 		Entity::handleEntityEvent(event);
 	}
+}
+
+// --- status effects (b1.8 / 1.0) ---
+
+void Mob::tickEffects()
+{
+	for (auto it = activeEffects.begin(); it != activeEffects.end();)
+	{
+		MobEffectInstance &effect = it->second;
+		if (!effect.tick(*this) && !level.isOnline)
+		{
+			MobEffectInstance removed = effect;
+			it = activeEffects.erase(it);
+			onEffectRemoved(removed);
+		}
+		else
+		{
+			++it;
+		}
+	}
+
+	if (effectsDirty)
+	{
+		if (activeEffects.empty())
+		{
+			effectColor = 0;
+		}
+		else
+		{
+			float r = 0.0f, g = 0.0f, b = 0.0f, count = 0.0f;
+			for (const auto &entry : activeEffects)
+			{
+				MobEffect *effect = MobEffect::effects[entry.first];
+				if (effect == nullptr)
+					continue;
+				int_t color = effect->getColor();
+				for (int_t i = 0; i <= entry.second.getAmplifier(); ++i)
+				{
+					r += static_cast<float>((color >> 16) & 0xFF) / 255.0f;
+					g += static_cast<float>((color >> 8) & 0xFF) / 255.0f;
+					b += static_cast<float>(color & 0xFF) / 255.0f;
+					count++;
+				}
+			}
+			if (count > 0.0f)
+				effectColor = static_cast<int_t>(r / count * 255.0f) << 16 | static_cast<int_t>(g / count * 255.0f) << 8 | static_cast<int_t>(b / count * 255.0f);
+		}
+		effectsDirty = false;
+	}
+
+	if (effectColor > 0 && random.nextBoolean())
+	{
+		double r = static_cast<double>((effectColor >> 16) & 0xFF) / 255.0;
+		double g = static_cast<double>((effectColor >> 8) & 0xFF) / 255.0;
+		double b = static_cast<double>(effectColor & 0xFF) / 255.0;
+		level.addParticle(u"mobSpell",
+			x + (random.nextDouble() - 0.5) * bbWidth,
+			y + random.nextDouble() * bbHeight - heightOffset,
+			z + (random.nextDouble() - 0.5) * bbWidth,
+			r, g, b);
+	}
+}
+
+bool Mob::hasEffect(const MobEffect &effect) const
+{
+	return activeEffects.find(effect.id) != activeEffects.end();
+}
+
+const MobEffectInstance *Mob::getEffect(const MobEffect &effect) const
+{
+	auto it = activeEffects.find(effect.id);
+	return it != activeEffects.end() ? &it->second : nullptr;
+}
+
+void Mob::addEffect(const MobEffectInstance &effect)
+{
+	if (!canBeAffected(effect))
+		return;
+	auto it = activeEffects.find(effect.getId());
+	if (it != activeEffects.end())
+	{
+		it->second.update(effect);
+		onEffectUpdated(it->second);
+	}
+	else
+	{
+		activeEffects[effect.getId()] = effect;
+		onEffectAdded(effect);
+	}
+}
+
+void Mob::removeEffect(int_t id)
+{
+	auto it = activeEffects.find(id);
+	if (it == activeEffects.end())
+		return;
+	MobEffectInstance removed = it->second;
+	activeEffects.erase(it);
+	onEffectRemoved(removed);
+}
+
+void Mob::removeAllEffects()
+{
+	while (!activeEffects.empty())
+		removeEffect(activeEffects.begin()->first);
+}
+
+bool Mob::canBeAffected(const MobEffectInstance &effect)
+{
+	if (isUndead())
+	{
+		int_t id = effect.getId();
+		if (id == MobEffect::regeneration.id || id == MobEffect::poison.id)
+			return false;
+	}
+	return true;
+}
+
+bool Mob::hurtByMagic(Entity *source, int_t dmg)
+{
+	hurtBypassesArmor = true;
+	bool result = hurt(source, dmg);
+	hurtBypassesArmor = false;
+	return result;
+}
+
+bool Mob::hurtByFire(int_t dmg)
+{
+	if (hasEffect(MobEffect::fireResistance))
+		return false;
+	return hurt(nullptr, dmg);
+}
+
+int_t Mob::applyEffectDamageReduction(int_t dmg)
+{
+	const MobEffectInstance *resistance = getEffect(MobEffect::damageResistance);
+	if (resistance == nullptr)
+		return dmg;
+	int_t reduction = (resistance->getAmplifier() + 1) * 5;
+	int_t total = dmg * (25 - reduction) + effectDamageSpill;
+	effectDamageSpill = total % 25;
+	return total / 25;
+}
+
+float Mob::getSpeedModifier()
+{
+	float modifier = 1.0f;
+	if (const MobEffectInstance *speed = getEffect(MobEffect::movementSpeed))
+		modifier *= 1.0f + 0.2f * static_cast<float>(speed->getAmplifier() + 1);
+	if (const MobEffectInstance *slow = getEffect(MobEffect::movementSlowdown))
+		modifier *= 1.0f - 0.15f * static_cast<float>(slow->getAmplifier() + 1);
+	return modifier;
 }

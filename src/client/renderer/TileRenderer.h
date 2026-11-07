@@ -58,6 +58,13 @@ public:
 	bool tesselateDustInWorld(Tile &tt, int_t x, int_t y, int_t z);
 	bool tesselateRepeaterInWorld(Tile &tt, int_t x, int_t y, int_t z);
 	bool tesselateLeverInWorld(Tile &tt, int_t x, int_t y, int_t z);
+	bool tesselatePaneInWorld(Tile &tt, int_t x, int_t y, int_t z);
+	bool tesselateVineInWorld(Tile &tt, int_t x, int_t y, int_t z);
+	bool tesselateStemInWorld(Tile &tt, int_t x, int_t y, int_t z);
+	void tesselateStemTexture(Tile &tt, int_t data, double height, double x, double y, double z);
+	void tesselateStemDirTexture(Tile &tt, int_t data, int_t dir, double height, double x, double y, double z);
+	bool tesselateFenceGateInWorld(Tile &tt, int_t x, int_t y, int_t z);
+	bool tesselateLilyPadInWorld(Tile &tt, int_t x, int_t y, int_t z);
 	void tesselateTorch(Tile &tt, double x, double y, double z, double xxa, double zza);
 
 	float getLiquidHeight(int_t x, int_t y, int_t z, const Material &material);

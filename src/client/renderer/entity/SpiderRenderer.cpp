@@ -5,7 +5,7 @@
 #include "client/renderer/Textures.h"
 #include "client/renderer/entity/EntityRenderDispatcher.h"
 #include "world/entity/monster/Spider.h"
-
+#include "world/entity/monster/CaveSpider.h"
 SpiderRenderer::SpiderRenderer(EntityRenderDispatcher &entityRenderDispatcher)
 	: MobRenderer(entityRenderDispatcher, std::make_shared<SpiderModel>(), 1.0f)
 {
@@ -30,4 +30,11 @@ float SpiderRenderer::getFlipDegrees(Mob &mob)
 {
 	(void)mob;
 	return 180.0f;
+}
+
+void SpiderRenderer::scale(Mob &mob, float a)
+{
+	(void)a;
+	if (dynamic_cast<CaveSpider *>(&mob) != nullptr)
+		glScalef(0.7f, 0.7f, 0.7f);
 }

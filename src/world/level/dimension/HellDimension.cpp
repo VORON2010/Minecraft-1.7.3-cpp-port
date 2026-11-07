@@ -5,10 +5,12 @@
 #include "world/level/tile/Tile.h"
 #include "world/level/levelgen/HellRandomLevelSource.h"
 #include "world/level/chunk/storage/McRegionChunkStorage.h"
+#include "world/level/biome/Biome.h"
 
 HellDimension::HellDimension(Level &level) : Dimension(level)
 {
-	biomeSource = std::make_unique<HellBiomeSource>(level);
+	Biome::init();
+	biomeSource = std::make_unique<FixedBiomeSource>(Biome::hell, 1.0f, 0.0f);
 	foggy = true;
 	ultraWarm = true;
 	hasCeiling = true;
@@ -18,7 +20,7 @@ HellDimension::HellDimension(Level &level) : Dimension(level)
 
 void HellDimension::updateLightRamp()
 {
-	float f = 0.1f;
+	float f = 0.2f; // Beta uses 0.1, a bit brighter here
 	for (int_t i = 0; i < 16; i++)
 	{
 		float f1 = 1.0f - i / 15.0f;

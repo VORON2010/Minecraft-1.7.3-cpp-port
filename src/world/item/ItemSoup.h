@@ -6,5 +6,5 @@ class ItemSoup : public ItemFood
 {
 public:
 	ItemSoup(int_t baseId, int_t healAmount);
-	void use(ItemInstance &stack, Level &level, Player &player) const override;
+	void useTimeDepleted(ItemInstance &stack, Level &level, Player &player) const override;
 };

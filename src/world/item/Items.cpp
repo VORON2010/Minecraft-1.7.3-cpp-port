@@ -11,6 +11,7 @@
 #include "world/item/ItemSword.h"
 #include "world/item/ItemArmor.h"
 #include "world/item/ItemFood.h"
+#include "world/entity/effect/MobEffect.h"
 #include "world/item/ItemSlab.h"
 #include "world/item/ItemDye.h"
 #include "world/item/ItemDoor.h"
@@ -36,6 +37,7 @@
 #include "world/level/tile/Tile.h"
 #include "world/level/tile/LiquidTile.h"
 #include "world/level/tile/CakeTile.h"
+#include "world/level/tile/StemTile.h"
 #include "world/level/tile/SaplingTile.h"
 #include "world/level/tile/TreeTile.h"
 #include "world/level/tile/LeafTile.h"
@@ -74,6 +76,10 @@ namespace Items
 	Item *muttonCooked = nullptr;
 	Item *painting = nullptr;
 	Item *appleGold = nullptr;
+	Item *melon = nullptr;
+	Item *pumpkinSeeds = nullptr;
+	Item *melonSeeds = nullptr;
+	Item *enderPearl = nullptr;
 	Item *reed = nullptr;
 	Item *doorWood = nullptr;
 	Item *doorIron = nullptr;
@@ -181,8 +187,8 @@ namespace Items
 			return;
 		initialized = true;
 
-		
-		for (int_t id : {Tile::sapling.id, Tile::treeTrunk.id, Tile::leaves.id, Tile::wool.id})
+
+		for (int_t id : {Tile::sapling.id, Tile::treeTrunk.id, Tile::leaves.id, Tile::wool.id, 97, 98})
 			Item::subtypeItems[id] = true;
 
 		flintAndSteel = new ItemFlintAndSteel(3);
@@ -226,7 +232,7 @@ namespace Items
 		axeStone = new ItemAxe(19, ToolMaterialType::STONE);
 		axeStone->setIconIndex(113).setDescriptionId(u"item.hatchetStone");
 
-		
+
 		swordIron = new ItemSword(11, ToolMaterialType::IRON);
 		swordIron->setIconIndex(66).setDescriptionId(u"item.swordIron");
 
@@ -242,7 +248,7 @@ namespace Items
 		hoeIron = new ItemHoe(36, ToolMaterialType::IRON);
 		hoeIron->setIconIndex(130).setDescriptionId(u"item.hoeIron");
 
-		
+
 		swordDiamond = new ItemSword(20, ToolMaterialType::DIAMOND);
 		swordDiamond->setIconIndex(67).setDescriptionId(u"item.swordDiamond");
 
@@ -258,7 +264,7 @@ namespace Items
 		hoeDiamond = new ItemHoe(37, ToolMaterialType::DIAMOND);
 		hoeDiamond->setIconIndex(131).setDescriptionId(u"item.hoeDiamond");
 
-		
+
 		swordGold = new ItemSword(27, ToolMaterialType::GOLD);
 		swordGold->setIconIndex(68).setDescriptionId(u"item.swordGold");
 
@@ -297,6 +303,7 @@ namespace Items
 
 		rottenFlesh = new ItemFood(111, 4, 0.8f, true);
 		rottenFlesh->setIconIndex(111).setDescriptionId(u"item.rottenFlesh");
+		static_cast<ItemFood *>(rottenFlesh)->setEffect(MobEffect::hunger.id, 30, 0, 0.8f).setAlwaysEdible();
 
 		helmetLeather = new ItemArmor(42, 0, 0, 0);
 		helmetLeather->setIconIndex(0).setDescriptionId(u"item.helmetCloth");
@@ -353,6 +360,7 @@ namespace Items
 
 		chickenRaw = new ItemFood(106, 2, 0.3f, true);
 		chickenRaw->setMaxStackSize(64).setIconIndex(226).setDescriptionId(u"item.chickenRaw");
+		static_cast<ItemFood *>(chickenRaw)->setEffect(MobEffect::hunger.id, 30, 0, 0.3f);
 
 		chickenCooked = new ItemFood(107, 6, 0.6f, true);
 		chickenCooked->setMaxStackSize(64).setIconIndex(227).setDescriptionId(u"item.chickenCooked");
@@ -368,6 +376,20 @@ namespace Items
 
 		appleGold = new ItemFood(66, 4, 1.2f, false);
 		appleGold->setIconIndex(11).setDescriptionId(u"item.appleGold");
+		static_cast<ItemFood *>(appleGold)->setAlwaysEdible();
+
+		// b1.8. Vanilla ids 360-362 are taken by this port's beef/chicken, so these sit at 386-388.
+		melon = new ItemFood(130, 2, 0.3f, false);
+		melon->setIconIndex(109).setDescriptionId(u"item.melon");
+
+		pumpkinSeeds = new ItemSeeds(131, Tile::pumpkinStem.id);
+		pumpkinSeeds->setIconIndex(61).setDescriptionId(u"item.seeds_pumpkin");
+
+		melonSeeds = new ItemSeeds(132, Tile::melonStem.id);
+		melonSeeds->setIconIndex(62).setDescriptionId(u"item.seeds_melon");
+
+		enderPearl = new Item(112);
+		enderPearl->setMaxStackSize(16).setIconIndex(107).setDescriptionId(u"item.enderPearl");
 
 		flint = new Item(62);
 		flint->setIconIndex(6).setDescriptionId(u"item.flint");
@@ -521,25 +543,25 @@ namespace Items
 
 			spawnEggZombie = new ItemSpawnEgg(200, 54);
 		spawnEggZombie->setIconIndex(200).setDescriptionId(u"item.spawnEggZombie");
-		
+
 		spawnEggSkeleton = new ItemSpawnEgg(201, 51);
 		spawnEggSkeleton->setIconIndex(201).setDescriptionId(u"item.spawnEggSkeleton");
-		
+
 		spawnEggCreeper = new ItemSpawnEgg(202, 50);
 		spawnEggCreeper->setIconIndex(202).setDescriptionId(u"item.spawnEggCreeper");
-		
+
 		spawnEggSpider = new ItemSpawnEgg(203, 52);
 		spawnEggSpider->setIconIndex(203).setDescriptionId(u"item.spawnEggSpider");
-		
+
 		spawnEggPig = new ItemSpawnEgg(204, 90);
 		spawnEggPig->setIconIndex(204).setDescriptionId(u"item.spawnEggPig");
-		
+
 		spawnEggSheep = new ItemSpawnEgg(205, 91);
 		spawnEggSheep->setIconIndex(205).setDescriptionId(u"item.spawnEggSheep");
-		
+
 		spawnEggCow = new ItemSpawnEgg(206, 92);
 		spawnEggCow->setIconIndex(206).setDescriptionId(u"item.spawnEggCow");
-		
+
 		spawnEggChicken = new ItemSpawnEgg(207, 93);
 		spawnEggChicken->setIconIndex(207).setDescriptionId(u"item.spawnEggChicken");
 

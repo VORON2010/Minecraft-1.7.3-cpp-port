@@ -18,6 +18,9 @@ namespace HeldItemRenderer
 class ItemInHandRenderer
 {
 private:
+	int_t heldIconOverride = -1;
+
+private:
 	Minecraft &mc;
 	ItemInstance selectedItem;
 	std::shared_ptr<const ItemInstanceReference> selectedItemReference;

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "world/item/UseAnim.h"
+
 #include <atomic>
 #include <memory>
 #include <mutex>
@@ -77,6 +79,10 @@ public:
 	bool canDestroySpecial(Tile &tile) const;
 	int_t getAttackDamage(Entity &entity) const;
 	void use(Level &level, Player &player);
+	UseAnim getUseAnimation() const;
+	int_t getUseDuration() const;
+	void useTimeDepleted(Level &level, Player &player);
+	void releaseUsing(Level &level, Player &player, int_t remainingTime);
 	bool useOn(Player &player, Level &level, int_t x, int_t y, int_t z, Facing face);
 	void damageItem(int_t amount, Entity &entity);
 	bool hurtEnemy(Entity &target, Entity &attacker);

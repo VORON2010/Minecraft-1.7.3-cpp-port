@@ -8,6 +8,7 @@ Monster::Monster(Level &level) : PathfinderMob(level)
 {
 	setSize(0.6f, 1.8f);
 	health = 20;
+	xpReward = 5;
 }
 
 void Monster::tick()

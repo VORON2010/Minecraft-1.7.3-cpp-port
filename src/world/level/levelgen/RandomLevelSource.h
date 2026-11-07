@@ -3,24 +3,26 @@
 #include "world/level/chunk/ChunkSource.h"
 
 #include <array>
+#include <memory>
+#include <vector>
 
 #include "world/level/levelgen/synth/PerlinNoise.h"
 #include "world/level/levelgen/LargeCaveFeature.h"
+#include "world/level/levelgen/RavineFeature.h"
 
 #include "java/Random.h"
 
 class Level;
+class Biome;
+class MineShaftFeature;
+class VillageFeature;
+class StrongholdFeature;
 
+// Overworld chunk generator from release 1.0 (b1.8 terrain with biome heights, ravines, structures).
 class RandomLevelSource : public ChunkSource
 {
-private:
-	static constexpr double SNOW_CUTOFF = 0.5;
-	static constexpr double SNOW_SCALE = 0.3;
-	static constexpr bool FLOATING_ISLANDS = false;
-
 public:
-	static constexpr int_t CHUNK_HEIGHT = 8;
-	static constexpr int_t CHUNK_WIDTH = 4;
+	static constexpr int_t SEA_LEVEL = 63;
 
 private:
 	Random random;
@@ -28,49 +30,49 @@ private:
 	PerlinNoise lperlinNoise1;
 	PerlinNoise lperlinNoise2;
 	PerlinNoise perlinNoise1;
-	PerlinNoise perlinNoise2;
 	PerlinNoise perlinNoise3;
+
+public:
 	PerlinNoise scaleNoise;
 	PerlinNoise depthNoise;
 	PerlinNoise forestNoise;
 
+private:
 	Level &level;
+	bool generateStructures;
 	LargeCaveFeature caveFeature;
-
-	std::array<double, 16 * 16> sandBuffer = {};
-	std::array<double, 16 * 16> gravelBuffer = {};
-	std::array<double, 16 * 16> depthBuffer = {};
-	std::array<double, 16 * 16> generatedTemperatures = {};
-
-	static constexpr int_t BUFFER_WIDTH = 16 / CHUNK_WIDTH;
-	static constexpr int_t BUFFER_HEIGHT = 128 / CHUNK_HEIGHT;
-	static constexpr int_t BUFFER_WIDTH_1 = BUFFER_WIDTH + 1;
-	static constexpr int_t BUFFER_HEIGHT_1 = BUFFER_HEIGHT + 1;
-
-	std::array<double, BUFFER_WIDTH_1 * BUFFER_WIDTH_1 * BUFFER_HEIGHT_1> buffer = {};
-
-	std::array<double, BUFFER_WIDTH_1 * BUFFER_WIDTH_1 * BUFFER_HEIGHT_1> pnr = {};
-	std::array<double, BUFFER_WIDTH_1 * BUFFER_WIDTH_1 * BUFFER_HEIGHT_1> ar = {};
-	std::array<double, BUFFER_WIDTH_1 * BUFFER_WIDTH_1 * BUFFER_HEIGHT_1> br = {};
-	std::array<double, BUFFER_WIDTH_1 * BUFFER_WIDTH_1> sr = {};
-	std::array<double, BUFFER_WIDTH_1 * BUFFER_WIDTH_1> dr = {};
+	RavineFeature canyonFeature;
 
 public:
-	RandomLevelSource(Level &level, long_t seed);
+	std::unique_ptr<StrongholdFeature> strongholdFeature;
+	std::unique_ptr<VillageFeature> villageFeature;
+	std::unique_ptr<MineShaftFeature> mineShaftFeature;
 
-	void prepareHeights(int_t x, int_t z, ubyte_t *tiles, double *temperature);
-	void buildSurfaces(int_t x, int_t z, ubyte_t *tiles);
+private:
+	std::vector<Biome *> biomes;
+	std::vector<double> buffer;
+	std::array<double, 256> depthBuffer = {};
+	std::vector<double> pnr, ar, br, sr, dr;
+	std::array<float, 25> biomeWeights = {};
+	bool biomeWeightsReady = false;
+
+	void getHeights(std::vector<double> &out, int_t x, int_t y, int_t z, int_t xd, int_t yd, int_t zd);
+
+public:
+	RandomLevelSource(Level &level, long_t seed, bool generateStructures = true);
+	~RandomLevelSource() override;
+
+	void prepareHeights(int_t x, int_t z, ubyte_t *tiles);
+	void buildSurfaces(int_t x, int_t z, ubyte_t *tiles, std::vector<Biome *> &biomes);
+
 	std::shared_ptr<LevelChunk> getChunk(int_t x, int_t z) override;
-private:
-	void getHeights(double *out, int_t x, int_t y, int_t z, int_t xd, int_t yd, int_t zd);
-public:
 	bool hasChunk(int_t x, int_t z) override;
-private:
-	void calcWaterDepths(std::shared_ptr<ChunkSource> parent, int_t x, int_t z);
-public:
 	void postProcess(ChunkSource &parent, int_t x, int_t z) override;
 	bool save(bool force, std::shared_ptr<ProgressListener> progressListener) override;
 	bool tick() override;
 	bool shouldSave() override;
 	jstring gatherStats() override;
+
+	// position of the nearest stronghold (for eyes of ender); returns false if none
+	bool findNearestStronghold(int_t x, int_t y, int_t z, int_t &outX, int_t &outY, int_t &outZ);
 };

@@ -1,218 +1,183 @@
+// Overworld generator from release 1.0, ported from OverworldChunkGenerator.
 #include "world/level/levelgen/RandomLevelSource.h"
 #include "java/Number.h"
+#include "util/Mth.h"
 #include "util/Profiler.h"
 
 #include "world/level/Level.h"
-
-#include "world/level/tile/Tile.h"
-#include "world/level/tile/OreTile.h"
-#include "world/level/tile/RedstoneOreTile.h"
-#include "world/level/tile/TransparentTile.h"
-#include "world/level/tile/LiquidTile.h"
-#include "world/level/tile/StoneTile.h"
-#include "world/level/tile/GrassTile.h"
-#include "world/level/tile/DirtTile.h"
-#include "world/level/tile/SandTile.h"
-#include "world/level/tile/GravelTile.h"
-#include "world/level/tile/FlowerTile.h"
-#include "world/level/tile/TallGrassTile.h"
-#include "world/level/tile/DeadBushTile.h"
-#include "world/level/tile/MushroomTile.h"
-#include "world/level/tile/ReedTile.h"
-#include "world/level/tile/CactusTile.h"
-#include "world/level/tile/PumpkinTile.h"
-#include "world/level/tile/SnowTile.h"
-#include "world/level/tile/IceTile.h"
-
-#include "world/level/levelgen/feature/TreeFeature.h"
-#include "world/level/levelgen/feature/BigTreeFeature.h"
-#include "world/level/levelgen/feature/ForestFeature.h"
-#include "world/level/levelgen/feature/Taiga1Feature.h"
-#include "world/level/levelgen/feature/Taiga2Feature.h"
-#include "world/level/levelgen/feature/FlowerFeature.h"
-#include "world/level/levelgen/feature/TallGrassFeature.h"
-#include "world/level/levelgen/feature/DeadBushFeature.h"
-#include "world/level/levelgen/feature/ReedFeature.h"
-#include "world/level/levelgen/feature/PumpkinFeature.h"
-#include "world/level/levelgen/feature/CactusFeature.h"
-#include "world/level/levelgen/feature/OreFeature.h"
-#include "world/level/levelgen/feature/ClayFeature.h"
+#include "world/level/SpawnerAnimals.h"
+#include "world/level/biome/Biome.h"
+#include "world/level/biome/BiomeSource.h"
+#include "world/level/chunk/LevelChunk.h"
 #include "world/level/levelgen/feature/DungeonFeature.h"
 #include "world/level/levelgen/feature/LakeFeature.h"
-#include "world/level/levelgen/feature/SpringFeature.h"
-#include "world/level/levelgen/LargeCaveFeature.h"
+#include "world/level/levelgen/structure/MineShaftFeature.h"
+#include "world/level/levelgen/structure/StrongholdFeature.h"
+#include "world/level/levelgen/structure/VillageFeature.h"
+#include "world/level/tile/Tile.h"
+#include "world/level/tile/IceTile.h"
+#include "world/level/tile/LiquidTile.h"
+#include "world/level/tile/SandStoneTile.h"
+#include "world/level/tile/SandTile.h"
+#include "world/level/tile/SnowTile.h"
+#include "world/level/tile/StoneTile.h"
 
-
-RandomLevelSource::RandomLevelSource(Level &level, long_t seed) : level(level),
-	random(seed),
+RandomLevelSource::RandomLevelSource(Level &level, long_t seed, bool generateStructures) : random(seed),
 	lperlinNoise1(random, 16),
 	lperlinNoise2(random, 16),
 	perlinNoise1(random, 8),
-	perlinNoise2(random, 4),
 	perlinNoise3(random, 4),
 	scaleNoise(random, 10),
 	depthNoise(random, 16),
-	forestNoise(random, 8)
+	forestNoise(random, 8),
+	level(level),
+	generateStructures(generateStructures)
 {
-
+	strongholdFeature = std::make_unique<StrongholdFeature>();
+	villageFeature = std::make_unique<VillageFeature>();
+	mineShaftFeature = std::make_unique<MineShaftFeature>();
 }
 
-void RandomLevelSource::prepareHeights(int_t x, int_t z, ubyte_t *tiles, double *temperatures)
+RandomLevelSource::~RandomLevelSource() = default;
+
+void RandomLevelSource::prepareHeights(int_t chunkX, int_t chunkZ, ubyte_t *blocks)
 {
-	getHeights(buffer.data(), x * BUFFER_WIDTH, 0, z * BUFFER_WIDTH, BUFFER_WIDTH_1, BUFFER_HEIGHT_1, BUFFER_WIDTH_1);
+	const int_t xzCells = 4;
+	const int_t yCells = Level::DEPTH / 8;
+	const int_t xs = xzCells + 1;
+	const int_t ys = Level::DEPTH / 8 + 1;
+	const int_t zs = xzCells + 1;
 
-	for (int_t xi = 0; xi < BUFFER_WIDTH; xi++)
+	level.getBiomeSource().getRawBiomeBlock(biomes, chunkX * 4 - 2, chunkZ * 4 - 2, xs + 5, zs + 5);
+	getHeights(buffer, chunkX * xzCells, 0, chunkZ * xzCells, xs, ys, zs);
+
+	for (int_t xc = 0; xc < xzCells; xc++)
 	{
-		for (int_t zi = 0; zi < BUFFER_WIDTH; zi++)
+		for (int_t zc = 0; zc < xzCells; zc++)
 		{
-			for (int_t yi = 0; yi < BUFFER_HEIGHT; yi++)
+			for (int_t yc = 0; yc < yCells; yc++)
 			{
-				double ddiv = 0.125;
+				double yStep = 0.125;
+				double s0 = buffer[((xc + 0) * zs + zc + 0) * ys + yc + 0];
+				double s1 = buffer[((xc + 0) * zs + zc + 1) * ys + yc + 0];
+				double s2 = buffer[((xc + 1) * zs + zc + 0) * ys + yc + 0];
+				double s3 = buffer[((xc + 1) * zs + zc + 1) * ys + yc + 0];
+				double s0a = (buffer[((xc + 0) * zs + zc + 0) * ys + yc + 1] - s0) * yStep;
+				double s1a = (buffer[((xc + 0) * zs + zc + 1) * ys + yc + 1] - s1) * yStep;
+				double s2a = (buffer[((xc + 1) * zs + zc + 0) * ys + yc + 1] - s2) * yStep;
+				double s3a = (buffer[((xc + 1) * zs + zc + 1) * ys + yc + 1] - s3) * yStep;
 
-				double v000 = buffer[((xi + 0) * BUFFER_WIDTH_1 + zi + 0) * BUFFER_HEIGHT_1 + yi + 0];
-				double v010 = buffer[((xi + 0) * BUFFER_WIDTH_1 + zi + 1) * BUFFER_HEIGHT_1 + yi + 0];
-				double v100 = buffer[((xi + 1) * BUFFER_WIDTH_1 + zi + 0) * BUFFER_HEIGHT_1 + yi + 0];
-				double v110 = buffer[((xi + 1) * BUFFER_WIDTH_1 + zi + 1) * BUFFER_HEIGHT_1 + yi + 0];
-				double d001 = (buffer[((xi + 0) * BUFFER_WIDTH_1 + zi + 0) * BUFFER_HEIGHT_1 + yi + 1] - v000) * ddiv;
-				double d011 = (buffer[((xi + 0) * BUFFER_WIDTH_1 + zi + 1) * BUFFER_HEIGHT_1 + yi + 1] - v010) * ddiv;
-				double d101 = (buffer[((xi + 1) * BUFFER_WIDTH_1 + zi + 0) * BUFFER_HEIGHT_1 + yi + 1] - v100) * ddiv;
-				double d111 = (buffer[((xi + 1) * BUFFER_WIDTH_1 + zi + 1) * BUFFER_HEIGHT_1 + yi + 1] - v110) * ddiv;
-
-				for (int_t cyi = 0; cyi < CHUNK_HEIGHT; cyi++)
+				for (int_t y = 0; y < 8; y++)
 				{
-					double ddiv2 = 0.25;
+					double xStep = 0.25;
+					double z0 = s0;
+					double z1 = s1;
+					double z0a = (s2 - s0) * xStep;
+					double z1a = (s3 - s1) * xStep;
 
-					double vx00 = v000;
-					double vx10 = v010;
-					double dx00 = (v100 - v000) * ddiv2;
-					double dx10 = (v110 - v010) * ddiv2;
-
-					for (int_t cxi = 0; cxi < CHUNK_WIDTH; cxi++)
+					for (int_t x = 0; x < 4; x++)
 					{
-						int_t i = ((cxi + CHUNK_WIDTH * xi) * (16 * 128)) | ((zi * CHUNK_WIDTH) * (128)) | (cyi + CHUNK_HEIGHT * yi);
-						int_t pitch = 128;
+						int_t offs = (x + xc * 4) << 11 | (0 + zc * 4) << 7 | (yc * 8 + y);
+						const int_t step = 1 << 7;
+						offs -= step;
+						double zStep = 0.25;
+						double value = z0;
+						double valueStep = (z1 - z0) * zStep;
+						value -= valueStep;
 
-						double ddiv3 = 0.25;
-
-						double vxx0 = vx00;
-						double dxx0 = (vx10 - vx00) * ddiv3;
-
-						for (int_t czi = 0; czi < CHUNK_WIDTH; czi++)
+						for (int_t z = 0; z < 4; z++)
 						{
-							double temperature = temperatures[(cxi + CHUNK_WIDTH * xi) * 16 + (czi + zi * CHUNK_WIDTH)];
-
-							int_t tile = 0;
-
-							if ((yi * CHUNK_HEIGHT + cyi) < Level::SEA_LEVEL)
-							{
-								if (temperature < 0.5 && (yi * CHUNK_HEIGHT + cyi) >= Level::SEA_LEVEL - 1)
-									tile = Tile::ice.id;
-								else
-									tile = Tile::calmWater.id;
-							}
-
-							if (vxx0 > 0.0)
-								tile = Tile::rock.id;
-
-							tiles[i] = tile;
-
-							i += pitch;
-							vxx0 += dxx0;
+							if ((value += valueStep) > 0.0)
+								blocks[offs += step] = static_cast<ubyte_t>(Tile::rock.id);
+							else if (yc * 8 + y < SEA_LEVEL)
+								blocks[offs += step] = static_cast<ubyte_t>(Tile::calmWater.id);
+							else
+								blocks[offs += step] = 0;
 						}
 
-						vx00 += dx00;
-						vx10 += dx10;
+						z0 += z0a;
+						z1 += z1a;
 					}
 
-					v000 += d001;
-					v010 += d011;
-					v100 += d101;
-					v110 += d111;
+					s0 += s0a;
+					s1 += s1a;
+					s2 += s2a;
+					s3 += s3a;
 				}
 			}
 		}
 	}
 }
 
-void RandomLevelSource::buildSurfaces(int_t x, int_t z, ubyte_t *tiles)
+void RandomLevelSource::buildSurfaces(int_t chunkX, int_t chunkZ, ubyte_t *blocks, std::vector<Biome *> &biomes)
 {
-	int_t seaLevel = Level::SEA_LEVEL;
-
-	double scale = 1.0 / 32.0;
-	perlinNoise2.getRegion(sandBuffer.data(), x * 16, z * 16, 0.0, 16, 16, 1, scale, scale, 1.0);
-	perlinNoise2.getRegion(gravelBuffer.data(), x * 16, 109.0134, z * 16, 16, 1, 16, scale, 1.0, scale);
-	perlinNoise3.getRegion(depthBuffer.data(), x * 16, z * 16, 0.0, 16, 16, 1, scale * 2.0, scale * 2.0, scale * 2.0);
+	double scale = 0.03125;
+	perlinNoise3.getRegion(depthBuffer.data(), chunkX * 16, chunkZ * 16, 0, 16, 16, 1, scale * 2.0, scale * 2.0, scale * 2.0);
+	std::array<float, 256> temperatures;
+	level.getBiomeSource().getTemperatureBlock(temperatures.data(), chunkX * 16, chunkZ * 16, 16, 16);
 
 	for (int_t x = 0; x < 16; x++)
 	{
 		for (int_t z = 0; z < 16; z++)
 		{
-			bool isSand = (sandBuffer[x + z * 16] + random.nextDouble() * 0.2) > 0.0;
-			bool isGravel = (gravelBuffer[x + z * 16] + random.nextDouble() * 0.2) > 3.0;
-
-			int_t depth = static_cast<int_t>(depthBuffer[x + z * 16] / 3.0 + 3.0 + random.nextDouble() * 0.25);
-			int_t depthI = -1;
-			const BiomeInfo &biomeInfo = level.getBiomeSource().getBiomeInfo(level.getBiomeSource().biomes[x + z * 16]);
-
-			int_t topTile = biomeInfo.topTileId;
-			int_t fillerTile = biomeInfo.fillerTileId;
+			float temperature = temperatures[z + x * 16];
+			Biome *biome = biomes[z + x * 16];
+			int_t runDepth = static_cast<int_t>(depthBuffer[x + z * 16] / 3.0 + 3.0 + random.nextDouble() * 0.25);
+			int_t run = -1;
+			ubyte_t top = biome->topMaterial;
+			ubyte_t material = biome->material;
 
 			for (int_t y = Level::DEPTH - 1; y >= 0; y--)
 			{
-				int_t i = (z * 16 + x) * Level::DEPTH + y;
-				
-				
+				int_t offs = (z * 16 + x) * Level::DEPTH + y;
 				if (y <= 0 + random.nextInt(5))
 				{
-					tiles[i] = Tile::bedrock.id;
+					blocks[offs] = static_cast<ubyte_t>(Tile::bedrock.id);
 					continue;
 				}
 
-				
-				int_t oldTile = tiles[i];
-				if (oldTile == 0)
+				ubyte_t old = blocks[offs];
+				if (old == 0)
 				{
-					depthI = -1;
-					continue;
+					run = -1;
 				}
-
-				if (oldTile == Tile::rock.id)
+				else if (old == Tile::rock.id)
 				{
-					if (depthI == -1)
+					if (run == -1)
 					{
-						if (depth <= 0)
+						if (runDepth <= 0)
 						{
-							topTile = 0;
-							fillerTile = Tile::rock.id;
+							top = 0;
+							material = static_cast<ubyte_t>(Tile::rock.id);
 						}
-						else if (y >= seaLevel - 4 && y <= seaLevel + 1)
+						else if (y >= SEA_LEVEL - 4 && y <= SEA_LEVEL + 1)
 						{
-							topTile = biomeInfo.topTileId;
-							fillerTile = biomeInfo.fillerTileId;
-
-							if (isGravel) topTile = 0;
-							if (isGravel) fillerTile = Tile::gravel.id;
-							if (isSand) topTile = Tile::sand.id;
-							if (isSand) fillerTile = Tile::sand.id;
+							top = biome->topMaterial;
+							material = biome->material;
 						}
 
-						depthI = depth;
-						if (y < seaLevel && topTile == 0)
-							topTile = Tile::calmWater.id;
-						if (y >= seaLevel - 1)
-							tiles[i] = topTile;
+						if (y < SEA_LEVEL && top == 0)
+						{
+							if (temperature < 0.15f)
+								top = static_cast<ubyte_t>(Tile::ice.id);
+							else
+								top = static_cast<ubyte_t>(Tile::calmWater.id);
+						}
+
+						run = runDepth;
+						if (y >= SEA_LEVEL - 1)
+							blocks[offs] = top;
 						else
-							tiles[i] = fillerTile;
-						continue;
+							blocks[offs] = material;
 					}
-					else if (depthI > 0)
+					else if (run > 0)
 					{
-						depthI--;
-						tiles[i] = fillerTile;
-						if (depthI == 0 && fillerTile == Tile::sand.id)
+						run--;
+						blocks[offs] = material;
+						if (run == 0 && material == Tile::sand.id)
 						{
-							depthI = random.nextInt(4);
-							fillerTile = Tile::sandstone.id;
+							run = random.nextInt(4);
+							material = static_cast<ubyte_t>(Tile::sandstone.id);
 						}
 					}
 				}
@@ -224,117 +189,135 @@ void RandomLevelSource::buildSurfaces(int_t x, int_t z, ubyte_t *tiles)
 std::shared_ptr<LevelChunk> RandomLevelSource::getChunk(int_t x, int_t z)
 {
 	Profiler::Scope profile(Profiler::Section::ChunkGeneration);
-	random.setSeed(Java::longFromBits(static_cast<ulong_t>(x) * 341873128712ULL + static_cast<ulong_t>(z) * 132897987541ULL));
+	random.setSeed(Java::longFromBits(static_cast<ulong_t>(static_cast<long_t>(x)) * 341873128712ULL + static_cast<ulong_t>(static_cast<long_t>(z)) * 132897987541ULL));
 
 	std::shared_ptr<LevelChunk> chunk = Util::make_shared<LevelChunk>(level, x, z);
+	ubyte_t *blocks = chunk->blocks.data();
 
-	level.getBiomeSource().getBiomeBlock(x * 16, z * 16, 16, 16);
-
-	double *temperatures = level.getBiomeSource().temperatures.data();
-	prepareHeights(x, z, chunk->blocks.data(), temperatures);
-
-	buildSurfaces(x, z, chunk->blocks.data());
+	prepareHeights(x, z, blocks);
+	level.getBiomeSource().getBiomeBlock(biomes, x * 16, z * 16, 16, 16);
+	buildSurfaces(x, z, blocks, biomes);
 
 	caveFeature.apply(*this, level, x, z, chunk->blocks);
+	canyonFeature.apply(*this, level, x, z, chunk->blocks);
+	if (generateStructures)
+	{
+		mineShaftFeature->apply(*this, level, x, z, chunk->blocks);
+		villageFeature->apply(*this, level, x, z, chunk->blocks);
+		strongholdFeature->apply(*this, level, x, z, chunk->blocks);
+	}
 
 	chunk->recalcHeightmap();
-
 	return chunk;
 }
 
-void RandomLevelSource::getHeights(double *out, int_t x, int_t y, int_t z, int_t xd, int_t yd, int_t zd)
+void RandomLevelSource::getHeights(std::vector<double> &out, int_t x, int_t y, int_t z, int_t xSize, int_t ySize, int_t zSize)
 {
-	double xscale = 684.412;
-	double yscale = 684.412;
+	out.assign(static_cast<size_t>(xSize * ySize * zSize), 0.0);
 
-	double *temperatures = level.getBiomeSource().temperatures.data();
-	double *downfalls = level.getBiomeSource().downfalls.data();
-
-	scaleNoise.getRegion(sr.data(), x, z, xd, zd, 1.121, 1.121, 0.5);
-	depthNoise.getRegion(dr.data(), x, z, xd, zd, 200.0, 200.0, 0.5);
-	perlinNoise1.getRegion(pnr.data(), x, y, z, xd, yd, zd, xscale / 80.0, yscale / 160.0, xscale / 80.0);
-	lperlinNoise1.getRegion(ar.data(), x, y, z, xd, yd, zd, xscale, yscale, xscale);
-	lperlinNoise2.getRegion(br.data(), x, y, z, xd, yd, zd, xscale, yscale, xscale);
-
-	int_t i3 = 0;
-	int_t i2 = 0;
-
-	int_t inc = 16 / xd;
-	for (int_t xi = 0; xi < xd; xi++)
+	if (!biomeWeightsReady)
 	{
-		int_t bx = xi * inc + inc / 2;
-		for (int_t zi = 0; zi < zd; zi++)
+		for (int_t xb = -2; xb <= 2; xb++)
+			for (int_t zb = -2; zb <= 2; zb++)
+				biomeWeights[xb + 2 + (zb + 2) * 5] = 10.0f / Mth::sqrt(static_cast<float>(xb * xb + zb * zb) + 0.2f);
+		biomeWeightsReady = true;
+	}
+
+	double s = 684.412;
+	double hs = 684.412;
+	sr.resize(static_cast<size_t>(xSize * zSize));
+	dr.resize(static_cast<size_t>(xSize * zSize));
+	pnr.resize(out.size());
+	ar.resize(out.size());
+	br.resize(out.size());
+	scaleNoise.getRegion(sr.data(), x, z, xSize, zSize, 1.121, 1.121, 0.5);
+	depthNoise.getRegion(dr.data(), x, z, xSize, zSize, 200.0, 200.0, 0.5);
+	perlinNoise1.getRegion(pnr.data(), x, y, z, xSize, ySize, zSize, s / 80.0, hs / 160.0, s / 80.0);
+	lperlinNoise1.getRegion(ar.data(), x, y, z, xSize, ySize, zSize, s, hs, s);
+	lperlinNoise2.getRegion(br.data(), x, y, z, xSize, ySize, zSize, s, hs, s);
+
+	int_t p = 0;
+	int_t pp = 0;
+	for (int_t xx = 0; xx < xSize; xx++)
+	{
+		for (int_t zz = 0; zz < zSize; zz++)
 		{
-			int_t bz = zi * inc + inc / 2;
+			float sss = 0.0f;
+			float ddd = 0.0f;
+			float pow = 0.0f;
+			const int_t rr = 2;
+			Biome *center = biomes[xx + 2 + (zz + 2) * (xSize + 5)];
 
-			double temperature = temperatures[bx * 16 + bz];
-			double downfall = downfalls[bx * 16 + bz] * temperature;
-
-			double factor = 1.0 - downfall;
-			factor *= factor;
-			factor *= factor;
-			factor = 1.0 - factor;
-
-			double sv = (sr[i2] + 256.0) / 512.0;
-			sv *= factor;
-			if (sv > 1.0) sv = 1.0;
-
-			double dv = dr[i2] / 8000.0;
-			if (dv < 0.0) dv = -dv * 0.3;
-			dv = dv * 3.0 - 2.0;
-
-			if (dv < 0.0)
+			for (int_t xb = -rr; xb <= rr; xb++)
 			{
-				dv /= 2.0;
-				if (dv < -1.0) dv = -1.0;
-				dv /= 1.4;
-				dv /= 2.0;
-				sv = 0.0;
+				for (int_t zb = -rr; zb <= rr; zb++)
+				{
+					Biome *b = biomes[xx + xb + 2 + (zz + zb + 2) * (xSize + 5)];
+					float weight = biomeWeights[xb + 2 + (zb + 2) * 5] / (b->depth + 2.0f);
+					if (b->depth > center->depth)
+						weight /= 2.0f;
+					sss += b->scale * weight;
+					ddd += b->depth * weight;
+					pow += weight;
+				}
+			}
+
+			sss /= pow;
+			ddd /= pow;
+			sss = sss * 0.9f + 0.1f;
+			ddd = (ddd * 4.0f - 1.0f) / 8.0f;
+
+			double rdepth = dr[pp] / 8000.0;
+			if (rdepth < 0.0)
+				rdepth = -rdepth * 0.3;
+			rdepth = rdepth * 3.0 - 2.0;
+			if (rdepth < 0.0)
+			{
+				rdepth /= 2.0;
+				if (rdepth < -1.0)
+					rdepth = -1.0;
+				rdepth /= 1.4;
+				rdepth /= 2.0;
 			}
 			else
 			{
-				if (dv > 1.0) dv = 1.0;
-				dv /= 8.0;
+				if (rdepth > 1.0)
+					rdepth = 1.0;
+				rdepth /= 8.0;
 			}
+			pp++;
 
-			if (sv < 0.0)
-				sv = 0.0;
-			sv += 0.5;
-
-			dv = dv * yd / 16.0;
-
-			double height = yd / 2.0 + dv * 4.0;
-
-			i2++;
-
-			for (int_t yi = 0; yi < yd; yi++)
+			for (int_t yy = 0; yy < ySize; yy++)
 			{
-				double final = 0.0;
-				
-				double heightFactor = (yi - height) * 12.0 / sv;
-				if (heightFactor < 0.0) heightFactor *= 4.0;
+				double depth = ddd;
+				double scale = sss;
+				depth += rdepth * 0.2;
+				depth = depth * ySize / 16.0;
+				double yCenter = ySize / 2.0 + depth * 4.0;
+				double val = 0.0;
+				double yOffs = (yy - yCenter) * 12.0 * 128.0 / Level::DEPTH / scale;
+				if (yOffs < 0.0)
+					yOffs *= 4.0;
 
-				double av = ar[i3] / 512.0;
-				double bv = br[i3] / 512.0;
-				double pnv = (pnr[i3] / 10.0 + 1.0) / 2.0;
-
-				if (pnv < 0.0)
-					final = av;
-				else if (pnv > 1.0)
-					final = bv;
+				double bb = ar[p] / 512.0;
+				double cc = br[p] / 512.0;
+				double v = (pnr[p] / 10.0 + 1.0) / 2.0;
+				if (v < 0.0)
+					val = bb;
+				else if (v > 1.0)
+					val = cc;
 				else
-					final = av + (bv - av) * pnv;
+					val = bb + (cc - bb) * v;
+				val -= yOffs;
 
-				final -= heightFactor;
-
-				if (yi > yd - 4)
+				if (yy > ySize - 4)
 				{
-					double factor = (yi - (yd - 4)) / 3.0f;
-					final = final * (1.0 - factor) + -10.0 * factor;
+					double slide = static_cast<double>(static_cast<float>(yy - (ySize - 4)) / 3.0f);
+					val = val * (1.0 - slide) + -10.0 * slide;
 				}
 
-				out[i3] = final;
-				i3++;
+				out[p] = val;
+				p++;
 			}
 		}
 	}
@@ -342,310 +325,72 @@ void RandomLevelSource::getHeights(double *out, int_t x, int_t y, int_t z, int_t
 
 bool RandomLevelSource::hasChunk(int_t x, int_t z)
 {
+	(void)x;
+	(void)z;
 	return true;
 }
 
-void RandomLevelSource::postProcess(ChunkSource &parent, int_t x, int_t z)
+void RandomLevelSource::postProcess(ChunkSource &parent, int_t chunkX, int_t chunkZ)
 {
+	(void)parent;
 	SandTile::fallInstantly = true;
-	int_t cx = x * 16;
-	int_t cz = z * 16;
-	BiomeId biome = level.getBiomeSource().getBiome(cx + 16, cz + 16);
-	const BiomeInfo &biomeInfo = level.getBiomeSource().getBiomeInfo(biome);
+	int_t xo = chunkX * 16;
+	int_t zo = chunkZ * 16;
+	Biome *biome = level.getBiomeSource().getBiome(xo + 16, zo + 16);
 
 	random.setSeed(level.seed);
-	long_t cs0 = random.nextLong() / 2LL * 2LL + 1LL;
-	long_t cs1 = random.nextLong() / 2LL * 2LL + 1LL;
-	random.setSeed(Java::longFromBits((static_cast<ulong_t>(x) * static_cast<ulong_t>(cs0) + static_cast<ulong_t>(z) * static_cast<ulong_t>(cs1)) ^ static_cast<ulong_t>(level.seed)));
+	long_t xScale = random.nextLong() / 2LL * 2LL + 1LL;
+	long_t zScale = random.nextLong() / 2LL * 2LL + 1LL;
+	random.setSeed(Java::longFromBits((static_cast<ulong_t>(static_cast<long_t>(chunkX)) * static_cast<ulong_t>(xScale) +
+		static_cast<ulong_t>(static_cast<long_t>(chunkZ)) * static_cast<ulong_t>(zScale)) ^ static_cast<ulong_t>(level.seed)));
 
-	int_t px, py, pz;
-
-	
-	if (random.nextInt(4) == 0)
+	bool hasVillage = false;
+	if (generateStructures)
 	{
-		px = cx + random.nextInt(16) + 8;
-		py = random.nextInt(128);
-		pz = cz + random.nextInt(16) + 8;
-		LakeFeature(Tile::calmWater.id).place(level, random, px, py, pz);
+		mineShaftFeature->postProcess(level, random, chunkX, chunkZ);
+		hasVillage = villageFeature->postProcess(level, random, chunkX, chunkZ);
+		strongholdFeature->postProcess(level, random, chunkX, chunkZ);
 	}
 
-	
-	if (random.nextInt(8) == 0)
+	if (!hasVillage && random.nextInt(4) == 0)
 	{
-		px = cx + random.nextInt(16) + 8;
-		py = random.nextInt(random.nextInt(120) + 8);
-		pz = cz + random.nextInt(16) + 8;
-		if (py < 64 || random.nextInt(10) == 0)
-			LakeFeature(Tile::calmLava.id).place(level, random, px, py, pz);
+		int_t x = xo + random.nextInt(16) + 8;
+		int_t y = random.nextInt(Level::DEPTH);
+		int_t z = zo + random.nextInt(16) + 8;
+		LakeFeature(Tile::calmWater.id).place(level, random, x, y, z);
 	}
 
-	
+	if (!hasVillage && random.nextInt(8) == 0)
+	{
+		int_t x = xo + random.nextInt(16) + 8;
+		int_t y = random.nextInt(random.nextInt(Level::DEPTH - 8) + 8);
+		int_t z = zo + random.nextInt(16) + 8;
+		if (y < SEA_LEVEL || random.nextInt(10) == 0)
+			LakeFeature(Tile::calmLava.id).place(level, random, x, y, z);
+	}
+
 	for (int_t i = 0; i < 8; i++)
 	{
-		px = cx + random.nextInt(16) + 8;
-		py = random.nextInt(128);
-		pz = cz + random.nextInt(16) + 8;
-		DungeonFeature().place(level, random, px, py, pz);
+		int_t x = xo + random.nextInt(16) + 8;
+		int_t y = random.nextInt(Level::DEPTH);
+		int_t z = zo + random.nextInt(16) + 8;
+		DungeonFeature().place(level, random, x, y, z);
 	}
 
-	
-	for (int_t i = 0; i < 10; i++)
-	{
-		px = cx + random.nextInt(16);
-		py = random.nextInt(128);
-		pz = cz + random.nextInt(16);
-		ClayFeature(32).place(level, random, px, py, pz);
-	}
+	biome->decorate(level, random, xo, zo);
+	SpawnerAnimals::postProcessSpawnMobs(level, *biome, xo + 8, zo + 8, 16, 16, random);
+	xo += 8;
+	zo += 8;
 
-	
-	for (int_t i = 0; i < 20; i++)
+	for (int_t x = 0; x < 16; x++)
 	{
-		px = cx + random.nextInt(16);
-		py = random.nextInt(128);
-		pz = cz + random.nextInt(16);
-		OreFeature(Tile::dirt.id, 32).place(level, random, px, py, pz);
-	}
-
-	
-	for (int_t i = 0; i < 10; i++)
-	{
-		px = cx + random.nextInt(16);
-		py = random.nextInt(128);
-		pz = cz + random.nextInt(16);
-		OreFeature(Tile::gravel.id, 32).place(level, random, px, py, pz);
-	}
-
-	
-	for (int_t i = 0; i < 20; i++)
-	{
-		px = cx + random.nextInt(16);
-		py = random.nextInt(128);
-		pz = cz + random.nextInt(16);
-		OreFeature(Tile::coalOre.id, 16).place(level, random, px, py, pz);
-	}
-
-	
-	for (int_t i = 0; i < 20; i++)
-	{
-		px = cx + random.nextInt(16);
-		py = random.nextInt(64);
-		pz = cz + random.nextInt(16);
-		OreFeature(Tile::ironOre.id, 8).place(level, random, px, py, pz);
-	}
-
-	
-	for (int_t i = 0; i < 2; i++)
-	{
-		px = cx + random.nextInt(16);
-		py = random.nextInt(32);
-		pz = cz + random.nextInt(16);
-		OreFeature(Tile::goldOre.id, 8).place(level, random, px, py, pz);
-	}
-
-	
-	for (int_t i = 0; i < 8; i++)
-	{
-		px = cx + random.nextInt(16);
-		py = random.nextInt(16);
-		pz = cz + random.nextInt(16);
-		OreFeature(Tile::redstoneOre.id, 7).place(level, random, px, py, pz);
-	}
-
-	
-	for (int_t i = 0; i < 1; i++)
-	{
-		px = cx + random.nextInt(16);
-		py = random.nextInt(16);
-		pz = cz + random.nextInt(16);
-		OreFeature(Tile::diamondOre.id, 7).place(level, random, px, py, pz);
-	}
-
-	
-	for (int_t i = 0; i < 1; i++)
-	{
-		px = cx + random.nextInt(16);
-		py = random.nextInt(16) + random.nextInt(16);
-		pz = cz + random.nextInt(16);
-		OreFeature(Tile::lapisOre.id, 6).place(level, random, px, py, pz);
-	}
-
-
-	
-	double scale = 0.5;
-	int_t forestValue = static_cast<int_t>((forestNoise.getValue(cx * scale, cz * scale) / 8.0 + random.nextDouble() * 4.0 + 4.0) / 3.0);
-	int_t trees = random.nextInt(10) == 0 ? 1 : 0;
-	if (biome == BiomeId::Forest) trees += forestValue + 5;
-	if (biome == BiomeId::Rainforest) trees += forestValue + 5;
-	if (biome == BiomeId::SeasonalForest) trees += forestValue + 2;
-	if (biome == BiomeId::Taiga) trees += forestValue + 5;
-	if (biome == BiomeId::Desert) trees -= 20;
-	if (biome == BiomeId::Tundra) trees -= 20;
-	if (biome == BiomeId::Plains) trees -= 20;
-	for (int_t i = 0; i < trees; i++)
-	{
-		int_t tx = cx + random.nextInt(16) + 8;
-		int_t tz = cz + random.nextInt(16) + 8;
-		auto placeTree = [&](Feature &&tree)
+		for (int_t z = 0; z < 16; z++)
 		{
-			tree.init(1.0, 1.0, 1.0);
-			tree.place(level, random, tx, level.getHeightmap(tx, tz), tz);
-		};
-		switch (biomeInfo.treeStyle)
-		{
-		case TreeStyle::Rainforest:
-			if (random.nextInt(3) == 0)
-				placeTree(BigTreeFeature());
-			else
-				placeTree(TreeFeature());
-			break;
-		case TreeStyle::Forest:
-			if (random.nextInt(5) == 0)
-				placeTree(ForestFeature());
-			else if (random.nextInt(3) == 0)
-				placeTree(BigTreeFeature());
-			else
-				placeTree(TreeFeature());
-			break;
-		case TreeStyle::Taiga:
-			if (random.nextInt(3) == 0)
-				placeTree(Taiga1Feature());
-			else
-				placeTree(Taiga2Feature());
-			break;
-		default:
-			if (random.nextInt(10) == 0)
-				placeTree(BigTreeFeature());
-			else
-				placeTree(TreeFeature());
-			break;
-		}
-	}
-
-	int_t yellowFlowers = 0;
-	if (biome == BiomeId::Forest) yellowFlowers = 2;
-	if (biome == BiomeId::SeasonalForest) yellowFlowers = 4;
-	if (biome == BiomeId::Taiga) yellowFlowers = 2;
-	if (biome == BiomeId::Plains) yellowFlowers = 3;
-
-	for (int_t i = 0; i < yellowFlowers; ++i)
-	{
-		px = cx + random.nextInt(16) + 8;
-		py = random.nextInt(128);
-		pz = cz + random.nextInt(16) + 8;
-		FlowerFeature(Tile::flower.id).place(level, random, px, py, pz);
-	}
-
-	int_t tallGrassCount = 0;
-	if (biome == BiomeId::Forest) tallGrassCount = 2;
-	if (biome == BiomeId::Rainforest) tallGrassCount = 10;
-	if (biome == BiomeId::SeasonalForest) tallGrassCount = 2;
-	if (biome == BiomeId::Taiga) tallGrassCount = 1;
-	if (biome == BiomeId::Plains) tallGrassCount = 10;
-
-	for (int_t i = 0; i < tallGrassCount; ++i)
-	{
-		int_t tallGrassData = 1;
-		if (biome == BiomeId::Rainforest && random.nextInt(3) != 0)
-			tallGrassData = 2;
-		px = cx + random.nextInt(16) + 8;
-		py = random.nextInt(128);
-		pz = cz + random.nextInt(16) + 8;
-		TallGrassFeature(Tile::tallGrass.id, tallGrassData).place(level, random, px, py, pz);
-	}
-
-	int_t deadBushCount = biome == BiomeId::Desert ? 2 : 0;
-	for (int_t i = 0; i < deadBushCount; ++i)
-	{
-		px = cx + random.nextInt(16) + 8;
-		py = random.nextInt(128);
-		pz = cz + random.nextInt(16) + 8;
-		DeadBushFeature(Tile::deadBush.id).place(level, random, px, py, pz);
-	}
-
-	if (random.nextInt(2) == 0)
-	{
-		px = cx + random.nextInt(16) + 8;
-		py = random.nextInt(128);
-		pz = cz + random.nextInt(16) + 8;
-		FlowerFeature(Tile::rose.id).place(level, random, px, py, pz);
-	}
-
-	if (random.nextInt(4) == 0)
-	{
-		px = cx + random.nextInt(16) + 8;
-		py = random.nextInt(128);
-		pz = cz + random.nextInt(16) + 8;
-		FlowerFeature(Tile::brownMushroom.id).place(level, random, px, py, pz);
-	}
-
-	if (random.nextInt(8) == 0)
-	{
-		px = cx + random.nextInt(16) + 8;
-		py = random.nextInt(128);
-		pz = cz + random.nextInt(16) + 8;
-		FlowerFeature(Tile::redMushroom.id).place(level, random, px, py, pz);
-	}
-
-	for (int_t i = 0; i < 10; ++i)
-	{
-		px = cx + random.nextInt(16) + 8;
-		py = random.nextInt(128);
-		pz = cz + random.nextInt(16) + 8;
-		ReedFeature().place(level, random, px, py, pz);
-	}
-
-	if (random.nextInt(32) == 0)
-	{
-		px = cx + random.nextInt(16) + 8;
-		py = random.nextInt(128);
-		pz = cz + random.nextInt(16) + 8;
-		PumpkinFeature().place(level, random, px, py, pz);
-	}
-
-	int_t cactusCount = biome == BiomeId::Desert ? 10 : 0;
-	for (int_t i = 0; i < cactusCount; ++i)
-	{
-		px = cx + random.nextInt(16) + 8;
-		py = random.nextInt(128);
-		pz = cz + random.nextInt(16) + 8;
-		CactusFeature().place(level, random, px, py, pz);
-	}
-
-	
-	for (int_t i = 0; i < 50; i++)
-	{
-		px = cx + random.nextInt(16) + 8;
-		py = random.nextInt(random.nextInt(120) + 8);
-		pz = cz + random.nextInt(16) + 8;
-		SpringFeature(Tile::water.id).place(level, random, px, py, pz);
-	}
-
-	
-	for (int_t i = 0; i < 20; i++)
-	{
-		px = cx + random.nextInt(16) + 8;
-		py = random.nextInt(random.nextInt(random.nextInt(112) + 8) + 8);
-		pz = cz + random.nextInt(16) + 8;
-		SpringFeature(Tile::lava.id).place(level, random, px, py, pz);
-	}
-
-	double *temperatures = generatedTemperatures.data();
-	level.getBiomeSource().getTemperatures(temperatures, cx + 8, cz + 8, 16, 16);
-
-	for (int_t snowX = cx + 8; snowX < cx + 24; ++snowX)
-	{
-		for (int_t snowZ = cz + 8; snowZ < cz + 24; ++snowZ)
-		{
-			int_t tempX = snowX - (cx + 8);
-			int_t tempZ = snowZ - (cz + 8);
-			int_t snowY = level.getTopSolidBlock(snowX, snowZ);
-			double temperature = temperatures[tempX * 16 + tempZ] - static_cast<double>(snowY - 64) / 64.0 * 0.3;
-			if (temperature >= 0.5 || snowY <= 0 || snowY >= Level::DEPTH || !level.isEmptyTile(snowX, snowY, snowZ))
-				continue;
-
-			const Material &belowMaterial = level.getMaterial(snowX, snowY - 1, snowZ);
-			if (belowMaterial.blocksMotion() && &belowMaterial != &Material::ice())
-				level.setTile(snowX, snowY, snowZ, Tile::snow.id);
+			int_t y = level.getTopRainBlock(xo + x, zo + z);
+			if (level.shouldFreeze(x + xo, y - 1, z + zo))
+				level.setTile(x + xo, y - 1, z + zo, Tile::ice.id);
+			if (level.shouldSnow(x + xo, y, z + zo))
+				level.setTile(x + xo, y, z + zo, Tile::snow.id);
 		}
 	}
 
@@ -654,6 +399,8 @@ void RandomLevelSource::postProcess(ChunkSource &parent, int_t x, int_t z)
 
 bool RandomLevelSource::save(bool force, std::shared_ptr<ProgressListener> progressListener)
 {
+	(void)force;
+	(void)progressListener;
 	return true;
 }
 
@@ -670,4 +417,11 @@ bool RandomLevelSource::shouldSave()
 jstring RandomLevelSource::gatherStats()
 {
 	return u"RandomLevelSource";
+}
+
+bool RandomLevelSource::findNearestStronghold(int_t x, int_t y, int_t z, int_t &outX, int_t &outY, int_t &outZ)
+{
+	if (strongholdFeature == nullptr)
+		return false;
+	return strongholdFeature->findNearest(level, x, y, z, outX, outY, outZ);
 }

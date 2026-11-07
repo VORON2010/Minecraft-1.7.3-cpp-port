@@ -4,6 +4,8 @@
 #include "world/item/Items.h"
 #include "world/level/LevelSource.h"
 #include "world/level/GrassColor.h"
+#include "world/level/biome/Biome.h"
+#include "world/level/biome/BiomeSource.h"
 
 TallGrassTile::TallGrassTile(int_t id, int_t tex) : FlowerTile(id, tex)
 {
@@ -27,9 +29,7 @@ int_t TallGrassTile::getColor(LevelSource &level, int_t x, int_t y, int_t z)
 	if (data == 0)
 		return 0xFFFFFF;
 
-	level.getBiomeSource().getBiomeBlock(x, z, 1, 1);
-
-	return GrassColor::get(level.getBiomeSource().temperatures[0], level.getBiomeSource().downfalls[0]);
+	return level.getBiomeSource().getBiome(x, z)->getGrassColor(level, x, y, z);
 }
 
 

@@ -100,6 +100,16 @@ StepSoundSand Tile::soundSandFootstep(u"sand", 1.0f, 1.0f);
 #include "world/level/tile/PistonMovingTile.h"
 #include "world/level/tile/MobSpawnerTile.h"
 #include "world/level/tile/CakeTile.h"
+#include "world/level/tile/StoneBrickTile.h"
+#include "world/level/tile/InfestedTile.h"
+#include "world/level/tile/HugeMushroomTile.h"
+#include "world/level/tile/PaneTile.h"
+#include "world/level/tile/MelonTile.h"
+#include "world/level/tile/StemTile.h"
+#include "world/level/tile/VineTile.h"
+#include "world/level/tile/FenceGateTile.h"
+#include "world/level/tile/MyceliumTile.h"
+#include "world/level/tile/WaterlilyTile.h"
 StoneTile Tile::rock = StoneTile(1, 1);
 GrassTile Tile::grass = GrassTile(2);
 DirtTile Tile::dirt = DirtTile(3, 2);
@@ -208,6 +218,29 @@ PressurePlateTile Tile::pressurePlateWood = PressurePlateTile(72, 4, PressurePla
 NotGateTile Tile::torchRedstoneIdle = NotGateTile(75, 115, false);
 NotGateTile Tile::torchRedstoneActive = NotGateTile(76, 99, true);
 ButtonTile Tile::buttonStone = ButtonTile(77, 1);
+
+// b1.8
+InfestedTile Tile::monsterEgg = InfestedTile(97);
+StoneBrickTile Tile::stoneBrick = StoneBrickTile(98);
+HugeMushroomTile Tile::hugeMushroomBrown = HugeMushroomTile(99, 142, 0);
+HugeMushroomTile Tile::hugeMushroomRed = HugeMushroomTile(100, 142, 1);
+PaneTile Tile::ironBars = PaneTile(101, 85, 85, Material::iron);
+PaneTile Tile::glassPane = PaneTile(102, 49, 148, Material::glass);
+MelonTile Tile::melon = MelonTile(103);
+StemTile Tile::pumpkinStem = StemTile(104, Tile::pumpkin);
+StemTile Tile::melonStem = StemTile(105, Tile::melon);
+VineTile Tile::vine = VineTile(106);
+FenceGateTile Tile::fenceGate = FenceGateTile(107, 4);
+StairTile Tile::stairsBrick = StairTile(108, Tile::brick);
+StairTile Tile::stairsStoneBrick = StairTile(109, Tile::stoneBrick);
+
+// 1.0
+MyceliumTile Tile::mycelium = MyceliumTile(110);
+WaterlilyTile Tile::waterlily = WaterlilyTile(111, 76);
+Tile Tile::netherBrick = Tile(112, 224, Material::stone);
+FenceTile Tile::netherFence = FenceTile(113, 224, Material::stone);
+StairTile Tile::stairsNetherBrick = StairTile(114, Tile::netherBrick);
+Tile Tile::endStone = Tile(121, 175, Material::stone);
 void Tile::initTiles()
 {
 	rock.setDestroyTime(1.5f).setExplodeable(10.0f).setSoundType(soundStoneFootstep);
@@ -227,7 +260,7 @@ void Tile::initTiles()
 	brownMushroom.setDestroyTime(0.0f).setLightEmission(1).setSoundType(soundGrassFootstep);
 	redMushroom.setDestroyTime(0.0f).setSoundType(soundGrassFootstep);
 	bedrock.setDestroyTime(-1.0f).setExplodeable(6000000.0f).setSoundType(soundStoneFootstep);
-	
+
 	water.setDestroyTime(100.0f);
 	calmWater.setDestroyTime(100.0f);
 	lava.setDestroyTime(0.0f);
@@ -315,6 +348,26 @@ void Tile::initTiles()
 	railDetector.setDestroyTime(0.7f).setSoundType(soundMetalFootstep);
 	rail.setDestroyTime(0.7f).setSoundType(soundMetalFootstep);
 
+	monsterEgg.setDestroyTime(0.75f);
+	stoneBrick.setDestroyTime(1.5f).setExplodeable(10.0f).setSoundType(soundStoneFootstep);
+	hugeMushroomBrown.setDestroyTime(0.2f).setSoundType(soundWoodFootstep);
+	hugeMushroomRed.setDestroyTime(0.2f).setSoundType(soundWoodFootstep);
+	ironBars.setDestroyTime(5.0f).setExplodeable(10.0f).setSoundType(soundMetalFootstep);
+	glassPane.setDestroyTime(0.3f).setSoundType(soundGlassFootstep);
+	melon.setDestroyTime(1.0f).setSoundType(soundWoodFootstep);
+	pumpkinStem.setDestroyTime(0.0f).setSoundType(soundWoodFootstep).setNotifyRenderOnDataChange();
+	melonStem.setDestroyTime(0.0f).setSoundType(soundWoodFootstep).setNotifyRenderOnDataChange();
+	vine.setDestroyTime(0.2f).setSoundType(soundGrassFootstep).setNotifyRenderOnDataChange();
+	fenceGate.setDestroyTime(2.0f).setExplodeable(5.0f).setSoundType(soundWoodFootstep).setNotifyRenderOnDataChange();
+	stairsBrick.setDestroyTime(2.0f).setExplodeable(10.0f).setLightBlock(255).setSoundType(soundStoneFootstep).setNotifyRenderOnDataChange();
+	mycelium.setDestroyTime(0.6f).setSoundType(soundGrassFootstep);
+	waterlily.setDestroyTime(0.0f).setSoundType(soundGrassFootstep);
+	netherBrick.setDestroyTime(2.0f).setExplodeable(10.0f).setSoundType(soundStoneFootstep);
+	netherFence.setDestroyTime(2.0f).setExplodeable(10.0f).setSoundType(soundStoneFootstep);
+	stairsNetherBrick.setDestroyTime(2.0f).setExplodeable(10.0f).setLightBlock(255).setSoundType(soundStoneFootstep).setNotifyRenderOnDataChange();
+	endStone.setDestroyTime(3.0f).setExplodeable(15.0f).setSoundType(soundStoneFootstep);
+	stairsStoneBrick.setDestroyTime(1.5f).setExplodeable(10.0f).setLightBlock(255).setSoundType(soundStoneFootstep).setNotifyRenderOnDataChange();
+
 	Tile::lightBlock[8] = 3;
 	Tile::lightBlock[9] = 3;
 	Tile::lightBlock[10] = 255;
@@ -323,7 +376,7 @@ void Tile::initTiles()
 	Tile::lightEmission[10] = 15;
 	Tile::lightEmission[11] = 15;
 
-	
+
 	rock.setDescriptionId(u"tile.stone");
 	grass.setDescriptionId(u"tile.grass");
 	dirt.setDescriptionId(u"tile.dirt");
@@ -398,6 +451,25 @@ void Tile::initTiles()
 	netherrack.setDescriptionId(u"tile.hellrock");
 	soulSand.setDescriptionId(u"tile.hellsand");
 	glowstone.setDescriptionId(u"tile.lightgem");
+	monsterEgg.setDescriptionId(u"tile.monsterStoneEgg");
+	stoneBrick.setDescriptionId(u"tile.stonebricksmooth");
+	hugeMushroomBrown.setDescriptionId(u"tile.mushroom");
+	hugeMushroomRed.setDescriptionId(u"tile.mushroom");
+	ironBars.setDescriptionId(u"tile.fenceIron");
+	glassPane.setDescriptionId(u"tile.thinGlass");
+	melon.setDescriptionId(u"tile.melon");
+	pumpkinStem.setDescriptionId(u"tile.pumpkinStem");
+	melonStem.setDescriptionId(u"tile.pumpkinStem");
+	vine.setDescriptionId(u"tile.vine");
+	fenceGate.setDescriptionId(u"tile.fenceGate");
+	stairsBrick.setDescriptionId(u"tile.stairsBrick");
+	stairsStoneBrick.setDescriptionId(u"tile.stairsStoneBrickSmooth");
+	mycelium.setDescriptionId(u"tile.mycel");
+	waterlily.setDescriptionId(u"tile.waterlily");
+	netherBrick.setDescriptionId(u"tile.netherBrick");
+	netherFence.setDescriptionId(u"tile.netherFence");
+	stairsNetherBrick.setDescriptionId(u"tile.stairsNetherBrick");
+	endStone.setDescriptionId(u"tile.whiteStone");
 	portal.setDescriptionId(u"tile.portal");
 	jackOLantern.setDescriptionId(u"tile.litpumpkin");
 	mobSpawner.setDescriptionId(u"tile.mobSpawner");
@@ -415,7 +487,7 @@ void Tile::initTiles()
 	torchRedstoneIdle.setDescriptionId(u"tile.notGate");
 	torchRedstoneActive.setDescriptionId(u"tile.notGate");
 	buttonStone.setDescriptionId(u"tile.button");
-	
+
 	for (Tile *tile : tiles)
 		if (tile != nullptr)
 			translucent[tile->id] = !tile->material.blocksLight();
@@ -495,9 +567,9 @@ Tile::Tile(int_t id, const Material &material) : material(material)
 	tiles[id] = this;
 
 	this->id = id;
-	
+
 	setShape(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-	
+
 	updateCachedProperties();
 	isEntityTile[id] = false;
 	soundType = &soundPowderFootstep;
@@ -540,7 +612,7 @@ Tile::Shape Tile::getRenderShape()
 Tile &Tile::setDestroyTime(float time)
 {
 	destroySpeed = time;
-	
+
 	if (explosionResistance < time * 5.0f)
 		explosionResistance = time * 5.0f;
 	return *this;

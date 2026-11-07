@@ -8,6 +8,7 @@
 #include "world/level/tile/StepSound.h"
 #include "world/level/tile/Tile.h"
 #include "world/level/tile/SnowTile.h"
+#include "world/level/tile/VineTile.h"
 #include "world/phys/AABB.h"
 #include "world/stats/StatList.h"
 
@@ -16,7 +17,7 @@ namespace
 	bool isPlacementReplaceable(Level &level, int_t x, int_t y, int_t z)
 	{
 		int_t existingId = level.getTile(x, y, z);
-		if (existingId == 0 || existingId == Tile::snow.id)
+		if (existingId == 0 || existingId == Tile::snow.id || existingId == Tile::vine.id)
 			return true;
 		Tile *existingTile = Tile::tiles[existingId];
 		return existingTile != nullptr && existingTile->material.isLiquid();
@@ -36,11 +37,11 @@ namespace
 		}
 	}
 
-	bool canPlaceSelectedTile(Level &level, Tile &tile, int_t x, int_t y, int_t z)
+	bool canPlaceSelectedTile(Level &level, Tile &tile, int_t x, int_t y, int_t z, Facing face)
 	{
 		if (!isPlacementReplaceable(level, x, y, z))
 			return false;
-		if (!tile.mayPlace(level, x, y, z))
+		if (!tile.mayPlaceOnFace(level, x, y, z, face))
 			return false;
 		AABB *placementBox = tile.getAABB(level, x, y, z);
 		return placementBox == nullptr || level.isUnobstructed(*placementBox);
@@ -64,7 +65,7 @@ void GameMode::startDestroyBlock(int_t x, int_t y, int_t z, Facing face)
 
 bool GameMode::destroyBlock(int_t x, int_t y, int_t z, Facing face)
 {
-	
+
 	minecraft.particleEngine.destroy(x, y, z);
 
 	Level &level = *minecraft.level;
@@ -75,7 +76,7 @@ bool GameMode::destroyBlock(int_t x, int_t y, int_t z, Facing face)
 	{
 		oldTile->destroy(level, x, y, z, data);
 
-		
+
 		if (oldTile->soundType != nullptr)
 		{
 			StepSound *ss = oldTile->soundType;
@@ -168,12 +169,13 @@ bool GameMode::useItemOn(std::shared_ptr<Player> &player, Level &level, ItemInst
 	int_t placeY = y;
 	int_t placeZ = z;
 	Facing placementFace = face;
-	if (level.getTile(x, y, z) != Tile::snow.id)
+	int_t clicked = level.getTile(x, y, z);
+	if (clicked != Tile::snow.id && clicked != Tile::vine.id)
 		moveToPlacementTarget(placeX, placeY, placeZ, face);
 	else
 		placementFace = Facing::DOWN;
 
-	if (!canPlaceSelectedTile(level, *placedTile, placeX, placeY, placeZ))
+	if (!canPlaceSelectedTile(level, *placedTile, placeX, placeY, placeZ, placementFace))
 		return false;
 
 	if (!level.setTileAndData(placeX, placeY, placeZ, placedTile->id, item->itemDamage))

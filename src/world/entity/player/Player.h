@@ -47,10 +47,43 @@ public:
 	int_t foodTickTimer = 0;
 	float foodSaturationLevel = 5.0f;
 	float foodExhaustionLevel = 0.0f;
-	int_t hungerEffectTimer = 0;
 
 	void feed(int_t food, float saturationModifier);
 	void addExhaustion(float exhaustion);
+	bool canEat(bool ignoreHunger) const { return ignoreHunger || foodLevel < 20; }
+
+	// b1.8 experience
+	int_t experienceLevel = 0;
+	int_t totalExperience = 0;
+	float experienceProgress = 0.0f;
+	int_t takeXpDelay = 0;
+	void increaseXp(int_t amount);
+	void withdrawExperienceLevels(int_t levels);
+	int_t getXpNeededForNextLevel() const { return 7 + (experienceLevel * 7 >> 1); }
+	int_t getExperienceReward() override { int_t xp = experienceLevel * 7; return xp > 100 ? 100 : xp; }
+	bool alwaysDropsExperience() override { return true; }
+
+	// b1.8 item use (eating, drinking, blocking, drawing a bow)
+private:
+	bool usingItem = false;
+	int_t useItemSlot = -1;
+	int_t useItemId = -1;
+	int_t useItemDuration = 0;
+
+public:
+	bool isUsingItem() const { return usingItem; }
+	ItemInstance *getUseItem();
+	int_t getUseItemDuration() const { return useItemDuration; }
+	int_t getTicksUsingItem();
+	void startUsingItem(ItemInstance &stack, int_t duration);
+	void releaseUsingItem();
+	void stopUsingItem();
+	bool isBlocking();
+	int_t getItemIcon(ItemInstance &stack);
+
+protected:
+	void completeUsingItem();
+	void spawnItemUseEffects(ItemInstance &stack, int_t particles);
 
 private:
 	bool hasMinecartStart = false;

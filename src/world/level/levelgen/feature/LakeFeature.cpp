@@ -5,6 +5,10 @@
 #include "world/level/tile/StoneTile.h"
 #include "world/level/tile/GrassTile.h"
 #include "world/level/tile/DirtTile.h"
+#include "world/level/tile/IceTile.h"
+#include "world/level/tile/MyceliumTile.h"
+#include "world/level/biome/Biome.h"
+#include "world/level/biome/BiomeSource.h"
 #include "world/level/material/Material.h"
 #include "world/level/material/LiquidMaterial.h"
 
@@ -57,7 +61,7 @@ bool LakeFeature::place(Level &level, Random &random, int_t x, int_t y, int_t z)
 		}
 	}
 
-	
+
 	for (int_t sx = 0; sx < 16; ++sx)
 	{
 		for (int_t sz = 0; sz < 16; ++sz)
@@ -84,7 +88,7 @@ bool LakeFeature::place(Level &level, Random &random, int_t x, int_t y, int_t z)
 		}
 	}
 
-	
+
 	for (int_t sx = 0; sx < 16; ++sx)
 	{
 		for (int_t sz = 0; sz < 16; ++sz)
@@ -99,7 +103,7 @@ bool LakeFeature::place(Level &level, Random &random, int_t x, int_t y, int_t z)
 		}
 	}
 
-	
+
 	for (int_t sx = 0; sx < 16; ++sx)
 	{
 		for (int_t sz = 0; sz < 16; ++sz)
@@ -110,13 +114,17 @@ bool LakeFeature::place(Level &level, Random &random, int_t x, int_t y, int_t z)
 					level.getTile(x + sx, y + sy - 1, z + sz) == Tile::dirt.id &&
 					level.getBrightness(LightLayer::Sky, x + sx, y + sy, z + sz) > 0)
 				{
-					level.setTileNoUpdate(x + sx, y + sy - 1, z + sz, Tile::grass.id);
+					Biome *biome = level.getBiomeSource().getBiome(x + sx, z + sz);
+					if (biome != nullptr && biome->topMaterial == Tile::mycelium.id)
+						level.setTileNoUpdate(x + sx, y + sy - 1, z + sz, Tile::mycelium.id);
+					else
+						level.setTileNoUpdate(x + sx, y + sy - 1, z + sz, Tile::grass.id);
 				}
 			}
 		}
 	}
 
-	
+
 	if (&Tile::tiles[blockId]->material == &Material::lava)
 	{
 		for (int_t sx = 0; sx < 16; ++sx)
@@ -139,6 +147,20 @@ bool LakeFeature::place(Level &level, Random &random, int_t x, int_t y, int_t z)
 						level.setTileNoUpdate(x + sx, y + sy, z + sz, Tile::rock.id);
 					}
 				}
+			}
+		}
+	}
+
+	// 1.0: lakes in cold biomes freeze over
+	if (&Tile::tiles[blockId]->material == &Material::water)
+	{
+		for (int_t sx = 0; sx < 16; ++sx)
+		{
+			for (int_t sz = 0; sz < 16; ++sz)
+			{
+				int_t sy = 4;
+				if (level.shouldFreeze(x + sx, y + sy, z + sz))
+					level.setTileNoUpdate(x + sx, y + sy, z + sz, Tile::ice.id);
 			}
 		}
 	}

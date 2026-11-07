@@ -61,12 +61,12 @@ double ImprovedNoise::noise(double x, double y, double z)
 	int_t BA = p[B] + Z;
 	int_t BB = p[B + 1] + Z;
 
-	return lerp(w, lerp(v, lerp(u, grad(p[AA], x, y, z), 
-		grad(p[BA], x - 1, y, z)), 
-		lerp(u, grad(p[AB], x, y - 1, z), 
+	return lerp(w, lerp(v, lerp(u, grad(p[AA], x, y, z),
+		grad(p[BA], x - 1, y, z)),
+		lerp(u, grad(p[AB], x, y - 1, z),
 			grad(p[BB], x - 1, y - 1, z))),
-		lerp(v, lerp(u, grad(p[AA + 1], x, y, z - 1), 
-			grad(p[BA + 1], x - 1, y, z - 1)), 
+		lerp(v, lerp(u, grad(p[AA + 1], x, y, z - 1),
+			grad(p[BA + 1], x - 1, y, z - 1)),
 			lerp(u, grad(p[AB + 1], x, y - 1, z - 1), grad(p[BB + 1], x - 1, y - 1, z - 1))));
 }
 
@@ -115,7 +115,7 @@ void ImprovedNoise::add(double *out, double xin, double yin, double zin, int_t x
 	{
 		for (int_t xi = 0; xi < xd; xi++)
 		{
-			double x = (xin + xi) * xs + xo;
+			double x = xin + xi * xs + xo;
 			int_t floorX = Mth::floor(x);
 			int_t cellX = floorX & 0xFF;
 			x -= floorX;
@@ -123,7 +123,7 @@ void ImprovedNoise::add(double *out, double xin, double yin, double zin, int_t x
 			double x_fade = fade(x);
 			for (int_t zi = 0; zi < zd; zi++)
 			{
-				double z = (zin + zi) * zs + zo;
+				double z = zin + zi * zs + zo;
 				int_t floorZ = Mth::floor(z);
 				int_t cellZ = floorZ & 0xFF;
 				z -= floorZ;
@@ -151,7 +151,7 @@ void ImprovedNoise::add(double *out, double xin, double yin, double zin, int_t x
 
 	for (int_t xi = 0; xi < xd; xi++)
 	{
-		double x = (xin + xi) * xs + xo;
+		double x = xin + xi * xs + xo;
 		int_t floorX = Mth::floor(x);
 		int_t cellX = floorX & 0xFF;
 		x -= floorX;
@@ -159,7 +159,7 @@ void ImprovedNoise::add(double *out, double xin, double yin, double zin, int_t x
 		double x_fade = fade(x);
 		for (int_t zi = 0; zi < zd; zi++)
 		{
-			double z = (zin + zi) * zs + zo;
+			double z = zin + zi * zs + zo;
 			int_t floorZ = Mth::floor(z);
 			int_t cellZ = floorZ & 0xFF;
 			z -= floorZ;
@@ -167,7 +167,7 @@ void ImprovedNoise::add(double *out, double xin, double yin, double zin, int_t x
 			double z_fade = fade(z);
 			for (int_t yi = 0; yi < yd; yi++)
 			{
-				double y = (yin + yi) * ys + yo;
+				double y = yin + yi * ys + yo;
 				int_t floorY = Mth::floor(y);
 				int_t cellY = floorY & 0xFF;
 				y -= floorY;

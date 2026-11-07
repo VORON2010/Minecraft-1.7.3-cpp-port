@@ -17,8 +17,8 @@ bool OreFeature::place(Level &level, Random &random, int_t x, int_t y, int_t z)
 	double var9 = (double)((float)(x + 8) - Mth::sin(var6) * (float)this->count / 8.0F);
 	double var11 = (double)((float)(z + 8) + Mth::cos(var6) * (float)this->count / 8.0F);
 	double var13 = (double)((float)(z + 8) - Mth::cos(var6) * (float)this->count / 8.0F);
-	double var15 = (double)(y + random.nextInt(3) + 2);
-	double var17 = (double)(y + random.nextInt(3) + 2);
+	double var15 = (double)(y + random.nextInt(3) - 2);
+	double var17 = (double)(y + random.nextInt(3) - 2);
 
 	for (int_t var19 = 0; var19 <= this->count; ++var19)
 	{

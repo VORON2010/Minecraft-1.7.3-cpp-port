@@ -15,7 +15,7 @@ namespace
 
 SlabTile::SlabTile(int_t id, bool fullBlock) : Tile(id, STONE_TOP_TEXTURE, Material::stone)
 {
-	
+
 	updateCachedProperties();
 	this->fullBlock = fullBlock;
 	if (!fullBlock)
@@ -39,6 +39,10 @@ int_t SlabTile::getTexture(Facing face, int_t data)
 		return WOOD_TEXTURE;
 	case 3:
 		return COBBLESTONE_TEXTURE;
+	case 4:
+		return 7; // bricks
+	case 5:
+		return 54; // stone bricks
 	default:
 		return STONE_TOP_TEXTURE;
 	}

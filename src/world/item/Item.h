@@ -6,6 +6,7 @@
 #include "java/Type.h"
 #include "java/Random.h"
 #include "Facing.h"
+#include "world/item/UseAnim.h"
 
 class ItemInstance;
 class Tile;
@@ -51,7 +52,7 @@ public:
 
 	virtual int_t getIcon(const ItemInstance &stack) const;
 
-	
+
 	protected:
 		int_t iconIndex = 0;
 		int_t maxDamage = 0;
@@ -70,4 +71,11 @@ public:
 	virtual bool shouldRotateAroundWhenRendering() const { return false; }
 	virtual void onUpdate(ItemInstance &stack, Level &level, Entity &entity, int_t slot, bool isHeld);
 	virtual void onCreated(ItemInstance &stack, Level &level, Player &player);
+
+	virtual UseAnim getUseAnimation(const ItemInstance &stack) const { (void)stack; return UseAnim::NONE; }
+	virtual int_t getUseDuration(const ItemInstance &stack) const { (void)stack; return 0; }
+	// called when the use timer runs out (food eaten, potion drunk)
+	virtual void useTimeDepleted(ItemInstance &stack, Level &level, Player &player) const { (void)stack; (void)level; (void)player; }
+	// called when right click is released early (bow shot)
+	virtual void releaseUsing(ItemInstance &stack, Level &level, Player &player, int_t remainingTime) const { (void)stack; (void)level; (void)player; (void)remainingTime; }
 };

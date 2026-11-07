@@ -15,6 +15,7 @@ Ghast::Ghast(Level &level) : Mob(level)
 	textureName = u"/mob/ghast.png";
 	setSize(4.0f, 4.0f);
 	fireImmune = true;
+	xpReward = 5;
 }
 
 jstring Ghast::getTexture()

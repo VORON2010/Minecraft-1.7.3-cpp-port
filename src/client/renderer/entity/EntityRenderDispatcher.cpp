@@ -13,6 +13,12 @@
 #include "client/renderer/entity/SheepRenderer.h"
 #include "client/renderer/entity/SpiderRenderer.h"
 #include "client/renderer/entity/SquidRenderer.h"
+#include "client/renderer/entity/ExperienceOrbRenderer.h"
+#include "world/entity/item/ExperienceOrb.h"
+#include "client/renderer/entity/SilverfishRenderer.h"
+#include "client/renderer/entity/EndermanRenderer.h"
+#include "world/entity/monster/Silverfish.h"
+#include "world/entity/monster/Enderman.h"
 #include "client/renderer/entity/SlimeRenderer.h"
 #include "client/renderer/entity/WolfRenderer.h"
 #include "client/renderer/entity/GiantRenderer.h"
@@ -165,6 +171,24 @@ SpiderRenderer &EntityRenderDispatcher::getSpiderRenderer()
 CreeperRenderer &EntityRenderDispatcher::getCreeperRenderer()
 {
 	static CreeperRenderer renderer(instance);
+	return renderer;
+}
+
+SilverfishRenderer &EntityRenderDispatcher::getSilverfishRenderer()
+{
+	static SilverfishRenderer renderer(instance);
+	return renderer;
+}
+
+EndermanRenderer &EntityRenderDispatcher::getEndermanRenderer()
+{
+	static EndermanRenderer renderer(instance);
+	return renderer;
+}
+
+ExperienceOrbRenderer &EntityRenderDispatcher::getExperienceOrbRenderer()
+{
+	static ExperienceOrbRenderer renderer(instance);
 	return renderer;
 }
 
@@ -337,6 +361,14 @@ void EntityRenderDispatcher::render(Entity &entity, double x, double y, double z
 		return;
 	}
 
+	if (dynamic_cast<ExperienceOrb *>(&entity) != nullptr)
+	{
+		ExperienceOrbRenderer &renderer = getExperienceOrbRenderer();
+		renderer.render(entity, x, y, z, rot, a);
+		renderer.postRender(entity, x, y, z, rot, a);
+		return;
+	}
+
 	if (dynamic_cast<EntityItem *>(&entity) != nullptr)
 	{
 		ItemRenderer &itemRenderer = getItemRenderer();
@@ -372,6 +404,22 @@ void EntityRenderDispatcher::render(Entity &entity, double x, double y, double z
 	if (dynamic_cast<Creeper *>(&entity) != nullptr)
 	{
 		CreeperRenderer &renderer = getCreeperRenderer();
+		renderer.render(entity, x, y, z, rot, a);
+		renderer.postRender(entity, x, y, z, rot, a);
+		return;
+	}
+
+	if (dynamic_cast<Silverfish *>(&entity) != nullptr)
+	{
+		SilverfishRenderer &renderer = getSilverfishRenderer();
+		renderer.render(entity, x, y, z, rot, a);
+		renderer.postRender(entity, x, y, z, rot, a);
+		return;
+	}
+
+	if (dynamic_cast<Enderman *>(&entity) != nullptr)
+	{
+		EndermanRenderer &renderer = getEndermanRenderer();
 		renderer.render(entity, x, y, z, rot, a);
 		renderer.postRender(entity, x, y, z, rot, a);
 		return;
@@ -426,7 +474,7 @@ void EntityRenderDispatcher::render(Entity &entity, double x, double y, double z
 		renderer.postRender(entity, x, y, z, rot, a);
 		return;
 	}
-	
+
 	if (dynamic_cast<Chicken *>(&entity) != nullptr)
 	{
 		ChickenRenderer &renderer = getChickenRenderer();
@@ -483,7 +531,7 @@ void EntityRenderDispatcher::render(Entity &entity, double x, double y, double z
 		renderer.postRender(entity, x, y, z, rot, a);
 		return;
 	}
-	
+
 	if (dynamic_cast<PrimedTNT *>(&entity) != nullptr)
 	{
 		TNTPrimedRenderer &tntRenderer = getTNTPrimedRenderer();

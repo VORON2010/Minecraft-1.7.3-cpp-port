@@ -10,6 +10,8 @@
 #include <cmath>
 #include "util/Mth.h"
 
+Entity *Entity::damageProjectile = nullptr;
+
 int_t Entity::entityCounter = 0;
 
 Entity::Entity(Level &level) : level(level)
@@ -117,7 +119,7 @@ void Entity::baseTick()
 
 	tickCount++;
 
-	
+
 	walkDistO = walkDist;
 	xo = x;
 	yo = y;
@@ -125,7 +127,7 @@ void Entity::baseTick()
 	yRotO = yRot;
 	xRotO = xRot;
 
-	
+
 	if (handleWaterMovement())
 	{
 		if (!wasInWater && !firstTick)
@@ -162,7 +164,7 @@ void Entity::baseTick()
 		wasInWater = false;
 	}
 
-	
+
 	if (level.isOnline)
 	{
 		onFire = 0;
@@ -179,21 +181,21 @@ void Entity::baseTick()
 			else
 			{
 				if (onFire % 20 == 0)
-					hurt(nullptr, 1);
+					hurtByFire(1);
 				onFire--;
 			}
 		}
 	}
 
-	
+
 	if (isInLava())
 		lavaHurt();
 
-	
+
 	if (y < -64.0)
 		outOfWorld();
 
-	
+
 	if (!level.isOnline)
 	{
 		setSharedFlag(FLAG_ONFIRE, onFire > 0);
@@ -207,7 +209,7 @@ void Entity::lavaHurt()
 {
 	if (!fireImmune)
 	{
-		hurt(nullptr, 4);
+		hurtByFire(4);
 		onFire = 600;
 	}
 }
@@ -270,7 +272,7 @@ void Entity::move(double xd, double yd, double zd)
 
 	AABB *oldBb = bb.copy();
 
-	
+
 	bool sneaking = onGround && isSneaking();
 	if (sneaking)
 	{
@@ -299,7 +301,7 @@ void Entity::move(double xd, double yd, double zd)
 		}
 	}
 
-	
+
 	const auto &cubes = level.getCubes(*this, *bb.expand(xd, yd, zd));
 
 	for (auto &cube : cubes)
@@ -321,7 +323,7 @@ void Entity::move(double xd, double yd, double zd)
 	if (!slide && ozd != zd)
 		xd = yd = zd = 0;
 
-	
+
 	if (footSize > 0.0f && grounded && ySlideOffset < 0.05f && (oxd != xd || ozd != zd))
 	{
 		double ooxd = xd;
@@ -355,7 +357,7 @@ void Entity::move(double xd, double yd, double zd)
 		if (!slide && ozd != zd)
 			xd = yd = zd = 0;
 
-		
+
 		yd = -footSize;
 		for (auto &cube : level.getCubes(*this, *bb.expand(0.0, yd, 0.0)))
 			yd = cube->clipYCollide(bb, yd);
@@ -376,7 +378,7 @@ void Entity::move(double xd, double yd, double zd)
 		}
 	}
 
-	
+
 	x = (bb.x0 + bb.x1) / 2.0;
 	y = bb.y0 + heightOffset - ySlideOffset;
 	z = (bb.z0 + bb.z1) / 2.0;
@@ -385,7 +387,7 @@ void Entity::move(double xd, double yd, double zd)
 	verticalCollision = oyd != yd;
 	onGround = oyd != yd && oyd < 0.0;
 	collision = horizontalCollision || verticalCollision;
-	
+
 	checkFallDamage(oyd, onGround);
 
 	if (oxd != xd)
@@ -395,7 +397,7 @@ void Entity::move(double xd, double yd, double zd)
 	if (ozd != zd)
 		this->zd = 0.0;
 
-	
+
 	double fdx = x - ox;
 	double fdz = z - oz;
 
@@ -415,7 +417,7 @@ void Entity::move(double xd, double yd, double zd)
 			if (Tile::tiles[stile]->soundType != nullptr)
 			{
 				StepSound *ss = Tile::tiles[stile]->soundType;
-				
+
 				int_t aboveTile = level.getTile(sx, Mth::floor(y), sz);
 				if (aboveTile == Tile::snow.id)
 					ss = Tile::snow.soundType;
@@ -425,7 +427,7 @@ void Entity::move(double xd, double yd, double zd)
 		}
 	}
 
-	
+
 	int_t x0 = Mth::floor(bb.x0);
 	int_t x1 = Mth::floor(bb.x1);
 	int_t y0 = Mth::floor(bb.y0);
@@ -844,15 +846,15 @@ void Entity::rideTick()
 {
 	if (riding == nullptr)
 		return;
-	
-	
+
+
 	if (riding->removed)
 	{
 		riding = nullptr;
 		return;
 	}
 
-	
+
 	xd = 0.0;
 	yd = 0.0;
 	zd = 0.0;
@@ -863,17 +865,17 @@ void Entity::rideTick()
 	{
 		riding->positionRider();
 
-		
+
 		xRideRotA += (riding->yRot - riding->yRotO);
 		yRideRotA += (riding->xRot - riding->xRotO);
 
-		
+
 		while (xRideRotA >= 180.0) xRideRotA -= 360.0;
 		while (xRideRotA < -180.0) xRideRotA += 360.0;
 		while (yRideRotA >= 180.0) yRideRotA -= 360.0;
 		while (yRideRotA < -180.0) yRideRotA += 360.0;
 
-		
+
 		double yawDelta = xRideRotA * 0.5;
 		double pitchDelta = yRideRotA * 0.5;
 		constexpr double maxDelta = 10.0;

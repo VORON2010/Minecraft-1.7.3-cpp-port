@@ -37,6 +37,10 @@ namespace Items
 	extern Item *muttonCooked;
 	extern Item *painting;
 	extern Item *appleGold;
+	extern Item *melon;
+	extern Item *pumpkinSeeds;
+	extern Item *melonSeeds;
+	extern Item *enderPearl;
 	extern Item *reed;
 	extern Item *doorWood;
 	extern Item *doorIron;

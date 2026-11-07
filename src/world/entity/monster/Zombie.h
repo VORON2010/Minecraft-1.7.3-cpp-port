@@ -5,6 +5,7 @@
 class Zombie : public Monster
 {
 public:
+	bool isUndead() override { return true; }
 	Zombie(Level &level);
 	jstring getEncodeId() const override { return u"Zombie"; }
 	void aiStep() override;

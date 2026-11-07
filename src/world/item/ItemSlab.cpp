@@ -50,9 +50,12 @@ int_t ItemSlab::getIcon(const ItemInstance &stack) const
 
 jstring ItemSlab::getDescriptionId(const ItemInstance &stack) const
 {
-	
-	static const jstring names[] = {u"stone", u"sand", u"wood", u"cobble"};
-	return Tile::slabSingle.descriptionId + u"." + names[stack.itemDamage & 3];
+
+	static const jstring names[] = {u"stone", u"sand", u"wood", u"cobble", u"brick", u"smoothStoneBrick"};
+	int_t variant = stack.itemDamage;
+	if (variant < 0 || variant > 5)
+		variant = 0;
+	return Tile::slabSingle.descriptionId + u"." + names[variant];
 }
 
 bool ItemSlab::useOn(ItemInstance &stack, Player &player, Level &level, int_t x, int_t y, int_t z, Facing face) const
@@ -61,7 +64,7 @@ bool ItemSlab::useOn(ItemInstance &stack, Player &player, Level &level, int_t x,
 	if (stack.isEmpty())
 		return false;
 
-	int_t variant = stack.itemDamage & 3;
+	int_t variant = stack.itemDamage & 7;
 	int_t placeX = x;
 	int_t placeY = y;
 	int_t placeZ = z;
@@ -70,7 +73,7 @@ bool ItemSlab::useOn(ItemInstance &stack, Player &player, Level &level, int_t x,
 
 	if (placeY > 0 && isReplaceable(level, placeX, placeY, placeZ) &&
 		level.getTile(placeX, placeY - 1, placeZ) == Tile::slabSingle.id &&
-		(level.getData(placeX, placeY - 1, placeZ) & 3) == variant)
+		(level.getData(placeX, placeY - 1, placeZ) & 7) == variant)
 	{
 		AABB *placementBox = Tile::slabDouble.getAABB(level, placeX, placeY - 1, placeZ);
 		if (placementBox != nullptr && !level.isUnobstructed(*placementBox))
@@ -93,7 +96,7 @@ bool ItemSlab::useOn(ItemInstance &stack, Player &player, Level &level, int_t x,
 		return true;
 
 	int_t placedId = level.getTile(placeX, placeY, placeZ);
-	bool mergedDown = placeY > 0 && level.getTile(placeX, placeY - 1, placeZ) == Tile::slabDouble.id && (level.getData(placeX, placeY - 1, placeZ) & 3) == variant;
+	bool mergedDown = placeY > 0 && level.getTile(placeX, placeY - 1, placeZ) == Tile::slabDouble.id && (level.getData(placeX, placeY - 1, placeZ) & 7) == variant;
 	if (placedId != Tile::slabSingle.id && !mergedDown)
 		return true;
 

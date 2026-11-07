@@ -1,4 +1,6 @@
+#include "world/level/biome/Biome.h"
 #include "tools/BlockSmoke.h"
+#include "tools/B18Smoke.h"
 
 #include <array>
 #include <chrono>
@@ -21,6 +23,7 @@
 #include "client/renderer/texturefx/TexturePortalFX.h"
 #include "client/renderer/texturefx/TileSize.h"
 #include "world/item/Items.h"
+#include "world/item/ItemFood.h"
 #include "world/item/Item.h"
 #include "world/item/ItemPickaxe.h"
 #include "world/item/ItemInstance.h"
@@ -267,7 +270,7 @@ struct InspectableNoteParticle : public NoteParticle
 			return true;
 		}
 	};
-	
+
 	struct GridCraftingContainer : public CraftingContainer
 	{
 		std::array<ItemInstance, 9> slots;
@@ -345,7 +348,7 @@ struct InspectableNoteParticle : public NoteParticle
 		using EntityArrow::EntityArrow;
 		void plantForPickup() { inGround = true; doesArrowBelongToPlayer = true; arrowShake = 0; }
 	};
-	
+
 	bool expect(bool condition, const char *message)
 	{
 		if (!condition)
@@ -652,7 +655,7 @@ int runBlockSmoke()
 		ItemInstance chestMinecartOut = Recipes::getInstance().getItemFor(chestMinecartRecipe);
 		ok &= expect(chestMinecartOut.itemID == Items::minecartChest->getShiftedIndex(), "chest minecart recipe should match beta");
 
-		ok &= expect(Items::bread->getMaxStackSize() == 1, "bread should use the beta food stack limit");
+		ok &= expect(Items::bread->getMaxStackSize() == 64, "bread should stack to 64 since b1.8");
 		ok &= expect(Items::cookie->getShiftedIndex() == 357, "cookie should use the beta shifted id 357");
 		ok &= expect(Items::cookie->getMaxStackSize() == 8, "cookie should stack to eight like beta");
 		ok &= expect(ItemInstance(Items::cookie->getShiftedIndex(), 1, 0).getIcon() == 92, "cookie should use the beta cookie icon");
@@ -750,7 +753,7 @@ int runBlockSmoke()
 
 		std::cerr << "block-smoke: level setup" << std::endl;
 		Level level(File::open(u"build/block-smoke-workdir"), u"block-smoke-world", 12345);
-		
+
 		const double pushCases[][5] = {
 			{0.0075, 0.0075, 0.0, 0.0, 0.0},
 			{0.25, 0.75, 0.3f, 0.010103629870652761, 0.030310889611958287},
@@ -852,8 +855,9 @@ int runBlockSmoke()
 		ok &= expect(statsPlayer.getCapturedStat(StatList::useItemStats[Items::swordWood->getShiftedIndex()]) == 1 &&
 			statsPlayer.getCapturedStat(StatList::mobKillsStat) == 1 && statsPlayer.getCapturedStat(StatList::playerKillsStat) == 1,
 			"successful item hits and kill scoring should award the Beta counters");
-		ok &= expect(statsPlayer.getCapturedStat(StatList::damageDealtStat) == 3,
-			"successful attacks should award damage dealt including the falling-attack bonus");
+		// b1.8 replaced the flat +1 falling bonus with random critical hits (needs fallDistance > 0)
+		ok &= expect(statsPlayer.getCapturedStat(StatList::damageDealtStat) == 2,
+			"successful attacks should award the damage dealt");
 		ok &= expect(statsPlayer.getCapturedStat(StatList::damageTakenStat) == damageTakenBefore + 5,
 			"incoming hostile damage should award the difficulty-scaled amount and skip peaceful damage");
 		ok &= expect(statsPlayer.getCapturedStat(StatList::dropStat) == 1,
@@ -994,9 +998,17 @@ int runBlockSmoke()
 		bowPlayer->inventory.setItem(0, ItemInstance(Items::bow->getShiftedIndex(), 1, 0));
 		bowPlayer->inventory.setItem(1, ItemInstance(Items::arrow->getShiftedIndex(), 2, 0));
 		size_t entityCountBeforeShot = level.getAllEntities().size();
+		// b1.8: hold right click to draw, release to shoot
+		bowPlayer->inventory.currentItem = 0;
 		bowPlayer->inventory.mainInventory[0].use(level, *bowPlayer);
-		ok &= expect(bowPlayer->inventory.mainInventory[1].stackSize == 1, "bow use should consume one arrow");
-		ok &= expect(level.getAllEntities().size() == entityCountBeforeShot + 1, "bow use should spawn an arrow entity");
+		ok &= expect(bowPlayer->isUsingItem(), "right clicking a bow with arrows should start drawing it");
+		ok &= expect(bowPlayer->inventory.mainInventory[1].stackSize == 2, "drawing a bow should not use an arrow yet");
+		bowPlayer->inventory.mainInventory[0].releaseUsing(level, *bowPlayer, 72000 - 20);
+		bowPlayer->stopUsingItem();
+		ok &= expect(bowPlayer->inventory.mainInventory[1].stackSize == 1, "releasing a drawn bow should consume one arrow");
+		ok &= expect(level.getAllEntities().size() == entityCountBeforeShot + 1, "releasing a drawn bow should spawn an arrow entity");
+		bowPlayer->inventory.mainInventory[0].releaseUsing(level, *bowPlayer, 72000 - 1);
+		ok &= expect(bowPlayer->inventory.mainInventory[1].stackSize == 1, "a barely drawn bow should not shoot");
 		InspectableArrow pickupArrow(level, *bowPlayer);
 		pickupArrow.plantForPickup();
 		bowPlayer->inventory.setItem(1, ItemInstance());
@@ -1110,7 +1122,7 @@ int runBlockSmoke()
 			statusWolf.tick();
 		ok &= expect(statusWolf.getShakeAngle(1.0f, 0.0f) == 0.0f,
 			"wolf shake state should reset after two seconds");
-		
+
 		std::cerr << "block-smoke: validation mobs" << std::endl;
 		InspectableCow cow(level);
 		Player bucketPlayer(level);
@@ -1168,9 +1180,8 @@ int runBlockSmoke()
 		ok &= expect(level.getAllEntities().size() == entityCountBeforeEgg + 1, "chicken egg timer should spawn an egg item entity");
 
 		std::cerr << "block-smoke: multiplayer weather presentation" << std::endl;
-		ok &= expect(!level.getBiomeSource().getBiomeInfo(BiomeId::Taiga).canSpawnLightningBolt() &&
-			level.getBiomeSource().getBiomeInfo(BiomeId::Plains).canSpawnLightningBolt(),
-			"snow biomes must not also render rain or spawn rain particles");
+		ok &= expect(Biome::icePlains->temperature < 0.15f && Biome::plains->temperature >= 0.15f && !Biome::desert->hasRain() && Biome::plains->hasRain(),
+			"1.0: snow falls below 0.15 temperature, deserts stay dry");
 		level.lastLightningBolt = 0;
 		level.setRainStrength(0.0f);
 		Vec3 *drySky = level.getSkyColor(player, 1.0f);
@@ -1278,7 +1289,7 @@ int runBlockSmoke()
 			creeper.checkHurtTarget(creeperTarget, 2.5f);
 		ok &= expect(creeper.removed, "creeper should explode and remove itself after a full fuse near a target");
 		ok &= expect(creeper.getDeathLoot() == Items::gunpowder->getShiftedIndex(), "creeper should drop gunpowder");
-		
+
 
 
 		std::cerr << "block-smoke: natural spawning" << std::endl;
@@ -1299,17 +1310,38 @@ int runBlockSmoke()
 
 
 		std::cerr << "block-smoke: food items" << std::endl;
-		player.health = 10;
+		// b1.8 hunger: food fills the food bar instead of healing
+		// b1.8: right click starts eating, the food is consumed after 32 ticks
+		player.foodLevel = 10;
+		player.inventory.setItem(player.inventory.currentItem, ItemInstance(Items::bread->getShiftedIndex(), 1, 0));
+		player.getSelectedItem()->use(level, player);
+		ok &= expect(player.isUsingItem() && player.getUseItemDuration() == 32, "right clicking bread should start a 32 tick eat");
+		ok &= expect(player.getSelectedItem()->stackSize == 1, "bread should not be eaten instantly");
+		player.stopUsingItem();
 		ItemInstance breadStack(Items::bread->getShiftedIndex(), 1, 0);
-		breadStack.use(level, player);
-		ok &= expect(player.health == 15, "bread should heal five points on use");
-		ok &= expect(breadStack.isEmpty(), "bread should be consumed on use");
-		player.health = 10;
+		breadStack.useTimeDepleted(level, player);
+		ok &= expect(player.foodLevel == 15, "bread should restore five food points");
+		ok &= expect(breadStack.isEmpty(), "bread should be consumed when eaten");
+		player.foodLevel = 10;
 		ItemInstance cookieStack(Items::cookie->getShiftedIndex(), 2, 0);
-		cookieStack.use(level, player);
-		ok &= expect(player.health == 11, "cookie should heal one point on use");
+		cookieStack.useTimeDepleted(level, player);
+		ok &= expect(player.foodLevel == 10 + static_cast<ItemFood *>(Items::cookie)->getHealAmount(), "cookie should restore its food points");
 		ok &= expect(cookieStack.stackSize == 1, "cookie should consume one item per use");
+		player.foodLevel = 20;
+		player.inventory.setItem(player.inventory.currentItem, ItemInstance(Items::bread->getShiftedIndex(), 1, 0));
+		player.getSelectedItem()->use(level, player);
+		ok &= expect(!player.isUsingItem(), "food should not be eaten with a full food bar");
+		player.inventory.setItem(player.inventory.currentItem, ItemInstance(Items::swordIron->getShiftedIndex(), 1, 0));
+		player.getSelectedItem()->use(level, player);
+		ok &= expect(player.isBlocking(), "right clicking a sword should block");
+		player.inventory.currentItem = (player.inventory.currentItem + 1) % 9;
+		player.tick();
+		ok &= expect(!player.isUsingItem(), "switching the hotbar slot should stop blocking");
+		player.inventory.currentItem = 0;
+		player.inventory.setItem(0, ItemInstance());
 		player.health = 20;
+
+		ok &= runB18Smoke(level, player, baseY);
 
 		std::cerr << "block-smoke: locked chest" << std::endl;
 		ok &= expect(level.setTile(220, baseY + 1, 10, Tile::lockedChest.id), "locked chest should place");
@@ -1446,7 +1478,7 @@ int runBlockSmoke()
 		ok &= expect((level.getData(250, baseY + 1, 0) & 8) == 0, "detector rail should depower when rechecked with no minecart");
 		for (int_t x = 252; x <= 260; ++x)
 			level.setTile(x, baseY, 0, 1);
-		
+
 		level.setTile(252, baseY + 1, 0, Tile::torchRedstoneActive.id);
 		level.setData(252, baseY + 1, 0, 5);
 		for (int_t x = 253; x <= 260; ++x)
@@ -1501,7 +1533,7 @@ int runBlockSmoke()
 		ok &= expect(level.setTile(18, baseY + 1, 0, Tile::lever.id), "lever helper source should place");
 		level.setData(18, baseY + 1, 0, 5 | 8);
 		ok &= expect(RedStoneDustTile::isPowerProviderOrWire(level, 18, baseY + 1, 0, 5), "dust helper should treat powered lever as a power provider");
-		
+
 		std::cerr << "block-smoke: redstone placement" << std::endl;
 		level.setTile(20, baseY, 0, 1);
 		ItemInstance redstoneDust(Items::redstone->getShiftedIndex(), 1, 0);
@@ -1629,7 +1661,7 @@ int runBlockSmoke()
 		ok &= expect(level.getData(152, baseY + 1, 0) == 0, "long-straight second wire should depower when switched off");
 		ok &= expect(level.getData(157, baseY + 1, 0) == 0, "long-straight mid wire should depower when switched off");
 		ok &= expect(level.getData(160, baseY + 1, 0) == 0, "long-straight tail wire should depower when switched off");
-		
+
 		std::cerr << "block-smoke: ascending wire step" << std::endl;
 		for (int_t x = 130; x <= 133; ++x)
 			level.setTile(x, baseY, 0, 1);
@@ -1644,7 +1676,7 @@ int runBlockSmoke()
 		ok &= expect(level.getData(131, baseY + 1, 0) == 15, "ascending-step lower wire should power at strength 15");
 		ok &= expect(level.getData(132, baseY + 2, 0) == 14, "ascending-step raised wire should power at strength 14");
 		ok &= expect(level.getData(133, baseY + 2, 0) == 13, "ascending-step raised tail wire should power at strength 13");
-		
+
 		std::cerr << "block-smoke: descending wire step" << std::endl;
 		level.setTile(140, baseY + 1, 0, 1);
 		level.setTile(141, baseY + 1, 0, 1);
@@ -1657,7 +1689,7 @@ int runBlockSmoke()
 		ok &= expect(level.getData(141, baseY + 2, 0) == 15, "descending-step raised wire should power at strength 15");
 		ok &= expect(level.getData(142, baseY + 1, 0) == 14, "descending-step lower wire should power at strength 14");
 		ok &= expect(level.getData(143, baseY + 1, 0) == 13, "descending-step lower tail wire should power at strength 13");
-		
+
 		std::cerr << "block-smoke: lever wire propagation" << std::endl;
 		for (int_t x = 32; x <= 36; ++x)
 			level.setTile(x, baseY, 0, 1);
@@ -1697,10 +1729,13 @@ int runBlockSmoke()
 		ok &= expect(level.getData(191, baseY + 2, 0) == 0, "wall-lever second wire should depower when switched off");
 		ok &= expect(level.getData(196, baseY + 2, 0) == 0, "wall-lever mid wire should depower when switched off");
 		ok &= expect(level.getData(200, baseY + 2, 0) == 0, "wall-lever tail wire should depower when switched off");
-		
+
 		std::cerr << "block-smoke: torch wire propagation" << std::endl;
 		for (int_t x = 40; x <= 44; ++x)
+		{
 			level.setTile(x, baseY, 0, 1);
+			level.setTile(x, baseY + 1, 0, 0);
+		}
 		ok &= expect(level.setTileAndData(40, baseY + 1, 0, Tile::torchRedstoneActive.id, 5), "redstone torch source should place");
 		for (int_t x = 41; x <= 44; ++x)
 		{
@@ -1711,7 +1746,7 @@ int runBlockSmoke()
 		ok &= expect(level.getData(42, baseY + 1, 0) == 14, "torch should power second wire at strength 14");
 		ok &= expect(level.getData(43, baseY + 1, 0) == 13, "torch should power third wire at strength 13");
 		ok &= expect(level.getData(44, baseY + 1, 0) == 12, "torch should power fourth wire at strength 12");
-		
+
 		std::cerr << "block-smoke: button block wire propagation" << std::endl;
 		for (int_t x = 50; x <= 53; ++x)
 			level.setTile(x, baseY + 1, 0, 1);
@@ -1724,7 +1759,7 @@ int runBlockSmoke()
 		ok &= expect(level.getData(51, baseY + 2, 0) == 14, "button should power second wire through attached block at strength 14");
 		ok &= expect(level.getData(52, baseY + 2, 0) == 13, "button should power third wire through attached block at strength 13");
 		ok &= expect(level.getData(53, baseY + 2, 0) == 12, "button should power fourth wire through attached block at strength 12");
-		
+
 		std::cerr << "block-smoke: repeater propagation" << std::endl;
 		for (int_t x = 210; x <= 213; ++x)
 			level.setTile(x, baseY, 0, 1);
@@ -1759,7 +1794,7 @@ int runBlockSmoke()
 		ok &= expect(level.getTile(212, baseY + 1, 0) == Tile::repeaterIdle.id, "repeater should turn off after four ticks at the second delay setting");
 		ok &= expect(level.getData(213, baseY + 1, 0) == 0, "repeater should depower the output wire after turning off");
 		player.yRot = 0.0f;
-		
+
 		std::cerr << "block-smoke: button bounds" << std::endl;
 		level.setTile(148, baseY + 1, 0, 1);
 		ok &= expect(level.setTile(149, baseY + 1, 0, Tile::buttonStone.id), "button bounds test button should place");
@@ -1771,7 +1806,7 @@ int runBlockSmoke()
 		level.setData(149, baseY + 1, 0, 1 | 8);
 		Tile::buttonStone.updateShape(level, 149, baseY + 1, 0);
 		ok &= expect(Tile::buttonStone.xx0 == 0.0 && Tile::buttonStone.xx1 == 1.0 / 16.0, "powered button should shrink to 1/16 depth in-world");
-		
+
 		std::cerr << "block-smoke: powered door" << std::endl;
 		level.setTile(24, baseY, 0, 1);
 		level.setTile(24, baseY + 1, 0, 64);
@@ -1824,7 +1859,7 @@ int runBlockSmoke()
 			InspectableTerrainParticle particle(level, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, doorTile, mirroredFace, mirroredData);
 			ok &= expect(particle.textureIndex() == -mirroredTex, "door crack particles should clamp mirrored textures");
 		}
-	
+
 		std::cerr << "block-smoke: repeated powered door" << std::endl;
 		level.setTile(14, baseY, 0, 5);
 		ok &= expect(level.setTile(14, baseY + 1, 0, 64), "repeat-test door bottom should place");
@@ -1847,7 +1882,7 @@ int runBlockSmoke()
 		ok &= expect(Tile::lever.use(level, 16, baseY + 1, 0, player), "repeat-test door lever should toggle on again");
 		ok &= expect((level.getData(14, baseY + 1, 0) & 4) != 0, "door should reopen on second redstone activation");
 		logRepeatedDoorState(level, listener, "after third toggle", 14, baseY + 1, 0, 15, baseY + 1, 0, 16, baseY + 1, 0);
-		
+
 		std::cerr << "block-smoke: repeated powered note block" << std::endl;
 		level.setTile(8, baseY, 0, 5);
 		level.setTile(8, baseY + 2, 0, 0);
@@ -1875,7 +1910,7 @@ int runBlockSmoke()
 		ok &= expect(containsPrefix(listener.sounds, u"note."), "note block should play again on second redstone activation");
 		ok &= expect(!listener.particles.empty() && listener.particles.back() == u"note", "note block should spawn a particle on second redstone activation");
 		logRepeatedNoteState(level, listener, "after third toggle", 8, baseY + 1, 0, 9, baseY + 1, 0, repeatNoteEntity.get());
-		
+
 		std::cerr << "block-smoke: door" << std::endl;
 		level.setTile(0, baseY, 0, 5);
 		level.setTile(0, baseY + 1, 0, 0);
@@ -2062,8 +2097,8 @@ int runBlockSmoke()
 		Tile::pistonBase.neighborChanged(level, 300, baseY + 1, 0, Tile::redstoneWire.id);
 		ok &= expect(!PistonBaseTile::isPowered(level.getData(300, baseY + 1, 0)),
 			"piston should ignore power supplied through its front face");
-		
-		
+
+
 		level.setTile(298, baseY, 0, Tile::rock.id);
 		level.setTile(299, baseY, 0, Tile::rock.id);
 		level.setTile(299, baseY + 1, 0, Tile::redstoneWire.id);

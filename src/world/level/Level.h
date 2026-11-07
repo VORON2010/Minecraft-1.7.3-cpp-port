@@ -82,7 +82,7 @@ public:
 	static constexpr int_t MAX_LEVEL_SIZE = 32000000;
 	static constexpr short_t DEPTH = 128;
 	static constexpr short_t SEA_LEVEL = 64;
-	
+
 	bool instaTick = false;
 
 	static constexpr int_t MAX_BRIGHTNESS = 15;
@@ -140,7 +140,7 @@ protected:
 
 public:
 	int_t difficulty = 0;
-	
+
 	Random random;
 
 	int_t xSpawn = 0, ySpawn = 0, zSpawn = 0;
@@ -208,6 +208,11 @@ public:
 	static void deleteRecursive(std::vector<std::unique_ptr<File>> &files);
 
 	BiomeSource &getBiomeSource() override;
+	Random &setRandomSeed(int_t x, int_t z, int_t salt)
+	{
+		random.setSeed(static_cast<long_t>(static_cast<ulong_t>(x) * 341873128712ULL + static_cast<ulong_t>(z) * 132897987541ULL + static_cast<ulong_t>(seed) + static_cast<ulong_t>(salt)));
+		return random;
+	}
 	static long_t getLevelSize(File &workingDirectory, const jstring &name);
 	static long_t calcSize(std::vector<std::unique_ptr<File>> &files);
 
@@ -320,7 +325,7 @@ public:
 	void addListener(LevelListener &listener);
 	void removeListener(LevelListener &listener);
 
-	
+
 	void playSoundAtEntity(Entity &entity, const jstring &name, float volume, float pitch);
 	void playSoundEffect(double x, double y, double z, const jstring &name, float volume, float pitch);
 	void playRecord(const jstring &name, int_t x, int_t y, int_t z);
@@ -382,6 +387,14 @@ public:
 
 protected:
 	void tickTiles();
+
+public:
+	// 1.0 biome weather: water freezes and snow falls where the biome is cold
+	bool shouldFreeze(int_t x, int_t y, int_t z);
+	bool shouldFreezeIgnoreNeighbors(int_t x, int_t y, int_t z);
+	bool shouldFreeze(int_t x, int_t y, int_t z, bool checkNeighbors);
+	bool shouldSnow(int_t x, int_t y, int_t z);
+	int_t getTopRainBlock(int_t x, int_t z);
 
 public:
 	virtual bool tickPendingTicks(bool unknown);

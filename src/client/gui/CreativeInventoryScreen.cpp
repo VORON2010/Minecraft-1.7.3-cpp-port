@@ -1,3 +1,4 @@
+#include "pc/OpenGL.h"
 #include "client/gui/CreativeInventoryScreen.h"
 #include "client/Minecraft.h"
 #include "client/renderer/entity/ItemRenderer.h"
@@ -52,6 +53,7 @@ static bool shouldSkipTile(int id) {
         case 83:  // reed
         case 90:  // portal
         case 93: case 94: // repeaters
+        case 104: case 105: // pumpkin / melon stems
             return true;
         default:
             return false;
@@ -70,7 +72,9 @@ CreativeInventoryScreen::CreativeInventoryScreen(Minecraft &mc) : Screen(mc) {
         } else if (i == 17 || i == 18) { // Log, Leaves variants
             for (int d = 0; d <= 2; d++) allItems.emplace_back(i, 1, d);
         } else if (i == 44) { // Slab variants
-            for (int d = 0; d <= 3; d++) allItems.emplace_back(i, 1, d);
+            for (int d = 0; d <= 5; d++) allItems.emplace_back(i, 1, d);
+        } else if (i == 97 || i == 98) { // monster egg / stone brick variants
+            for (int d = 0; d <= 2; d++) allItems.emplace_back(i, 1, d);
         } else {
             allItems.emplace_back(i, 1, 0);
         }
@@ -324,11 +328,11 @@ void CreativeInventoryScreen::keyPressed(char_t eventCharacter, int_t eventKey) 
     if (eventKey == lwjgl::Keyboard::KEY_ESCAPE || eventKey == minecraft.options.keyInventory.key) {
         minecraft.setScreen(nullptr);
     }
-    
+
     if (eventKey == lwjgl::Keyboard::KEY_F4) {
         int_t xm = lwjgl::Mouse::getEventX() * width / minecraft.width;
         int_t ym = height - lwjgl::Mouse::getEventY() * height / minecraft.height - 1;
-        
+
         int_t itemIndex = getSlotAtPosition(xm, ym);
         if (itemIndex >= 0 && itemIndex < static_cast<int_t>(allItems.size())) {
             minecraft.setScreen(Util::make_shared<RecipeScreen>(minecraft, minecraft.screen, allItems[itemIndex].itemID, allItems[itemIndex].itemDamage));

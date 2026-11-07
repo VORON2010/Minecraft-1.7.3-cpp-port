@@ -218,6 +218,32 @@ void ItemInstance::use(Level &level, Player &player)
 	item->use(*this, level, player);
 }
 
+UseAnim ItemInstance::getUseAnimation() const
+{
+	Item *item = getItem();
+	return item != nullptr ? item->getUseAnimation(*this) : UseAnim::NONE;
+}
+
+int_t ItemInstance::getUseDuration() const
+{
+	Item *item = getItem();
+	return item != nullptr ? item->getUseDuration(*this) : 0;
+}
+
+void ItemInstance::useTimeDepleted(Level &level, Player &player)
+{
+	Item *item = getItem();
+	if (item != nullptr)
+		item->useTimeDepleted(*this, level, player);
+}
+
+void ItemInstance::releaseUsing(Level &level, Player &player, int_t remainingTime)
+{
+	Item *item = getItem();
+	if (item != nullptr)
+		item->releaseUsing(*this, level, player, remainingTime);
+}
+
 bool ItemInstance::useOn(Player &player, Level &level, int_t x, int_t y, int_t z, Facing face)
 {
 	Item *item = getItem();

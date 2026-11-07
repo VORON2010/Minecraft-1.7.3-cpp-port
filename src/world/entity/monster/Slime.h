@@ -15,6 +15,7 @@ public:
 	Slime(Level &level);
 	jstring getEncodeId() const override { return u"Slime"; }
 	void setSlimeSize(int_t size);
+	int_t getExperienceReward() override { return getSlimeSize(); }
 	int_t getSlimeSize() const;
 	void tick() override;
 	void playerTouch(Player &player) override;

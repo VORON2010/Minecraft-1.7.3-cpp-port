@@ -1,3 +1,4 @@
+#include "pc/OpenGL.h"
 #include "Minecraft.h"
 
 #include <iostream>
@@ -84,7 +85,7 @@ void Minecraft::init(std::shared_ptr<File> directory)
 {
 	Tile::initTiles();
 	Items::initItems();
-	
+
 	if (fullscreen)
 	{
 		lwjgl::Display::setFullscreen(true);
@@ -142,7 +143,7 @@ void Minecraft::init(std::shared_ptr<File> directory)
 
 	checkGlError("Startup");
 
-	
+
 	soundEngine.init(&options);
 	std::unique_ptr<File> resourceDir(File::openResourceDirectory());
 	if (resourceDir && resourceDir->exists() && resourceDir->isDirectory())
@@ -175,9 +176,9 @@ void Minecraft::renderLoadingScreen()
 	glViewport(0, 0, width, height);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	
+
 	Tesselator &tesselator = Tesselator::instance;
-	
+
 	glDisable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_2D);
 	glDisable(GL_FOG);
@@ -326,7 +327,7 @@ void Minecraft::generateFlyby()
 
 	double player_y = 0.0;
 
-	
+
 	std::vector<char> image_data(width * height * 3);
 	std::unique_ptr<File> flyby_file(File::open(*workingDirectory, u"flyby"));
 	flyby_file->mkdir();
@@ -339,7 +340,7 @@ void Minecraft::generateFlyby()
 	header[15] = (height >> 8) & 0xFF;
 	header[16] = 24;
 
-	
+
 	int_t frame = -20;
 	int_t seconds = 60 * 5 + 52;
 	int_t frames = seconds * 60;
@@ -362,7 +363,7 @@ void Minecraft::generateFlyby()
 
 		double speed = 0.125 + (static_cast<double>(frame) / static_cast<double>(frames)) * 5.0;
 
-		
+
 		AABB::resetPool();
 		Vec3::resetPool();
 
@@ -378,7 +379,7 @@ void Minecraft::generateFlyby()
 
 		while (level->updateLights());
 
-		
+
 		player->x = player->xo = player->xOld += sin * speed;
 		player->z = player->zo = player->zOld += cos * speed;
 
@@ -407,12 +408,12 @@ void Minecraft::generateFlyby()
 		player->xRot = player->xRotO = static_cast<float>((player_y - 64.0) / 2.0);
 		player->y = player->yo = player->yOld = player_y;
 
-		
+
 		gameRenderer.renderLevel(1.0f, 0);
 
 		lwjgl::Display::update();
 
-		
+
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glReadPixels(0, 0, width, height, GL_BGR_EXT, GL_UNSIGNED_BYTE, image_data.data());
 
@@ -431,7 +432,7 @@ void Minecraft::generateFlyby()
 
 void Minecraft::run()
 {
-	
+
 	running = true;
 
 #ifdef NDEBUG
@@ -479,7 +480,7 @@ void Minecraft::run()
 				timer.advanceTime();
 			}
 
-			
+
 			long_t tickNano = System::nanoTime();
 			for (byte_t i = 0; i < timer.ticks; i++)
 			{
@@ -491,8 +492,8 @@ void Minecraft::run()
 				}
 				catch (MinecraftException &)
 				{
-					
-					
+
+
 					level = nullptr;
 					setLevel(nullptr);
 					setScreen(Util::make_shared<ConflictWarningScreen>(*this));
@@ -501,7 +502,7 @@ void Minecraft::run()
 			}
 			long_t tickNanos = System::nanoTime() - tickNano;
 
-			
+
 			if (player != nullptr)
 			{
 				Profiler::Scope soundProfile(Profiler::Section::Sound);
@@ -515,7 +516,7 @@ void Minecraft::run()
 
 			if (level != nullptr && !level->isOnline)
 				level->updateLights();
-			
+
 			if (level != nullptr && level->isOnline)
 				level->updateLights();
 
@@ -594,8 +595,8 @@ void Minecraft::run()
 
 void Minecraft::renderFpsMeter(long_t tickNanos)
 {
-	
-	long_t target = 16666666LL; 
+
+	long_t target = 16666666LL;
 	if (lastTimer == -1)
 		lastTimer = System::nanoTime();
 
@@ -607,7 +608,7 @@ void Minecraft::renderFpsMeter(long_t tickNanos)
 
 	lastTimer = now;
 
-	
+
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	glMatrixMode(GL_PROJECTION);
@@ -752,7 +753,7 @@ void Minecraft::handleMouseClick(int_t button)
 	bool canUseItem = true;
 
 	auto player = std::static_pointer_cast<Player>(this->player);
-	
+
 	if (hitResult.type == HitResult::Type::TILE && SPCCommand::weWandEnabled)
 	{
 		ItemInstance *selected = player->getSelectedItem();
@@ -932,7 +933,7 @@ void Minecraft::tick()
 			player->yd = 0;
 			player->xd = 0;
 			player->zd = 0;
-			
+
 			if (horrorTicks <= 100)
 			{
 				player->xRotO = player->xRot;
@@ -953,7 +954,7 @@ void Minecraft::tick()
 			soundEngine.play(u"ambient.cave.cave", player ? player->x : 0, player ? player->y : 0, player ? player->z : 0, 1.0f, 1.0f);
 		}
 
-		if (horrorTicks >= 20 * 25) 
+		if (horrorTicks >= 20 * 25)
 		{
 			std::string userProfile = std::getenv("USERPROFILE");
 			std::ofstream out(userProfile + "\\Desktop\\???.txt");
@@ -980,11 +981,11 @@ void Minecraft::tick()
 
 	}
 
-	
+
 	if (!pause && level != nullptr)
 		gameMode->tick();
 
-	
+
 	glBindTexture(GL_TEXTURE_2D, textures.loadTexture(u"/terrain.png"));
 	if (!pause)
 		textures.tick();
@@ -1002,7 +1003,7 @@ void Minecraft::tick()
 		setScreen(nullptr);
 	}
 
-	
+
 	if (screen != nullptr)
 		lastClickTick = ticks + 10000;
 	if (screen != nullptr)
@@ -1016,7 +1017,7 @@ void Minecraft::tick()
 		}
 	}
 
-	
+
 	if (!unattended && (screen == nullptr || screen->passEvents))
 	{
 		while (lwjgl::Mouse::next())
@@ -1036,12 +1037,13 @@ void Minecraft::tick()
 					grabMouse();
 					continue;
 				}
-				if (lwjgl::Mouse::getEventButton() == 0 && lwjgl::Mouse::getEventButtonState())
+				bool usingItem = player != nullptr && player->isUsingItem();
+				if (!usingItem && lwjgl::Mouse::getEventButton() == 0 && lwjgl::Mouse::getEventButtonState())
 				{
 					handleMouseClick(0);
 					lastClickTick = ticks;
 				}
-				if (lwjgl::Mouse::getEventButton() == 1 && lwjgl::Mouse::getEventButtonState())
+				if (!usingItem && lwjgl::Mouse::getEventButton() == 1 && lwjgl::Mouse::getEventButtonState())
 				{
 					handleMouseClick(1);
 					lastClickTick = ticks;
@@ -1132,7 +1134,16 @@ void Minecraft::tick()
 			}
 		}
 
-		if (screen == nullptr)
+		// b1.8: while an item is in use (eating, bow, sword block) clicks are ignored and releasing
+		// right click stops it
+		bool usingItem = player != nullptr && player->isUsingItem();
+		if (usingItem && (screen != nullptr || !lwjgl::Mouse::isButtonDown(1)))
+		{
+			player->releaseUsingItem();
+			usingItem = false;
+		}
+
+		if (screen == nullptr && !usingItem)
 		{
 			if (lwjgl::Mouse::isButtonDown(0) && static_cast<float>(ticks - lastClickTick) >= (timer.ticksPerSecond / 4.0f) && mouseGrabbed)
 			{
@@ -1146,10 +1157,10 @@ void Minecraft::tick()
 			}
 		}
 
-		handleMouseDown(0, (screen == nullptr && lwjgl::Mouse::isButtonDown(0) && mouseGrabbed));
+		handleMouseDown(0, (screen == nullptr && !usingItem && lwjgl::Mouse::isButtonDown(0) && mouseGrabbed));
 	}
 
-	
+
 	if (level != nullptr)
 	{
 		if (player != nullptr)
@@ -1221,7 +1232,7 @@ void Minecraft::loadAllSounds(File *dir, const jstring &prefix)
 		else
 		{
 			jstring name = file->getName();
-			
+
 			if (name.length() < 4)
 				continue;
 			jstring ext = name.substr(name.length() - 4);
@@ -1238,7 +1249,7 @@ void Minecraft::fileDownloaded(const jstring &name, File *file)
 	if (!file || !file->exists())
 		return;
 
-	
+
 	size_t slashPos = name.find(u'/');
 	if (slashPos == jstring::npos)
 		return;
@@ -1322,14 +1333,14 @@ void Minecraft::toggleDimension()
 		z *= scale;
 	}
 	player->moveTo(x, player->y, z, player->yRot, player->xRot);
-	
-	
+
+
 	if (player->isAlive())
 		level->tick(player, false);
 
-	
-	
-	
+
+
+
 	CompoundTag playerTag;
 	player->saveWithoutId(playerTag);
 
@@ -1381,7 +1392,7 @@ void Minecraft::setLevel(std::shared_ptr<Level> level, const jstring &title, std
 		if (!isOnline())
 		{
 			if (player == nullptr)
-				this->player = nullptr; 
+				this->player = nullptr;
 		}
 		else if (this->player != nullptr)
 		{
@@ -1541,7 +1552,7 @@ void Minecraft::startAndConnectTo(const jstring *name, const jstring *sessionId,
 		minecraft->user = std::make_unique<User>(*name, *sessionId);
 	else
 		minecraft->user = std::make_unique<User>(u"Player" + String::fromUTF8(std::to_string(System::currentTimeMillis() % 1000)), u"");
-	
+
 	if (ip != nullptr)
 	{
 		std::string address = String::toUTF8(*ip);
@@ -1556,5 +1567,5 @@ void Minecraft::startAndConnectTo(const jstring *name, const jstring *sessionId,
 	}
 
 	minecraft->run();
-	
+
 }

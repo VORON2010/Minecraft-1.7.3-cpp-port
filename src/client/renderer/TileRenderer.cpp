@@ -15,6 +15,7 @@
 #include "world/level/tile/PistonExtensionTile.h"
 #include "world/level/tile/BedTile.h"
 #include "world/level/tile/NotGateTile.h"
+#include "world/level/tile/FenceGateTile.h"
 #include <cmath>
 
 namespace
@@ -153,6 +154,16 @@ bool TileRenderer::tesselateInWorld(Tile &tt, int_t x, int_t y, int_t z)
 		return tesselatePistonExtensionInWorld(tt, x, y, z);
 	if (shape == Tile::SHAPE_BED)
 		return tesselateBedInWorld(tt, x, y, z);
+	if (shape == Tile::SHAPE_PANE)
+		return tesselatePaneInWorld(tt, x, y, z);
+	if (shape == Tile::SHAPE_VINE)
+		return tesselateVineInWorld(tt, x, y, z);
+	if (shape == Tile::SHAPE_STEM)
+		return tesselateStemInWorld(tt, x, y, z);
+	if (shape == Tile::SHAPE_FENCE_GATE)
+		return tesselateFenceGateInWorld(tt, x, y, z);
+	if (shape == Tile::SHAPE_LILYPAD)
+		return tesselateLilyPadInWorld(tt, x, y, z);
 	return false;
 }
 
@@ -558,7 +569,7 @@ bool TileRenderer::tesselateCrossTextureInWorld(Tile &tt, int_t x, int_t y, int_
 	double v0 = static_cast<double>(yt) / 256.0;
 	double v1 = (static_cast<double>(yt) + 15.99) / 256.0;
 
-	
+
 	double xo = 0.0;
 	double yo = 0.0;
 	double zo = 0.0;
@@ -665,7 +676,7 @@ bool TileRenderer::tesselateBlockInWorld(Tile &tt, int_t x, int_t y, int_t z, fl
 		colorR3 *= tr; colorG3 *= tg; colorB3 *= tb;
 	};
 
-	
+
 	float aoXNeg = 0, aoYNeg = 0, aoZNeg = 0, aoXPos = 0, aoYPos = 0, aoZPos = 0;
 	bool tXpYp = false, tXpYn = false, tXpZp = false, tXpZn = false;
 	bool tXnYp = false, tXnYn = false, tXnZn = false, tXnZp = false;
@@ -680,7 +691,7 @@ bool TileRenderer::tesselateBlockInWorld(Tile &tt, int_t x, int_t y, int_t z, fl
 		aoYPos = sample(x, y + 1, z);
 		aoZPos = sample(x, y, z + 1);
 
-		
+
 		auto cbg = [&](int_t sx, int_t sy, int_t sz) { return !Tile::solid[level->getTile(sx, sy, sz)]; };
 		tXpYp = cbg(x + 1, y + 1, z); tXpYn = cbg(x + 1, y - 1, z);
 		tXpZp = cbg(x + 1, y, z + 1); tXpZn = cbg(x + 1, y, z - 1);
@@ -690,7 +701,7 @@ bool TileRenderer::tesselateBlockInWorld(Tile &tt, int_t x, int_t y, int_t z, fl
 		tYnZp = cbg(x, y - 1, z + 1); tYnZn = cbg(x, y - 1, z - 1);
 	}
 
-	
+
 	if (noCulling || tt.shouldRenderFace(*level, x, y - 1, z, Facing::DOWN))
 	{
 		if (useAO)
@@ -699,7 +710,7 @@ bool TileRenderer::tesselateBlockInWorld(Tile &tt, int_t x, int_t y, int_t z, fl
 			float eZn = sample(x, y - 1, z - 1);
 			float eZp = sample(x, y - 1, z + 1);
 			float eXp = sample(x + 1, y - 1, z);
-			
+
 			float cXnZn = (tYnZn || tXnYn) ? sample(x - 1, y - 1, z - 1) : eXn;
 			float cXnZp = (tYnZp || tXnYn) ? sample(x - 1, y - 1, z + 1) : eXn;
 			float cXpZn = (tYnZn || tXpYn) ? sample(x + 1, y - 1, z - 1) : eXp;
@@ -721,7 +732,7 @@ bool TileRenderer::tesselateBlockInWorld(Tile &tt, int_t x, int_t y, int_t z, fl
 		changed = true;
 	}
 
-	
+
 	if (noCulling || tt.shouldRenderFace(*level, x, y + 1, z, Facing::UP))
 	{
 		if (useAO)
@@ -752,7 +763,7 @@ bool TileRenderer::tesselateBlockInWorld(Tile &tt, int_t x, int_t y, int_t z, fl
 		changed = true;
 	}
 
-	
+
 	if (noCulling || tt.shouldRenderFace(*level, x, y, z - 1, Facing::NORTH))
 	{
 		int_t tex = tt.getTexture(*level, x, y, z, Facing::NORTH);
@@ -798,7 +809,7 @@ bool TileRenderer::tesselateBlockInWorld(Tile &tt, int_t x, int_t y, int_t z, fl
 		changed = true;
 	}
 
-	
+
 	if (noCulling || tt.shouldRenderFace(*level, x, y, z + 1, Facing::SOUTH))
 	{
 		int_t tex = tt.getTexture(*level, x, y, z, Facing::SOUTH);
@@ -844,7 +855,7 @@ bool TileRenderer::tesselateBlockInWorld(Tile &tt, int_t x, int_t y, int_t z, fl
 		changed = true;
 	}
 
-	
+
 	if (noCulling || tt.shouldRenderFace(*level, x - 1, y, z, Facing::WEST))
 	{
 		int_t tex = tt.getTexture(*level, x, y, z, Facing::WEST);
@@ -890,7 +901,7 @@ bool TileRenderer::tesselateBlockInWorld(Tile &tt, int_t x, int_t y, int_t z, fl
 		changed = true;
 	}
 
-	
+
 	if (noCulling || tt.shouldRenderFace(*level, x + 1, y, z, Facing::EAST))
 	{
 		int_t tex = tt.getTexture(*level, x, y, z, Facing::EAST);
@@ -1612,20 +1623,20 @@ void TileRenderer::renderCube(Tile &tile, float alpha)
 {
 	int shape = tile.getRenderShape();
 	Tesselator &t = Tesselator::instance;
-	
+
 
 	if (shape == Tile::SHAPE_BLOCK)
 	{
 		tile.updateDefaultShape();
 		glTranslatef(-0.5f, -0.5f, -0.5f);
-		
+
 		float sd = 0.5f;
 		float su = 1.0f;
 		float sns = 0.8f;
 		float sew = 0.6f;
-		
+
 		t.begin();
-		
+
 		t.color(su, su, su, alpha);
 		renderFaceUp(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::DOWN));
 		t.color(sd, sd, sd, alpha);
@@ -1636,9 +1647,9 @@ void TileRenderer::renderCube(Tile &tile, float alpha)
 		t.color(sew, sew, sew, alpha);
 		renderWest(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::WEST));
 		renderEast(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::EAST));
-		
+
 		t.end();
-		
+
 		glTranslatef(0.5f, 0.5f, 0.5f);
 	}
 	else if (shape == Tile::SHAPE_CACTUS)
@@ -1646,48 +1657,48 @@ void TileRenderer::renderCube(Tile &tile, float alpha)
 		tile.updateDefaultShape();
 		float s = 1.0f / 16.0f;
 		glTranslatef(-0.5f, -0.5f, -0.5f);
-		
+
 		t.begin();
 		t.normal(0.0f, -1.0f, 0.0f);
 		renderFaceUp(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::DOWN));
 		t.end();
-		
+
 		t.begin();
 		t.normal(0.0f, 1.0f, 0.0f);
 		renderFaceDown(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::UP));
 		t.end();
-		
+
 		t.begin();
 		t.normal(0.0f, 0.0f, -1.0f);
 		t.addOffset(0.0f, 0.0f, s);
 		renderNorth(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::NORTH));
 		t.addOffset(0.0f, 0.0f, -s);
 		t.end();
-		
+
 		t.begin();
 		t.normal(0.0f, 0.0f, 1.0f);
 		t.addOffset(0.0f, 0.0f, -s);
 		renderSouth(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::SOUTH));
 		t.addOffset(0.0f, 0.0f, s);
 		t.end();
-		
+
 		t.begin();
 		t.normal(-1.0f, 0.0f, 0.0f);
 		t.addOffset(s, 0.0f, 0.0f);
 		renderWest(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::WEST));
 		t.addOffset(-s, 0.0f, 0.0f);
 		t.end();
-		
+
 		t.begin();
 		t.normal(1.0f, 0.0f, 0.0f);
 		t.addOffset(-s, 0.0f, 0.0f);
 		renderEast(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::EAST));
 		t.addOffset(s, 0.0f, 0.0f);
 		t.end();
-		
+
 		glTranslatef(0.5f, 0.5f, 0.5f);
 	}
-	
+
 }
 
 void TileRenderer::renderTile(Tile &tile, int_t data)
@@ -1768,36 +1779,36 @@ void TileRenderer::renderTile(Tile &tile, int_t data)
 		else if (shape == Tile::SHAPE_TORCH)
 		{
 			int_t orient = data & 7;
-			float w = 0.0625f * 2.0f; 
-			float h = 0.625f;        
+			float w = 0.0625f * 2.0f;
+			float h = 0.625f;
 
 			float x0, x1, z0, z1, yBot, yTop;
 
-			if (orient == 1) 
+			if (orient == 1)
 			{
 				x0 = 0.0f; x1 = w;
 				z0 = 0.5f - w; z1 = 0.5f + w;
 				yBot = 0.2f; yTop = yBot + h * 10.0f / 16.0f;
 			}
-			else if (orient == 2) 
+			else if (orient == 2)
 			{
 				x0 = 1.0f - w; x1 = 1.0f;
 				z0 = 0.5f - w; z1 = 0.5f + w;
 				yBot = 0.2f; yTop = yBot + h * 10.0f / 16.0f;
 			}
-			else if (orient == 3) 
+			else if (orient == 3)
 			{
 				x0 = 0.5f - w; x1 = 0.5f + w;
 				z0 = 0.0f; z1 = w;
 				yBot = 0.2f; yTop = yBot + h * 10.0f / 16.0f;
 			}
-			else if (orient == 4) 
+			else if (orient == 4)
 			{
 				x0 = 0.5f - w; x1 = 0.5f + w;
 				z0 = 1.0f - w; z1 = 1.0f;
 				yBot = 0.2f; yTop = yBot + h * 10.0f / 16.0f;
 			}
-			else 
+			else
 			{
 				x0 = 0.5f - w; x1 = 0.5f + w;
 				z0 = 0.5f - w; z1 = 0.5f + w;
@@ -1808,33 +1819,33 @@ void TileRenderer::renderTile(Tile &tile, int_t data)
 
 			glTranslatef(-0.5f, -0.5f, -0.5f);
 
-			
+
 			t.begin();
 			tile.setShape(x0, yBot, z0, x1, yTop, z1);
 			renderFaceUp(tile, 0.0, 0.0, 0.0, tex);
 			t.end();
 
-			
+
 			t.begin();
 			renderFaceDown(tile, 0.0, 0.0, 0.0, tex);
 			t.end();
 
-			
+
 			t.begin();
 			renderNorth(tile, 0.0, 0.0, 0.0, tex);
 			t.end();
 
-			
+
 			t.begin();
 			renderSouth(tile, 0.0, 0.0, 0.0, tex);
 			t.end();
 
-			
+
 			t.begin();
 			renderWest(tile, 0.0, 0.0, 0.0, tex);
 			t.end();
 
-			
+
 			t.begin();
 			renderEast(tile, 0.0, 0.0, 0.0, tex);
 			t.end();
@@ -1842,22 +1853,35 @@ void TileRenderer::renderTile(Tile &tile, int_t data)
 			tile.setShape(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
 			glTranslatef(0.5f, 0.5f, 0.5f);
 		}
-		else if (shape == Tile::SHAPE_FENCE)
+		else if (shape == Tile::SHAPE_FENCE || shape == Tile::SHAPE_FENCE_GATE)
 		{
-			for (int_t piece = 0; piece < 4; ++piece)
+			bool gate = shape == Tile::SHAPE_FENCE_GATE;
+			for (int_t piece = 0; piece < (gate ? 3 : 4); ++piece)
 			{
 				float width = 2.0f / 16.0f;
-				if (piece == 0)
+				if (gate)
+				{
+					// b1.8 fence gate item: two posts and the closed door
+					width = 1.0f / 16.0f;
+					if (piece == 0)
+						tile.setShape(0.5f - width, 0.3f, 0.0f, 0.5f + width, 1.0f, width * 2.0f);
+					if (piece == 1)
+						tile.setShape(0.5f - width, 0.3f, 1.0f - width * 2.0f, 0.5f + width, 1.0f, 1.0f);
+					if (piece == 2)
+						tile.setShape(0.5f - width, 0.5f, 0.0f, 0.5f + width, 1.0f - width, 1.0f);
+				}
+				else if (piece == 0)
 					tile.setShape(0.5f - width, 0.0f, 0.0f,
 						0.5f + width, 1.0f, width * 2.0f);
-				if (piece == 1)
+				if (!gate && piece == 1)
 					tile.setShape(0.5f - width, 0.0f, 1.0f - width * 2.0f,
 						0.5f + width, 1.0f, 1.0f);
-				width = 1.0f / 16.0f;
-				if (piece == 2)
+				if (!gate)
+					width = 1.0f / 16.0f;
+				if (!gate && piece == 2)
 					tile.setShape(0.5f - width, 1.0f - width * 3.0f, -width * 2.0f,
 						0.5f + width, 1.0f - width, 1.0f + width * 2.0f);
-				if (piece == 3)
+				if (!gate && piece == 3)
 					tile.setShape(0.5f - width, 0.5f - width * 3.0f, -width * 2.0f,
 						0.5f + width, 0.5f - width, 1.0f + width * 2.0f);
 
@@ -2000,7 +2024,7 @@ bool TileRenderer::tesselateBedInWorld(Tile &tt, int_t x, int_t y, int_t z)
 
 	float centerBrightness = tt.getBrightness(*level, x, y, z);
 
-	
+
 	{
 		t.color(c10 * centerBrightness, c10 * centerBrightness, c10 * centerBrightness);
 		int_t tex = tt.getTexture(*level, x, y, z, Facing::DOWN);
@@ -2023,7 +2047,7 @@ bool TileRenderer::tesselateBedInWorld(Tile &tt, int_t x, int_t y, int_t z)
 		t.vertexUV(x1, y0, z1, u1, v1);
 	}
 
-	
+
 	{
 		float topBrightness = tt.getBrightness(*level, x, y + 1, z);
 		t.color(c11 * topBrightness, c11 * topBrightness, c11 * topBrightness);
@@ -2040,21 +2064,21 @@ bool TileRenderer::tesselateBedInWorld(Tile &tt, int_t x, int_t y, int_t z)
 		double bottomLeftU = u0, bottomRightU = u1;
 		double bottomLeftV = v1, bottomRightV = v1;
 
-		if (direction == 0) 
+		if (direction == 0)
 		{
 			topRightU = u0;
 			topLeftV = v1;
 			bottomLeftU = u1;
 			bottomRightV = v0;
 		}
-		else if (direction == 2) 
+		else if (direction == 2)
 		{
 			topLeftU = u1;
 			topRightV = v1;
 			bottomRightU = u0;
 			bottomLeftV = v0;
 		}
-		else if (direction == 3) 
+		else if (direction == 3)
 		{
 			topLeftU = u1;
 			topRightV = v1;
@@ -2078,24 +2102,24 @@ bool TileRenderer::tesselateBedInWorld(Tile &tt, int_t x, int_t y, int_t z)
 		t.vertexUV(x0, y1, z1, bottomRightU, bottomRightV);
 	}
 
-	
-	
-	
-	
+
+
+
+
 	static constexpr int directionToFacing[4] = {3, 4, 2, 5};
 	static constexpr int directionOpposite[4] = {2, 3, 0, 1};
 	int_t skipEdge = directionToFacing[directionOpposite[direction]];
 	if (isHead)
 		skipEdge = directionToFacing[direction];
 
-	
-	int_t flipEdge = 4; 
+
+	int_t flipEdge = 4;
 	switch (direction)
 	{
-		case 0: flipEdge = 5; break; 
-		case 1: flipEdge = 3; break; 
-		case 2: flipEdge = 4; break; 
-		case 3: flipEdge = 2; break; 
+		case 0: flipEdge = 5; break;
+		case 1: flipEdge = 3; break;
+		case 2: flipEdge = 4; break;
+		case 3: flipEdge = 2; break;
 	}
 
 	if (skipEdge != 2 && (noCulling || tt.shouldRenderFace(*level, x, y, z - 1, Facing::NORTH)))
@@ -2145,7 +2169,7 @@ bool TileRenderer::canRender(int_t renderShape)
 	{
 		return renderShape == Tile::SHAPE_BLOCK || renderShape == Tile::SHAPE_CACTUS ||
 			renderShape == Tile::SHAPE_STAIRS || renderShape == Tile::SHAPE_FENCE ||
-			renderShape == Tile::SHAPE_PISTON_BASE;
+			renderShape == Tile::SHAPE_PISTON_BASE || renderShape == Tile::SHAPE_FENCE_GATE;
 	}
 
 
@@ -2352,15 +2376,15 @@ bool TileRenderer::tesselateFenceInWorld(Tile &tt, int_t x, int_t y, int_t z)
 
 	bool connectX = false;
 	bool connectZ = false;
-	if (level->getTile(x - 1, y, z) == tt.id || level->getTile(x + 1, y, z) == tt.id)
+	auto joins = [&](int_t t) { return t == tt.id || t == Tile::fenceGate.id; };
+	bool west = joins(level->getTile(x - 1, y, z));
+	bool east = joins(level->getTile(x + 1, y, z));
+	bool north = joins(level->getTile(x, y, z - 1));
+	bool south = joins(level->getTile(x, y, z + 1));
+	if (west || east)
 		connectX = true;
-	if (level->getTile(x, y, z - 1) == tt.id || level->getTile(x, y, z + 1) == tt.id)
+	if (north || south)
 		connectZ = true;
-
-	bool west = level->getTile(x - 1, y, z) == tt.id;
-	bool east = level->getTile(x + 1, y, z) == tt.id;
-	bool north = level->getTile(x, y, z - 1) == tt.id;
-	bool south = level->getTile(x, y, z + 1) == tt.id;
 	if (!connectX && !connectZ)
 		connectX = true;
 

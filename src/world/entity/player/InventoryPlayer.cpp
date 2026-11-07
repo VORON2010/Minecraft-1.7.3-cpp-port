@@ -241,6 +241,14 @@ bool InventoryPlayer::add(ItemInstance &item)
 	return item.stackSize < previous;
 }
 
+bool InventoryPlayer::hasItem(int_t itemId) const
+{
+	for (const ItemInstance &item : mainInventory)
+		if (!item.isEmpty() && item.itemID == itemId)
+			return true;
+	return false;
+}
+
 bool InventoryPlayer::consumeItem(int_t itemId)
 {
 	for (ItemInstance &item : mainInventory)

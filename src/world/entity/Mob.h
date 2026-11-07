@@ -1,10 +1,12 @@
 #pragma once
 
+#include <map>
 #include <string>
 
 #include "world/entity/Entity.h"
 #include "world/phys/AABB.h"
 #include "world/phys/HitResult.h"
+#include "world/entity/effect/MobEffect.h"
 
 #include "java/Type.h"
 #include "java/Math.h"
@@ -105,6 +107,39 @@ private:
 	std::shared_ptr<Entity> lookingAt;
 	int_t lookTime = 0;
 
+protected:
+	std::map<int_t, MobEffectInstance> activeEffects;
+	bool effectsDirty = false;
+	int_t effectColor = 0;
+	bool hurtBypassesArmor = false;
+
+	// b1.8 experience: mobs hit by a player in the last 3 seconds drop orbs on death
+	int_t lastHurtByPlayerTime = 0;
+	int_t xpReward = 0;
+	virtual int_t getExperienceReward() { return xpReward; }
+	virtual bool alwaysDropsExperience() { return false; }
+	int_t effectDamageSpill = 0;
+
+	void tickEffects();
+	virtual void onEffectAdded(const MobEffectInstance &effect) { (void)effect; effectsDirty = true; }
+	virtual void onEffectUpdated(const MobEffectInstance &effect) { (void)effect; effectsDirty = true; }
+	virtual void onEffectRemoved(const MobEffectInstance &effect) { (void)effect; effectsDirty = true; }
+	int_t applyEffectDamageReduction(int_t dmg);
+
+public:
+	bool hasEffect(const MobEffect &effect) const;
+	const MobEffectInstance *getEffect(const MobEffect &effect) const;
+	void addEffect(const MobEffectInstance &effect);
+	void removeEffect(int_t id);
+	void removeAllEffects();
+	const std::map<int_t, MobEffectInstance> &getActiveEffects() const { return activeEffects; }
+	virtual bool canBeAffected(const MobEffectInstance &effect);
+	virtual bool isUndead() { return false; }
+	bool hurtByMagic(Entity *source, int_t dmg);
+	bool hurtByFire(int_t dmg) override;
+	float getSpeedModifier();
+	int_t getEffectColor() const { return effectColor; }
+
 public:
 	Mob(Level &level);
 
@@ -127,7 +162,7 @@ public:
 	virtual void baseTick() override;
 
 	void spawnAnim();
-	
+
 	void playAmbientSound();
 
 	virtual void rideTick() override;
@@ -174,7 +209,7 @@ public:
 protected:
 	virtual void addAdditionalSaveData(CompoundTag &tag) override;
 	virtual void readAdditionalSaveData(CompoundTag &tag) override;
-	
+
 public:
 	virtual bool isAlive() override;
 	virtual bool isWaterMob();

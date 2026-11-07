@@ -9,6 +9,7 @@ public:
 	jstring getEncodeId() const override { return u"Spider"; }
 	double getRideHeight() override;
 	bool onLadder() override;
+	bool canBeAffected(const MobEffectInstance &effect) override { return effect.getId() != MobEffect::poison.id && Monster::canBeAffected(effect); }
 
 protected:
 	std::shared_ptr<Entity> findAttackTarget() override;

@@ -18,8 +18,22 @@ ItemBucket::ItemBucket(int_t baseId, int_t containedBlockId)
 	setMaxStackSize(1);
 }
 
+void ItemBucket::useTimeDepleted(ItemInstance &stack, Level &level, Player &player) const
+{
+	if (containedBlockId >= 0)
+		return;
+	if (!level.isOnline)
+		player.removeAllEffects();
+	stack = ItemInstance(Items::bucketEmpty->getShiftedIndex(), 1, 0);
+}
+
 void ItemBucket::use(ItemInstance &stack, Level &level, Player &player) const
 {
+	if (containedBlockId < 0)
+	{
+		player.startUsingItem(stack, getUseDuration(stack));
+		return;
+	}
 	float a = 1.0f;
 	float xRot = player.xRotO + (player.xRot - player.xRotO) * a;
 	float yRot = player.yRotO + (player.yRot - player.yRotO) * a;
@@ -48,7 +62,7 @@ void ItemBucket::use(ItemInstance &stack, Level &level, Player &player) const
 
 		if (containedBlockId == 0)
 		{
-			
+
 			const Material &mat = level.getMaterial(x, y, z);
 			if (&mat == static_cast<const Material *>(&Material::water) && level.getData(x, y, z) == 0)
 			{
@@ -67,7 +81,7 @@ void ItemBucket::use(ItemInstance &stack, Level &level, Player &player) const
 		{
 			if (containedBlockId < 0)
 			{
-				
+
 				stack = ItemInstance(Items::bucketEmpty->getShiftedIndex(), 1, 0);
 				return;
 			}

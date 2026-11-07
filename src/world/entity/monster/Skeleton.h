@@ -6,6 +6,7 @@
 class Skeleton : public Monster
 {
 public:
+	bool isUndead() override { return true; }
 	Skeleton(Level &level);
 	jstring getEncodeId() const override { return u"Skeleton"; }
 	void aiStep() override;

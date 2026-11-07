@@ -6,6 +6,11 @@ class Animal : public PathfinderMob
 {
 public:
 	Animal(Level &level);
+
+protected:
+	int_t getExperienceReward() override { return 1 + random.nextInt(3); }
+
+public:
 	int_t getAmbientSoundInterval() override;
 	bool canSpawn() override;
 

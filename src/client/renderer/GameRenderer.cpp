@@ -30,6 +30,7 @@
 #include "world/level/material/LiquidMaterial.h"
 
 #include <cstdint>
+#include "world/level/biome/Biome.h"
 
 namespace
 {
@@ -108,8 +109,8 @@ void GameRenderer::addRainParticles()
 		z = javaIntAdd(z, -random.nextInt(radius));
 		int_t y = level.findTopSolidBlock(x, z);
 		int_t tileId = level.getTile(x, y - 1, z);
-		const BiomeInfo &biome = level.getBiomeSource().getBiomeInfo(level.getBiomeSource().getBiome(x, z));
-		if (y <= playerY + radius && y >= playerY - radius && biome.canSpawnLightningBolt())
+		Biome *biome = level.getBiomeSource().getBiome(x, z);
+		if (y <= playerY + radius && y >= playerY - radius && biome->hasRain() && level.getBiomeSource().getTemperature(x, y, z) > 0.2f)
 		{
 			float rx = random.nextFloat();
 			float rz = random.nextFloat();
@@ -434,7 +435,7 @@ void GameRenderer::render(float a)
 		lastActiveTime = System::currentTimeMillis();
 	}
 
-	
+
 	if (mc.mouseGrabbed)
 	{
 		mc.mouseHandler.poll();
@@ -464,9 +465,9 @@ void GameRenderer::render(float a)
 	int_t xm = lwjgl::Mouse::getX() * w / mc.width;
 	int_t ym = h - lwjgl::Mouse::getY() * h / mc.height - 1;
 
-	
-	
-	
+
+
+
 	long_t frameBudget = 1000000000LL / (mc.options.limitFramerate == 2 ? 40 : 120);
 
 	if (mc.level != nullptr)
@@ -511,7 +512,7 @@ void GameRenderer::render(float a)
 		lastRenderNano = System::nanoTime();
 	}
 
-	auto screen = mc.screen; 
+	auto screen = mc.screen;
 	if (screen != nullptr)
 	{
 		Profiler::Scope guiProfile(Profiler::Section::Gui);
@@ -526,7 +527,7 @@ void GameRenderer::renderLevel(float a, long_t deadline)
 
 	auto &player = mc.player;
 	auto &levelRenderer = mc.levelRenderer;
-	
+
 	double xOff = player->xOld + (player->x - player->xOld) * a;
 	double yOff = player->yOld + (player->y - player->yOld) * a;
 	double zOff = player->zOld + (player->z - player->zOld) * a;
@@ -564,15 +565,15 @@ void GameRenderer::renderLevel(float a, long_t deadline)
 		culler.prepare(xOff, yOff, zOff);
 
 		mc.levelRenderer.cull(culler, a);
-		
-		
+
+
 		while (!mc.levelRenderer.updateDirtyChunks(*player, Minecraft::FLYBY_MODE) && deadline != 0)
 		{
 			long_t remaining = deadline - System::nanoTime();
 			if (remaining < 0 || remaining > 1000000000LL)
 				break;
 		}
-		
+
 		setupFog(0);
 
 		glEnable(GL_FOG);
@@ -629,7 +630,7 @@ void GameRenderer::renderLevel(float a, long_t deadline)
 			glColorMask(false, false, false, false);
 			int_t count = levelRenderer.render(*player, 1, a);
 			glColorMask(true, true, true, true);
-		
+
 			if (mc.options.anaglyph3d)
 			{
 				if (eye == 0)
@@ -637,7 +638,7 @@ void GameRenderer::renderLevel(float a, long_t deadline)
 				else
 					glColorMask(true, false, false, true);
 			}
-		
+
 			if (count > 0)
 				levelRenderer.renderSameAsLast(1, a);
 
@@ -724,16 +725,19 @@ void GameRenderer::renderRainSnow(float a)
 
 	int_t diameter = radius * 2 + 1;
 	BiomeSource &biomeSource = level.getBiomeSource();
-	biomeSource.getBiomeBlock(playerX - radius, playerZ - radius, diameter, diameter);
-	const std::vector<BiomeId> &biomes = biomeSource.biomes;
+	std::vector<Biome *> biomes;
+	biomeSource.getBiomeBlock(biomes, playerX - radius, playerZ - radius, diameter, diameter);
+	std::vector<float> temperatures(static_cast<size_t>(diameter * diameter));
+	biomeSource.getTemperatureBlock(temperatures.data(), playerX - radius, playerZ - radius, diameter, diameter);
 	int_t biomeIndex = 0;
 
 	for (int_t x = playerX - radius; x <= playerX + radius; ++x)
 	{
 		for (int_t z = playerZ - radius; z <= playerZ + radius; ++z)
 		{
-			const BiomeInfo &biome = biomeSource.getBiomeInfo(biomes[static_cast<std::size_t>(biomeIndex++)]);
-			if (biome.enableSnow)
+			Biome *biome = biomes[static_cast<std::size_t>(biomeIndex)];
+			float temperature = biomeSource.scaleTemperature(temperatures[static_cast<std::size_t>(biomeIndex++)], playerY);
+			if ((biome->hasRain() || biome->hasSnow()) && temperature < 0.15f)
 			{
 				int_t top = level.findTopSolidBlock(x, z);
 				if (top < 0)
@@ -800,8 +804,9 @@ void GameRenderer::renderRainSnow(float a)
 	{
 		for (int_t z = playerZ - radius; z <= playerZ + radius; ++z)
 		{
-			const BiomeInfo &biome = biomeSource.getBiomeInfo(biomes[static_cast<std::size_t>(biomeIndex++)]);
-			if (biome.canSpawnLightningBolt())
+			Biome *biome = biomes[static_cast<std::size_t>(biomeIndex)];
+			float temperature = biomeSource.scaleTemperature(temperatures[static_cast<std::size_t>(biomeIndex++)], playerY);
+			if ((biome->hasRain() || biome->hasSnow()) && temperature >= 0.15f)
 			{
 				int_t top = level.findTopSolidBlock(x, z);
 				int_t y0 = playerY - radius;
@@ -912,7 +917,7 @@ void GameRenderer::setupClearColor(float a)
 		fb *= scale;
 	}
 
-	
+
 	if (mc.player->isUnderLiquid(Material::water))
 	{
 		fr = 0.02f;
@@ -952,7 +957,7 @@ void GameRenderer::setupFog(int_t mode)
 	glNormal3f(0.0f, -1.0f, 0.0f);
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
-	
+
 	if (mc.player->isUnderLiquid(Material::water))
 	{
 		glFogi(GL_FOG_MODE, GL_EXP);

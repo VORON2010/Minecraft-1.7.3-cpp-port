@@ -1,3 +1,4 @@
+#include "pc/OpenGL.h"
 #include "client/renderer/entity/MobRenderer.h"
 
 #include "client/renderer/entity/EntityRenderDispatcher.h"
@@ -88,8 +89,8 @@ void MobRenderer::render(Entity &entity, double x, double y, double z, float rot
 			{
 				if (prepareArmorOverlay(mob, i, a))
 				{
-					
-					
+
+
 					glColor4f(br, 0.0f, 0.0f, 0.4f);
 					armor->render(wp, ws, bob, headRot - bodyRot, headRotx, scale);
 				}

@@ -42,6 +42,9 @@
 #include "world/level/Level.h"
 #include "world/level/tile/Tile.h"
 #include "world/phys/Vec3.h"
+#include "world/entity/monster/Enderman.h"
+#include "world/entity/monster/CaveSpider.h"
+#include "world/entity/monster/Silverfish.h"
 
 std::vector<SPCCommand::ChatMessage> SPCCommand::messages;
 
@@ -234,8 +237,8 @@ const std::map<jstring, int_t> &itemAliases()
 		return aliases;
 	initialized = true;
 
-	
-	
+
+
 	Language &language = Language::getInstance();
 	for (Item *item : Item::items)
 	{
@@ -545,6 +548,9 @@ std::shared_ptr<Entity> createSpawnEntity(Level &level, const jstring &name)
 	}
 	if (key == u"slime") return std::make_shared<Slime>(level);
 	if (key == u"pigzombie" || key == u"zombiepigman") return std::make_shared<PigZombie>(level);
+	if (key == u"enderman") return std::make_shared<Enderman>(level);
+	if (key == u"cavespider") return std::make_shared<CaveSpider>(level);
+	if (key == u"silverfish") return std::make_shared<Silverfish>(level);
 	return nullptr;
 }
 
@@ -980,6 +986,32 @@ void SPCCommand::execute(Minecraft &mc, const jstring &input)
 		return;
 	}
 
+	if (cmd == u"effect")
+	{
+		// effect <id> [seconds] [amplifier] | effect clear
+		if (!requirePlayer(mc))
+			return;
+		if (parts.size() >= 2 && parts[1] == u"clear")
+		{
+			mc.player->removeAllEffects();
+			addMessage(u"§7Effects cleared");
+			return;
+		}
+		long_t id = 0, seconds = 30, amplifier = 0;
+		if (parts.size() < 2 || !parseLong(parts[1], id) || id <= 0 || id >= 32 || MobEffect::effects[id] == nullptr)
+		{
+			sendError(u"Usage: effect <1-19> [seconds] [amplifier] | effect clear");
+			return;
+		}
+		if (parts.size() >= 3)
+			parseLong(parts[2], seconds);
+		if (parts.size() >= 4)
+			parseLong(parts[3], amplifier);
+		mc.player->addEffect(MobEffectInstance(static_cast<int_t>(id), static_cast<int_t>(seconds * 20), static_cast<int_t>(amplifier)));
+		addMessage(u"§7Effect " + MobEffect::effects[id]->getDescriptionId() + u" for " + String::toString(seconds) + u"s");
+		return;
+	}
+
 	if (cmd == u"heal")
 	{
 		if (!requirePlayer(mc))
@@ -1267,7 +1299,7 @@ void SPCCommand::execute(Minecraft &mc, const jstring &input)
 		addMessage(u"\u00a77Spawned " + String::toString(spawned) + u" " + lowerAscii(parts[1]) + u"(s)");
 		return;
 	}
-	
+
 
 	if (cmd == u"spawncontrol")
 	{
@@ -1301,7 +1333,7 @@ void SPCCommand::execute(Minecraft &mc, const jstring &input)
 		addMessage(u"\u00a77Friendly mobs will " + jstring(animalSpawn ? u"now spawn" : u"not spawn") + u". Aggressive mobs will " + jstring(monstersSpawn ? u"now spawn" : u"not spawn") + u".");
 		return;
 	}
-	
+
 
 	if (matches(cmd, {u"setspawn", u"spawnpoint"}))
 	{

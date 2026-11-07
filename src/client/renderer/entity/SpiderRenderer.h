@@ -10,4 +10,5 @@ public:
 protected:
 	bool prepareArmor(Mob &mob, int_t layer, float a) override;
 	float getFlipDegrees(Mob &mob) override;
+	void scale(Mob &mob, float a) override;
 };

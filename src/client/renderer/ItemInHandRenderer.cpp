@@ -1,3 +1,4 @@
+#include "pc/OpenGL.h"
 #include "client/renderer/ItemInHandRenderer.h"
 
 #include "client/Minecraft.h"
@@ -48,7 +49,7 @@ void ItemInHandRenderer::renderMapFirstPerson(float a, float h)
 	glRotatef(pitch * -85.0f, 0.0f, 0.0f, 1.0f);
 	glEnable(GL_RESCALE_NORMAL);
 
-	
+
 	{
 		const jstring fallbackTexture = localPlayer.getTexture();
 		glBindTexture(GL_TEXTURE_2D, mc.textures.loadHttpTexture(localPlayer.customTextureUrl, &fallbackTexture));
@@ -83,7 +84,7 @@ void ItemInHandRenderer::renderMapFirstPerson(float a, float h)
 	float mapScale = 2.0f / 128.0f;
 	glScalef(mapScale, mapScale, mapScale);
 
-	
+
 	Tesselator &t = Tesselator::instance;
 	glBindTexture(GL_TEXTURE_2D, mc.textures.loadTexture(u"/misc/mapbg.png"));
 	glNormal3f(0.0f, 0.0f, -1.0f);
@@ -95,7 +96,7 @@ void ItemInHandRenderer::renderMapFirstPerson(float a, float h)
 	t.vertexUV((float)(0 - bgBorder), (float)(0 - bgBorder), 0.0f, 0.0f, 0.0f);
 	t.end();
 
-	
+
 	ItemInstance item = selectedItem;
 	if (!item.isEmpty() && Items::map != nullptr && item.itemID == Items::map->getShiftedIndex())
 	{
@@ -107,6 +108,8 @@ void ItemInHandRenderer::renderMapFirstPerson(float a, float h)
 
 namespace HeldItemRenderer
 {
+	int_t iconOverride = -1;
+
 	void render(Textures &textures, TileRenderer &tileRenderer, ItemInstance &item, float brightness)
 	{
 		Tile *tile = item.itemID >= 0 && item.itemID < static_cast<int_t>(Tile::tiles.size()) ? Tile::tiles[item.itemID] : nullptr;
@@ -126,16 +129,16 @@ namespace HeldItemRenderer
 			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 			renderedAsBlock = true;
 		}
-	
+
 		if (!renderedAsBlock && !item.isEmpty())
 		{
 			if (item.itemID < 256)
 				glBindTexture(GL_TEXTURE_2D, textures.loadTexture(u"/terrain.png"));
 			else
 				glBindTexture(GL_TEXTURE_2D, textures.loadTexture(u"/gui/items.png"));
-	
+
 			Tesselator &t = Tesselator::instance;
-			int_t icon = item.getIcon();
+			int_t icon = iconOverride >= 0 ? iconOverride : item.getIcon();
 			float u1 = (icon % 16 * TileSize::size + 0.0f) / TileSize::size16;
 			float u0 = (icon % 16 * TileSize::size + TileSize::sizeMinus0_01) / TileSize::size16;
 			float v0 = (icon / 16 * TileSize::size + 0.0f) / TileSize::size16;
@@ -151,7 +154,7 @@ namespace HeldItemRenderer
 			glRotatef(335.0f, 0.0f, 0.0f, 1.0f);
 			glTranslatef(-0.9375f, -0.0625f, 0.0f);
 			float dd = 0.0625f;
-	
+
 			t.begin();
 			t.normal(0.0f, 0.0f, 1.0f);
 			t.vertexUV(0.0, 0.0, 0.0, u0, v1);
@@ -159,7 +162,7 @@ namespace HeldItemRenderer
 			t.vertexUV(r, 1.0, 0.0, u1, v0);
 			t.vertexUV(0.0, 1.0, 0.0, u0, v0);
 			t.end();
-	
+
 			t.begin();
 			t.normal(0.0f, 0.0f, -1.0f);
 			t.vertexUV(0.0, 1.0, 0.0f - dd, u0, v0);
@@ -167,7 +170,7 @@ namespace HeldItemRenderer
 			t.vertexUV(r, 0.0, 0.0f - dd, u1, v1);
 			t.vertexUV(0.0, 0.0, 0.0f - dd, u0, v1);
 			t.end();
-	
+
 			t.begin();
 			t.normal(-1.0f, 0.0f, 0.0f);
 			for (int_t i = 0; i < TileSize::size; i++)
@@ -181,7 +184,7 @@ namespace HeldItemRenderer
 				t.vertexUV(xx, 1.0, 0.0f - dd, uu, v0);
 			}
 			t.end();
-	
+
 			t.begin();
 			t.normal(1.0f, 0.0f, 0.0f);
 			for (int_t i = 0; i < TileSize::size; i++)
@@ -195,7 +198,7 @@ namespace HeldItemRenderer
 				t.vertexUV(xx, 0.0, 0.0f - dd, uu, v1);
 			}
 			t.end();
-	
+
 			t.begin();
 			t.normal(0.0f, 1.0f, 0.0f);
 			for (int_t i = 0; i < TileSize::size; i++)
@@ -209,7 +212,7 @@ namespace HeldItemRenderer
 				t.vertexUV(0.0, yy, 0.0f - dd, u0, vv);
 			}
 			t.end();
-	
+
 			t.begin();
 			t.normal(0.0f, -1.0f, 0.0f);
 			for (int_t i = 0; i < TileSize::size; i++)
@@ -231,7 +234,9 @@ namespace HeldItemRenderer
 void ItemInHandRenderer::renderItem(ItemInstance &item, float brightness)
 {
 	glPushMatrix();
+	HeldItemRenderer::iconOverride = heldIconOverride;
 	HeldItemRenderer::render(mc.textures, tileRenderer, item, brightness);
+	HeldItemRenderer::iconOverride = -1;
 	glPopMatrix();
 }
 
@@ -263,7 +268,31 @@ void ItemInHandRenderer::render(float a)
 			float swing = localPlayer.getAttackAnim(a);
 			float swing1 = Mth::sin(swing * Mth::PI);
 			float swing2 = Mth::sin(Mth::sqrt(swing) * Mth::PI);
-			glTranslatef(-swing2 * 0.4f, Mth::sin(Mth::sqrt(swing) * Mth::PI * 2.0f) * 0.2f, -swing1 * 0.2f);
+			ItemInstance *useItem = localPlayer.getUseItem();
+			UseAnim useAnim = useItem != nullptr ? useItem->getUseAnimation() : UseAnim::NONE;
+			if (useItem != nullptr)
+			{
+				if (useAnim == UseAnim::EAT || useAnim == UseAnim::DRINK)
+				{
+					// b1.8 eating: bring the item to the mouth and bob it
+					float left = static_cast<float>(localPlayer.getUseItemDuration()) - a + 1.0f;
+					float progress = 1.0f - left / static_cast<float>(useItem->getUseDuration());
+					float ease = 1.0f - progress;
+					ease = ease * ease * ease;
+					ease = ease * ease * ease;
+					ease = ease * ease * ease;
+					float lift = 1.0f - ease;
+					glTranslatef(0.0f, Mth::abs(Mth::cos(left / 4.0f * Mth::PI) * 0.1f) * (progress > 0.2f ? 1.0f : 0.0f), 0.0f);
+					glTranslatef(lift * 0.6f, -lift * 0.5f, 0.0f);
+					glRotatef(lift * 90.0f, 0.0f, 1.0f, 0.0f);
+					glRotatef(lift * 10.0f, 1.0f, 0.0f, 0.0f);
+					glRotatef(lift * 30.0f, 0.0f, 0.0f, 1.0f);
+				}
+			}
+			else
+			{
+				glTranslatef(-swing2 * 0.4f, Mth::sin(Mth::sqrt(swing) * Mth::PI * 2.0f) * 0.2f, -swing1 * 0.2f);
+			}
 			glTranslatef(0.7f * d, -0.65f * d - (1.0f - h) * 0.6f, -0.9f * d);
 			glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
 			glEnable(GL_RESCALE_NORMAL);
@@ -275,10 +304,41 @@ void ItemInHandRenderer::render(float a)
 			glRotatef(-swing2 * 80.0f, 1.0f, 0.0f, 0.0f);
 			float scale = 0.4f;
 			glScalef(scale, scale, scale);
+			if (useAnim == UseAnim::BLOCK)
+			{
+				glTranslatef(-0.5f, 0.2f, 0.0f);
+				glRotatef(30.0f, 0.0f, 1.0f, 0.0f);
+				glRotatef(-80.0f, 1.0f, 0.0f, 0.0f);
+				glRotatef(60.0f, 0.0f, 1.0f, 0.0f);
+			}
+			else if (useAnim == UseAnim::BOW)
+			{
+				glRotatef(-18.0f, 0.0f, 0.0f, 1.0f);
+				glRotatef(-12.0f, 0.0f, 1.0f, 0.0f);
+				glRotatef(-8.0f, 1.0f, 0.0f, 0.0f);
+				glTranslatef(-0.9f, 0.2f, 0.0f);
+				float drawn = static_cast<float>(useItem->getUseDuration()) - (static_cast<float>(localPlayer.getUseItemDuration()) - a + 1.0f);
+				float power = drawn / 20.0f;
+				power = (power * power + power * 2.0f) / 3.0f;
+				if (power > 1.0f)
+					power = 1.0f;
+				if (power > 0.1f)
+					glTranslatef(0.0f, Mth::sin((drawn - 0.1f) * 1.3f) * 0.01f * (power - 0.1f), 0.0f);
+				glTranslatef(0.0f, 0.0f, power * 0.1f);
+				glRotatef(-335.0f, 0.0f, 0.0f, 1.0f);
+				glRotatef(-50.0f, 0.0f, 1.0f, 0.0f);
+				glTranslatef(0.0f, 0.5f, 0.0f);
+				glScalef(1.0f, 1.0f, 1.0f + power * 0.2f);
+				glTranslatef(0.0f, -0.5f, 0.0f);
+				glRotatef(50.0f, 0.0f, 1.0f, 0.0f);
+				glRotatef(335.0f, 0.0f, 0.0f, 1.0f);
+			}
 			Item *itemType = item.getItem();
 			if (itemType != nullptr && itemType->shouldRotateAroundWhenRendering())
 				glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
+			heldIconOverride = localPlayer.getItemIcon(item);
 			renderItem(item, localPlayer.getBrightness(1.0f));
+			heldIconOverride = -1;
 			glDisable(GL_RESCALE_NORMAL);
 		}
 		glPopMatrix();

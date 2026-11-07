@@ -11,6 +11,8 @@
 #include "world/entity/player/Player.h"
 #include "world/entity/item/EntityItem.h"
 #include "world/stats/StatList.h"
+#include "world/level/biome/Biome.h"
+#include "world/level/biome/BiomeSource.h"
 
 LeafTile::LeafTile(int_t id, int_t tex) : TransparentTile(id, tex, Material::leaves, false)
 {
@@ -27,10 +29,7 @@ int_t LeafTile::getColor(LevelSource &level, int_t x, int_t y, int_t z)
 	if (type == BIRCH_LEAF)
 		return FoliageColor::getBirchColor();
 
-	level.getBiomeSource().getBiomeBlock(x, z, 1, 1);
-	double temperature = level.getBiomeSource().temperatures[0];
-	double downfall = level.getBiomeSource().downfalls[0];
-	return FoliageColor::get(temperature, downfall);
+	return level.getBiomeSource().getBiome(x, z)->getFolageColor(level, x, y, z);
 }
 
 

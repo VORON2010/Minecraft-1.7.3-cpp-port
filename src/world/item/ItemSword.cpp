@@ -1,4 +1,5 @@
 #include "world/item/ItemSword.h"
+#include "world/entity/player/Player.h"
 
 #include "world/item/ItemInstance.h"
 #include "world/level/tile/Tile.h"
@@ -48,4 +49,10 @@ bool ItemSword::mineBlock(ItemInstance &stack, int_t tile, int_t x, int_t y, int
 	(void)miner;
 	stack.damageItem(2, miner);
 	return true;
+}
+
+void ItemSword::use(ItemInstance &stack, Level &level, Player &player) const
+{
+	(void)level;
+	player.startUsingItem(stack, getUseDuration(stack));
 }

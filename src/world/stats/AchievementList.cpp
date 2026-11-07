@@ -66,5 +66,4 @@ void AchievementList::init()
 	killCow = &add(14, u"killCow", 7, -3, Items::leather->getShiftedIndex(), buildSword)->registerAchievement();
 	flyPig = &add(15, u"flyPig", 8, -4, Items::saddle->getShiftedIndex(), killCow)->setSpecial().registerAchievement();
 
-	std::cout << achievements.size() << " achievements" << std::endl;
 }

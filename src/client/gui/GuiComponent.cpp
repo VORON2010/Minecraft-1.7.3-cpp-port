@@ -1,3 +1,4 @@
+#include "pc/OpenGL.h"
 #include "client/gui/GuiComponent.h"
 
 #include "client/renderer/Tesselator.h"
@@ -33,7 +34,7 @@ void GuiComponent::fillGradient(int_t x0, int_t y0, int_t x1, int_t y1, int_t co
 	float r1 = (col1 >> 16 & 0xFF) / 255.0F;
 	float g1 = (col1 >> 8 & 0xFF) / 255.0F;
 	float b1 = (col1 & 0xFF) / 255.0F;
-	
+
 	float a2 = (col2 >> 24 & 0xFF) / 255.0F;
 	float r2 = (col2 >> 16 & 0xFF) / 255.0F;
 	float g2 = (col2 >> 8 & 0xFF) / 255.0F;
@@ -44,7 +45,7 @@ void GuiComponent::fillGradient(int_t x0, int_t y0, int_t x1, int_t y1, int_t co
 	glDisable(GL_ALPHA_TEST);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glShadeModel(GL_SMOOTH);
-	
+
 	Tesselator &t = Tesselator::instance;
 	t.begin();
 	t.color(r1, g1, b1, a1);
@@ -54,7 +55,7 @@ void GuiComponent::fillGradient(int_t x0, int_t y0, int_t x1, int_t y1, int_t co
 	t.vertex(x0, y1, 0.0);
 	t.vertex(x1, y1, 0.0);
 	t.end();
-	
+
 	glShadeModel(GL_FLAT);
 	glDisable(GL_BLEND);
 	glEnable(GL_ALPHA_TEST);

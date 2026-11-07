@@ -10,18 +10,32 @@ ItemFood::ItemFood(int_t baseId, int_t healAmount, float saturationModifier, boo
 	setMaxStackSize(64);
 }
 
+ItemFood &ItemFood::setEffect(int_t id, int_t seconds, int_t amplifier, float chance)
+{
+	effectId = id;
+	effectDuration = seconds;
+	effectAmplifier = amplifier;
+	effectChance = chance;
+	return *this;
+}
+
 void ItemFood::use(ItemInstance &stack, Level &level, Player &player) const
 {
 	(void)level;
 	if (stack.isEmpty())
 		return;
-	if (player.foodLevel >= 20 && getShiftedIndex() != 322 && getShiftedIndex() != 367) // 322 is Golden Apple, 367 is Rotten Flesh
+	if (player.canEat(alwaysEdible))
+		player.startUsingItem(stack, getUseDuration(stack));
+}
+
+void ItemFood::useTimeDepleted(ItemInstance &stack, Level &level, Player &player) const
+{
+	if (stack.isEmpty())
 		return;
 	stack.stackSize--;
 	player.feed(healAmount, saturationModifier);
-	
-	if (getShiftedIndex() == 367 && itemRandom.nextFloat() < 0.8f) // 367 is Rotten Flesh
-	{
-		player.hungerEffectTimer = 600; // 30 seconds
-	}
+	level.playSoundAtEntity(player, u"random.burp", 0.5f, level.random.nextFloat() * 0.1f + 0.9f);
+
+	if (!level.isOnline && effectId > 0 && level.random.nextFloat() < effectChance)
+		player.addEffect(MobEffectInstance(effectId, effectDuration * 20, effectAmplifier));
 }
