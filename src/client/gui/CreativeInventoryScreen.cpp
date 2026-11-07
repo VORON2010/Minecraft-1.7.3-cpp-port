@@ -6,6 +6,8 @@
 #include "world/entity/player/Player.h"
 #include "world/level/tile/Tile.h"
 #include "world/item/Item.h"
+#include "world/item/Items.h"
+#include "world/level/tile/AllTiles.h"
 #include "client/renderer/Tesselator.h"
 #include "util/Mth.h"
 #include "client/Lighting.h"
@@ -14,13 +16,7 @@
 #include "client/gui/RecipeScreen.h"
 #include "lwjgl/Keyboard.h"
 
-// Texture layout (creative_list.png 256x256):
-//   Main panel body:      (0,0)   176x164
-//   Scrollbar thumb:      (208,0)   9x16
-//
-//   Grid slots:  7 rows x 8 cols, item content at (9,18), 18px spacing
-//   Hotbar:      9 slots, item content at (9,146), 18px spacing
-//   Scrollbar track:  x=170, y=14..137  (height=124, thumb=16 => range=108)
+// 1.0 CreativeInventoryScreen: allitems.png, 8x9 grid, hotbar at y 184, scroll bar at x 155
 
 static constexpr int_t PANEL_W = 176;
 static constexpr int_t PANEL_H = 208;
@@ -31,67 +27,43 @@ static constexpr int_t SLOT_SIZE = 18;
 
 static constexpr int_t HOTBAR_Y = 184;
 
-
-// Tiles to skip (would crash or look broken in inventory)
-static bool shouldSkipTile(int id) {
-    switch (id) {
-        case 0:   // air
-        case 7:   // bedrock
-        case 8: case 9:   // water
-        case 10: case 11: // lava
-        case 26:  // bed
-        case 29: case 33: case 34: case 36: // pistons
-        case 51:  // fire
-        case 52:  // mob spawner
-        case 55:  // redstone wire
-        case 59:  // crops
-        case 60:  // farmland
-        case 63: case 68: // signs
-        case 64: case 71: // doors
-        case 74:  // redstone ore glowing
-        case 75:  // redstone torch off
-        case 83:  // reed
-        case 90:  // portal
-        case 93: case 94: // repeaters
-        case 104: case 105: // pumpkin / melon stems
-            return true;
-        default:
-            return false;
-    }
-}
-
 CreativeInventoryScreen::CreativeInventoryScreen(Minecraft &mc) : Screen(mc) {
-
-    // Populate tiles (blocks)
-    for (int i = 1; i < 256; i++) {
-        if (Tile::tiles[i] == nullptr) continue;
-        if (shouldSkipTile(i)) continue;
-
-        if (i == 35) { // Wool variants
-            for (int d = 0; d <= 15; d++) allItems.emplace_back(i, 1, d);
-        } else if (i == 17 || i == 18) { // Log, Leaves variants
-            for (int d = 0; d <= 2; d++) allItems.emplace_back(i, 1, d);
-        } else if (i == 44) { // Slab variants
-            for (int d = 0; d <= 5; d++) allItems.emplace_back(i, 1, d);
-        } else if (i == 97 || i == 98) { // monster egg / stone brick variants
-            for (int d = 0; d <= 2; d++) allItems.emplace_back(i, 1, d);
-        } else {
-            allItems.emplace_back(i, 1, 0);
-        }
+    // 1.0 CreativePlayerMenu: this exact block list, then every item but potions, then the dyes
+    const Tile *blocks[] = {
+        &Tile::cobblestone, &Tile::rock, &Tile::diamondOre, &Tile::goldOre, &Tile::ironOre, &Tile::coalOre, &Tile::lapisOre, &Tile::redstoneOre,
+        &Tile::stoneBrick, &Tile::stoneBrick, &Tile::stoneBrick, &Tile::clay, &Tile::diamondBlock, &Tile::goldBlock, &Tile::ironBlock, &Tile::bedrock,
+        &Tile::lapisBlock, &Tile::brick, &Tile::mossyCobblestone, &Tile::slabSingle, &Tile::slabSingle, &Tile::slabSingle, &Tile::slabSingle, &Tile::slabSingle,
+        &Tile::slabSingle, &Tile::obsidian, &Tile::netherrack, &Tile::soulSand, &Tile::glowstone, &Tile::treeTrunk, &Tile::treeTrunk, &Tile::treeTrunk,
+        &Tile::leaves, &Tile::leaves, &Tile::leaves, &Tile::dirt, &Tile::grass, &Tile::sand, &Tile::sandstone, &Tile::gravel,
+        &Tile::cobweb, &Tile::wood, &Tile::sapling, &Tile::sapling, &Tile::sapling, &Tile::deadBush, &Tile::sponge, &Tile::ice,
+        &Tile::snow, &Tile::flower, &Tile::rose, &Tile::brownMushroom, &Tile::redMushroom, &Tile::cactus, &Tile::melon, &Tile::pumpkin,
+        &Tile::jackOLantern, &Tile::vine, &Tile::ironBars, &Tile::glassPane, &Tile::netherBrick, &Tile::netherFence, &Tile::stairsNetherBrick, &Tile::endStone,
+        &Tile::mycelium, &Tile::waterlily, &Tile::tallGrass, &Tile::tallGrass, &Tile::chest, &Tile::workBench, &Tile::glass, &Tile::tnt,
+        &Tile::bookshelf,
+        &Tile::wool, &Tile::wool, &Tile::wool, &Tile::wool, &Tile::wool, &Tile::wool, &Tile::wool, &Tile::wool,
+        &Tile::wool, &Tile::wool, &Tile::wool, &Tile::wool, &Tile::wool, &Tile::wool, &Tile::wool, &Tile::wool,
+        &Tile::dispenser, &Tile::furnace, &Tile::noteBlock, &Tile::jukebox, &Tile::pistonStickyBase, &Tile::pistonBase, &Tile::fence, &Tile::fenceGate,
+        &Tile::ladder, &Tile::rail, &Tile::railPowered, &Tile::railDetector, &Tile::torch, &Tile::stairsWood, &Tile::stairsStone, &Tile::stairsBrick,
+        &Tile::stairsStoneBrick, &Tile::lever, &Tile::pressurePlateStone, &Tile::pressurePlateWood, &Tile::torchRedstoneActive, &Tile::buttonStone, &Tile::trapdoor,
+    };
+    int_t wool = 0, slab = 0, log = 0, sapling = 0, stoneBrick = 0, leaves = 0, tallGrass = 1;
+    for (const Tile *tile : blocks) {
+        int_t data = 0;
+        if (tile == &Tile::wool) data = wool++;
+        else if (tile == &Tile::slabSingle) data = slab++;
+        else if (tile == &Tile::treeTrunk) data = log++;
+        else if (tile == &Tile::sapling) data = sapling++;
+        else if (tile == &Tile::stoneBrick) data = stoneBrick++;
+        else if (tile == &Tile::tallGrass) data = tallGrass++;
+        else if (tile == &Tile::leaves) data = leaves++;
+        allItems.emplace_back(tile->id, 1, data);
     }
-    // Populate items
-    for (int i = 256; i < 32000; i++) {
-        if (Item::items[i] == nullptr) continue;
-
-        if (i == 351) { // Dyes
-            for (int d = 0; d <= 15; d++) allItems.emplace_back(i, 1, d);
-        } else if (i == 263) { // Coal/Charcoal
+    for (int_t i = 256; i < static_cast<int_t>(Item::items.size()); i++) {
+        if (Item::items[i] != nullptr)
             allItems.emplace_back(i, 1, 0);
-            allItems.emplace_back(i, 1, 1);
-        } else {
-            allItems.emplace_back(i, 1, 0);
-        }
     }
+    for (int_t d = 1; d < 16; d++)
+        allItems.emplace_back(Items::dyePowder->getShiftedIndex(), 1, d);
 }
 
 void CreativeInventoryScreen::init() {
@@ -100,8 +72,8 @@ void CreativeInventoryScreen::init() {
 }
 
 int_t CreativeInventoryScreen::getMaxScrollRows() const {
-    int_t totalRows = (static_cast<int_t>(allItems.size()) + COLUMNS - 1) / COLUMNS;
-    int_t maxRows = totalRows - ROWS;
+    // 1.0: items.size() / 8 - 8 + 1
+    int_t maxRows = static_cast<int_t>(allItems.size()) / COLUMNS - 8 + 1;
     return maxRows > 0 ? maxRows : 0;
 }
 
@@ -121,9 +93,9 @@ void CreativeInventoryScreen::render(int_t xm, int_t ym, float a) {
         if (!lwjgl::Mouse::isButtonDown(0)) {
             isDragging = false;
         } else {
-            int_t trackY = guiTop + 18;
-            int_t trackHeight = 126;
-            float newScroll = static_cast<float>(ym - trackY) / static_cast<float>(trackHeight - 15);
+            int_t top = guiTop + 17;
+            int_t bottom = top + 160 + 2;
+            float newScroll = static_cast<float>(ym - (top + 8)) / (static_cast<float>(bottom - top) - 16.0f);
             scrollPosition = std::max(0.0f, std::min(1.0f, newScroll));
         }
     }
@@ -134,13 +106,11 @@ void CreativeInventoryScreen::render(int_t xm, int_t ym, float a) {
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     blit(guiLeft, guiTop, 0, 0, PANEL_W, PANEL_H);
 
-    // Scrollbar rendering
-    int_t trackX = guiLeft + 156;
-    int_t trackY = guiTop + 18;
-    int_t trackHeight = 126; // 8 rows * 18
-    int_t thumbHeight = 15;
-    int_t thumbY = trackY + static_cast<int_t>(scrollPosition * (trackHeight - thumbHeight));
-    blit(trackX, thumbY, 2, 209, 12, 15);
+    // Scroll bar thumb (1.0 renderMenuBackground)
+    int_t top = guiTop + 17;
+    int_t bottom = top + 160 + 2;
+    blit(guiLeft + 154, guiTop + 17 + static_cast<int_t>((bottom - top - 17) * scrollPosition), 0, 208, 16, 16);
+    font.draw(u"Item selection", guiLeft + 8, guiTop + 6, 4210752);
 
     // Setup lighting exactly like InventoryScreen does (rotated light for bright items)
     glPushMatrix();
@@ -266,45 +236,95 @@ int_t CreativeInventoryScreen::getHotbarSlotAtPosition(int_t x, int_t y) const {
 }
 
 void CreativeInventoryScreen::mouseClicked(int_t x, int_t y, int_t buttonNum) {
-    int_t trackX = guiLeft + 156;
-    int_t trackY = guiTop + 18;
-    int_t trackHeight = 126;
-    if (x >= trackX && x <= trackX + 12 && y >= trackY && y <= trackY + trackHeight) {
+    int_t barX = guiLeft + 155;
+    int_t barTop = guiTop + 17;
+    if (buttonNum == 0 && x >= barX && x < barX + 14 && y >= barTop && y < barTop + 160 + 2) {
         isDragging = true;
         return;
     }
+    bool quickMove = lwjgl::Keyboard::isKeyDown(lwjgl::Keyboard::KEY_LSHIFT) || lwjgl::Keyboard::isKeyDown(lwjgl::Keyboard::KEY_RSHIFT);
     int_t gridSlot = getSlotAtPosition(x, y);
     int_t hotbarSlot = getHotbarSlotAtPosition(x, y);
 
-    auto& inv = minecraft.player->inventory;
-    ItemInstance* cursorItem = inv.getCarried();
+    auto &inv = minecraft.player->inventory;
+    ItemInstance *carried = inv.getCarried();
+    bool hasCarried = carried != nullptr && !carried->isEmpty();
 
     if (gridSlot != -1) {
-        int_t itemIndex = gridSlot;
-        if (itemIndex >= 0 && itemIndex < static_cast<int_t>(allItems.size())) {
-            if (cursorItem) {
+        // 1.0: the item list hands out copies; clicking with the same item grows or shrinks it
+        ItemInstance *slotItem = gridSlot < static_cast<int_t>(allItems.size()) ? &allItems[gridSlot] : nullptr;
+        if (hasCarried && slotItem != nullptr && carried->itemID == slotItem->itemID) {
+            if (buttonNum == 0) {
+                if (quickMove)
+                    carried->stackSize = carried->getMaxStackSize();
+                else if (carried->stackSize < carried->getMaxStackSize())
+                    carried->stackSize = carried->stackSize + 1;
+            } else if (carried->stackSize <= 1) {
                 inv.setCarriedNull();
             } else {
-                // Left click = 1 item, middle click = stack of 64
-                int_t count = (buttonNum == 2) ? 64 : 1;
-                inv.setCarried(ItemInstance(allItems[itemIndex].itemID, count, allItems[itemIndex].itemDamage));
+                carried->stackSize = carried->stackSize - 1;
             }
-        }
-    } else if (hotbarSlot != -1) {
-        if (cursorItem) {
-            inv.setItem(hotbarSlot, *cursorItem);
+        } else if (hasCarried || slotItem == nullptr) {
             inv.setCarriedNull();
         } else {
-            ItemInstance* slot = inv.getItem(hotbarSlot);
-            if (slot) {
-                inv.setCarried(*slot);
-                inv.setItem(hotbarSlot, ItemInstance());
+            ItemInstance copy(slotItem->itemID, 1, slotItem->itemDamage);
+            if (quickMove)
+                copy.stackSize = copy.getMaxStackSize();
+            inv.setCarried(copy);
+        }
+    } else if (hotbarSlot != -1) {
+        // hotbar slots behave like normal inventory slots
+        ItemInstance *slot = inv.getItem(hotbarSlot);
+        bool slotEmpty = slot == nullptr || slot->isEmpty();
+        if (buttonNum == 0) {
+            if (hasCarried && !slotEmpty && slot->itemID == carried->itemID && slot->itemDamage == carried->itemDamage) {
+                int_t room = slot->getMaxStackSize() - slot->stackSize;
+                int_t move = std::min<int_t>(room, carried->stackSize);
+                slot->stackSize = slot->stackSize + move;
+                carried->stackSize = carried->stackSize - move;
+                if (carried->stackSize <= 0)
+                    inv.setCarriedNull();
+            } else {
+                ItemInstance oldSlot = slotEmpty ? ItemInstance() : *slot;
+                if (hasCarried)
+                    inv.setItem(hotbarSlot, *carried);
+                else
+                    inv.setItem(hotbarSlot, ItemInstance());
+                if (slotEmpty)
+                    inv.setCarriedNull();
+                else
+                    inv.setCarried(oldSlot);
+            }
+        } else if (buttonNum == 1) {
+            if (hasCarried) {
+                if (slotEmpty) {
+                    inv.setItem(hotbarSlot, ItemInstance(carried->itemID, 1, carried->itemDamage));
+                    carried->stackSize = carried->stackSize - 1;
+                } else if (slot->itemID == carried->itemID && slot->itemDamage == carried->itemDamage && slot->stackSize < slot->getMaxStackSize()) {
+                    slot->stackSize = slot->stackSize + 1;
+                    carried->stackSize = carried->stackSize - 1;
+                }
+                if (carried->stackSize <= 0)
+                    inv.setCarriedNull();
+            } else if (!slotEmpty) {
+                int_t half = (slot->stackSize + 1) / 2;
+                inv.setCarried(ItemInstance(slot->itemID, half, slot->itemDamage));
+                slot->stackSize = slot->stackSize - half;
+                if (slot->stackSize <= 0)
+                    inv.setItem(hotbarSlot, ItemInstance());
             }
         }
-    } else {
-        // Clicked outside — delete cursor item
-        if (cursorItem) {
+    } else if (hasCarried && (x < guiLeft || y < guiTop || x >= guiLeft + PANEL_W || y >= guiTop + PANEL_H)) {
+        // 1.0: clicking outside the window throws the carried item
+        if (buttonNum == 0) {
+            minecraft.player->drop(*carried);
             inv.setCarriedNull();
+        } else if (buttonNum == 1) {
+            ItemInstance one(carried->itemID, 1, carried->itemDamage);
+            minecraft.player->drop(one);
+            carried->stackSize = carried->stackSize - 1;
+            if (carried->stackSize <= 0)
+                inv.setCarriedNull();
         }
     }
 }

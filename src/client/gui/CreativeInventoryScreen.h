@@ -13,7 +13,7 @@ private:
     bool isDragging = false;
 
     static constexpr int_t COLUMNS = 8;
-    static constexpr int_t ROWS = 7;
+    static constexpr int_t ROWS = 9;
     static constexpr int_t SLOTS_PER_PAGE = COLUMNS * ROWS;
 
 public:
