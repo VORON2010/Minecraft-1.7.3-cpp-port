@@ -51,8 +51,8 @@ int runEndSmoke()
 				end.getChunk(x, z);
 
 		int_t stone = 0, obsidian = 0, bedrock = 0, other = 0;
-		for (int_t x = -96; x < 96; ++x)
-			for (int_t z = -96; z < 96; ++z)
+		for (int_t x = -96; x < 112; ++x)
+			for (int_t z = -96; z < 112; ++z)
 				for (int_t y = 0; y < 128; ++y)
 				{
 					int_t t = end.getTile(x, y, z);
