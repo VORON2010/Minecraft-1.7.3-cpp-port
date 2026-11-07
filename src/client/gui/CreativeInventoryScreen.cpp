@@ -5,6 +5,8 @@
 #include "client/renderer/entity/EntityRenderDispatcher.h"
 #include "world/entity/player/Player.h"
 #include "world/level/tile/Tile.h"
+#include "world/level/tile/EndPortalFrameTile.h"
+#include "world/level/tile/DragonEggTile.h"
 #include "world/item/Item.h"
 #include "world/item/Items.h"
 #include "world/level/tile/AllTiles.h"
@@ -45,6 +47,8 @@ CreativeInventoryScreen::CreativeInventoryScreen(Minecraft &mc) : Screen(mc) {
         &Tile::dispenser, &Tile::furnace, &Tile::noteBlock, &Tile::jukebox, &Tile::pistonStickyBase, &Tile::pistonBase, &Tile::fence, &Tile::fenceGate,
         &Tile::ladder, &Tile::rail, &Tile::railPowered, &Tile::railDetector, &Tile::torch, &Tile::stairsWood, &Tile::stairsStone, &Tile::stairsBrick,
         &Tile::stairsStoneBrick, &Tile::lever, &Tile::pressurePlateStone, &Tile::pressurePlateWood, &Tile::torchRedstoneActive, &Tile::buttonStone, &Tile::trapdoor,
+        // not in the 1.0 list, but asked for: blocks you otherwise cannot get
+        &Tile::endPortalFrame, &Tile::dragonEgg, &Tile::mobSpawner,
     };
     int_t wool = 0, slab = 0, log = 0, sapling = 0, stoneBrick = 0, leaves = 0, tallGrass = 1;
     for (const Tile *tile : blocks) {

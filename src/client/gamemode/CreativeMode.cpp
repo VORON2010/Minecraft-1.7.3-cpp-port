@@ -93,16 +93,12 @@ void CreativeMode::stopDestroyBlock()
 
 bool CreativeMode::useItemOn(std::shared_ptr<Player> &player, Level &level, ItemInstance *item, int_t x, int_t y, int_t z, Facing face)
 {
-	int_t tile = level.getTile(x, y, z);
-	if (tile > 0 && Tile::tiles[tile] != nullptr && Tile::tiles[tile]->use(level, x, y, z, *player))
-		return true;
+	// 1.0 CreativeInteractionManager: place or use as in survival, then put the stack back untouched
 	if (item == nullptr || item->isEmpty())
-		return false;
-	int_t damage = item->getAuxValue();
-	int_t count = item->stackSize;
-	bool used = item->useOn(*player, level, x, y, z, face);
-	item->itemDamage = damage;
-	item->stackSize = count;
+		return GameMode::useItemOn(player, level, item, x, y, z, face);
+	ItemInstance saved = *item;
+	bool used = GameMode::useItemOn(player, level, item, x, y, z, face);
+	*item = saved;
 	return used;
 }
 
