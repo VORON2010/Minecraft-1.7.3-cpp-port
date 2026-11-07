@@ -367,6 +367,18 @@ Recipes::Recipes()
 	addShapedRecipe(ItemInstance(Items::pumpkinSeeds->getShiftedIndex(), 4, 0), {"M"}, {{'M', ItemInstance(Tile::pumpkin.id, 1, -1)}});
 	addShapedRecipe(ItemInstance(Tile::stairsBrick.id, 4, 0), {"#  ", "## ", "###"}, {{'#', ItemInstance(Tile::brick.id, 1, -1)}});
 	addShapedRecipe(ItemInstance(Tile::stairsStoneBrick.id, 4, 0), {"#  ", "## ", "###"}, {{'#', ItemInstance(Tile::stoneBrick.id, 1, -1)}});
+	// 1.0
+	addShapedRecipe(ItemInstance(Tile::netherFence.id, 6, 0), {"###", "###"}, {{'#', ItemInstance(Tile::netherBrick.id, 1, -1)}});
+	addShapedRecipe(ItemInstance(Tile::stairsNetherBrick.id, 4, 0), {"#  ", "## ", "###"}, {{'#', ItemInstance(Tile::netherBrick.id, 1, -1)}});
+	addShapedRecipe(ItemInstance(Items::ingotGold->getShiftedIndex(), 1, 0), {"###", "###", "###"}, {{'#', ItemInstance(Items::goldNugget->getShiftedIndex(), 1, 0)}});
+	addShapedRecipe(ItemInstance(Items::goldNugget->getShiftedIndex(), 9, 0), {"#"}, {{'#', ItemInstance(Items::ingotGold->getShiftedIndex(), 1, 0)}});
+	addShapelessRecipe(ItemInstance(Items::fermentedSpiderEye->getShiftedIndex(), 1, 0), {
+		ItemInstance(Items::spiderEye->getShiftedIndex(), 1, 0), ItemInstance(Tile::brownMushroom.id, 1, 0), ItemInstance(Items::sugar->getShiftedIndex(), 1, 0)});
+	addShapelessRecipe(ItemInstance(Items::speckledMelon->getShiftedIndex(), 1, 0), {
+		ItemInstance(Items::melon->getShiftedIndex(), 1, 0), ItemInstance(Items::goldNugget->getShiftedIndex(), 1, 0)});
+	addShapelessRecipe(ItemInstance(Items::blazePowder->getShiftedIndex(), 2, 0), {ItemInstance(Items::blazeRod->getShiftedIndex(), 1, 0)});
+	addShapelessRecipe(ItemInstance(Items::magmaCream->getShiftedIndex(), 1, 0), {
+		ItemInstance(Items::blazePowder->getShiftedIndex(), 1, 0), ItemInstance(Items::slimeball->getShiftedIndex(), 1, 0)});
 	addShapedRecipe(ItemInstance(Tile::jukebox.id, 1, 0), {"###", "#X#", "###"}, {
 		{'#', ItemInstance(Tile::wood.id, 1, -1)},
 		{'X', ItemInstance(Items::diamond->getShiftedIndex(), 1, 0)}

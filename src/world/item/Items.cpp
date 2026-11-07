@@ -1,3 +1,5 @@
+#include "world/level/tile/NetherWartTile.h"
+#include "world/level/tile/SoulSandTile.h"
 #include "world/item/Items.h"
 
 #include "world/item/Item.h"
@@ -80,6 +82,16 @@ namespace Items
 	Item *pumpkinSeeds = nullptr;
 	Item *melonSeeds = nullptr;
 	Item *enderPearl = nullptr;
+	Item *blazeRod = nullptr;
+	Item *ghastTear = nullptr;
+	Item *goldNugget = nullptr;
+	Item *netherWart = nullptr;
+	Item *spiderEye = nullptr;
+	Item *fermentedSpiderEye = nullptr;
+	Item *blazePowder = nullptr;
+	Item *magmaCream = nullptr;
+	Item *speckledMelon = nullptr;
+
 	Item *reed = nullptr;
 	Item *doorWood = nullptr;
 	Item *doorIron = nullptr;
@@ -301,8 +313,8 @@ namespace Items
 		bread = new ItemFood(41, 5, 0.6f, false);
 		bread->setIconIndex(41).setDescriptionId(u"item.bread");
 
-		rottenFlesh = new ItemFood(111, 4, 0.8f, true);
-		rottenFlesh->setIconIndex(111).setDescriptionId(u"item.rottenFlesh");
+		rottenFlesh = new ItemFood(111, 4, 0.1f, true);
+		rottenFlesh->setIconIndex(11 + 5 * 16).setDescriptionId(u"item.rottenFlesh");
 		static_cast<ItemFood *>(rottenFlesh)->setEffect(MobEffect::hunger.id, 30, 0, 0.8f).setAlwaysEdible();
 
 		helmetLeather = new ItemArmor(42, 0, 0, 0);
@@ -390,6 +402,27 @@ namespace Items
 
 		enderPearl = new Item(112);
 		enderPearl->setMaxStackSize(16).setIconIndex(107).setDescriptionId(u"item.enderPearl");
+
+		// 1.0 nether and brewing ingredients
+		blazeRod = new Item(113);
+		blazeRod->setIconIndex(12 + 6 * 16).setDescriptionId(u"item.blazeRod");
+		ghastTear = new Item(114);
+		ghastTear->setIconIndex(11 + 7 * 16).setDescriptionId(u"item.ghastTear");
+		goldNugget = new Item(115);
+		goldNugget->setIconIndex(12 + 7 * 16).setDescriptionId(u"item.goldNugget");
+		netherWart = new ItemSeeds(116, Tile::netherWart.id, Tile::soulSand.id);
+		netherWart->setIconIndex(13 + 7 * 16).setDescriptionId(u"item.netherStalkSeeds");
+		spiderEye = new ItemFood(119, 2, 0.8f, false);
+		spiderEye->setIconIndex(11 + 8 * 16).setDescriptionId(u"item.spiderEye");
+		static_cast<ItemFood *>(spiderEye)->setEffect(MobEffect::poison.id, 5, 0, 1.0f);
+		fermentedSpiderEye = new Item(120);
+		fermentedSpiderEye->setIconIndex(10 + 8 * 16).setDescriptionId(u"item.fermentedSpiderEye");
+		blazePowder = new Item(121);
+		blazePowder->setIconIndex(13 + 9 * 16).setDescriptionId(u"item.blazePowder");
+		magmaCream = new Item(122);
+		magmaCream->setIconIndex(13 + 10 * 16).setDescriptionId(u"item.magmaCream");
+		speckledMelon = new Item(126);
+		speckledMelon->setIconIndex(9 + 8 * 16).setDescriptionId(u"item.speckledMelon");
 
 		flint = new Item(62);
 		flint->setIconIndex(6).setDescriptionId(u"item.flint");

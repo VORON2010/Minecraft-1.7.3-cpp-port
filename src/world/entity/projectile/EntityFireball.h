@@ -34,6 +34,7 @@ public:
 	jstring getEncodeId() const override { return u""; }
 
 protected:
+	virtual void onHit(class HitResult &hit);
 	void addAdditionalSaveData(CompoundTag &tag) override;
 	void readAdditionalSaveData(CompoundTag &tag) override;
 };

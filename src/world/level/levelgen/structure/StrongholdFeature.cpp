@@ -71,6 +71,7 @@ T jremove(std::vector<T> &v, int_t i)
 #include "world/level/tile/MobSpawnerTile.h"
 #include "world/level/tile/MushroomTile.h"
 #include "world/level/tile/MyceliumTile.h"
+#include "world/level/tile/NetherWartTile.h"
 #include "world/level/tile/NotGateTile.h"
 #include "world/level/tile/NoteTile.h"
 #include "world/level/tile/OreTile.h"
@@ -158,10 +159,10 @@ public:
 class StrongholdPieces__StrongholdPieceWeight
 {
 public:
-	int_t type;
-	int_t weight;
-	int_t amountGenerated;
-	int_t maxAmount;
+	int_t type{};
+	int_t weight{};
+	int_t amountGenerated{};
+	int_t maxAmount{};
 	StrongholdPieces__StrongholdPieceWeight(int_t type, int_t weight, int_t maxAmount);
 	virtual bool isValid(int_t generationDepth);
 	virtual bool isValid();
@@ -201,8 +202,8 @@ class StrongholdPieces__ChestCorridor : public StrongholdPieces__StrongholdPiece
 public:
 	using Base = StrongholdPieces__StrongholdPiece;
 	static std::vector<WeighedTreasureItem> &LOOT_ENTRIES();
-	StrongholdPieces__StrongholdPiece__EntranceType entranceType;
-	bool hasChest;
+	StrongholdPieces__StrongholdPiece__EntranceType entranceType{};
+	bool hasChest{};
 	StrongholdPieces__ChestCorridor(int_t generationDepth, Random & random, const BoundingBox & bb, int_t facing);
 	virtual void addChildren(std::shared_ptr<StructurePiece> start, PieceList & pieces, Random & random);
 	static std::shared_ptr<StrongholdPieces__ChestCorridor> of(PieceList & pieces, Random & random, int_t x, int_t y, int_t z, int_t facing, int_t generationDepth);
@@ -213,7 +214,7 @@ class StrongholdPieces__EndPortalRoom : public StrongholdPieces__StrongholdPiece
 {
 public:
 	using Base = StrongholdPieces__StrongholdPiece;
-	bool hasSpawner;
+	bool hasSpawner{};
 	StrongholdPieces__EndPortalRoom(int_t generationDepth, Random & random, const BoundingBox & bb, int_t facing);
 	virtual void addChildren(std::shared_ptr<StructurePiece> start, PieceList & pieces, Random & random);
 	static std::shared_ptr<StrongholdPieces__EndPortalRoom> of(PieceList & pieces, Random & random, int_t x, int_t y, int_t z, int_t facing, int_t generationDepth);
@@ -224,11 +225,11 @@ class StrongholdPieces__FiveWayCrossing : public StrongholdPieces__StrongholdPie
 {
 public:
 	using Base = StrongholdPieces__StrongholdPiece;
-	StrongholdPieces__StrongholdPiece__EntranceType entranceType;
-	bool leftLow;
-	bool leftHigh;
-	bool rightLow;
-	bool rightHigh;
+	StrongholdPieces__StrongholdPiece__EntranceType entranceType{};
+	bool leftLow{};
+	bool leftHigh{};
+	bool rightLow{};
+	bool rightHigh{};
 	StrongholdPieces__FiveWayCrossing(int_t generationDepth, Random & random, const BoundingBox & bb, int_t facing);
 	virtual void addChildren(std::shared_ptr<StructurePiece> start, PieceList & pieces, Random & random);
 	static std::shared_ptr<StrongholdPieces__FiveWayCrossing> of(PieceList & pieces, Random & random, int_t x, int_t y, int_t z, int_t facing, int_t generationDepth);
@@ -239,7 +240,7 @@ class StrongholdPieces__LeftTurn : public StrongholdPieces__StrongholdPiece
 {
 public:
 	using Base = StrongholdPieces__StrongholdPiece;
-	StrongholdPieces__StrongholdPiece__EntranceType entranceType;
+	StrongholdPieces__StrongholdPiece__EntranceType entranceType{};
 	StrongholdPieces__LeftTurn(int_t generationDepth, Random & random, const BoundingBox & bb, int_t facing);
 	virtual void addChildren(std::shared_ptr<StructurePiece> start, PieceList & pieces, Random & random);
 	static std::shared_ptr<StrongholdPieces__LeftTurn> of(PieceList & pieces, Random & random, int_t x, int_t y, int_t z, int_t facing, int_t generationDepth);
@@ -251,8 +252,8 @@ class StrongholdPieces__Library : public StrongholdPieces__StrongholdPiece
 public:
 	using Base = StrongholdPieces__StrongholdPiece;
 	static std::vector<WeighedTreasureItem> &LOOT_ENTRIES();
-	StrongholdPieces__StrongholdPiece__EntranceType entranceType;
-	bool tall;
+	StrongholdPieces__StrongholdPiece__EntranceType entranceType{};
+	bool tall{};
 	StrongholdPieces__Library(int_t generationDepth, Random & random, const BoundingBox & bb, int_t facing);
 	virtual void addChildren(std::shared_ptr<StructurePiece> start, PieceList & pieces, Random & random);
 	static std::shared_ptr<StrongholdPieces__Library> of(PieceList & pieces, Random & random, int_t x, int_t y, int_t z, int_t facing, int_t generationDepth);
@@ -263,7 +264,7 @@ class StrongholdPieces__PlainCorridor : public StrongholdPieces__StrongholdPiece
 {
 public:
 	using Base = StrongholdPieces__StrongholdPiece;
-	int_t steps;
+	int_t steps{};
 	StrongholdPieces__PlainCorridor(int_t generationDepth, Random & random, const BoundingBox & bb, int_t facing);
 	virtual void addChildren(std::shared_ptr<StructurePiece> start, PieceList & pieces, Random & random);
 	static BoundingBox findSize(PieceList & pieces, Random & random, int_t x, int_t y, int_t z, int_t facing);
@@ -274,7 +275,7 @@ class StrongholdPieces__Prison : public StrongholdPieces__StrongholdPiece
 {
 public:
 	using Base = StrongholdPieces__StrongholdPiece;
-	StrongholdPieces__StrongholdPiece__EntranceType entranceType;
+	StrongholdPieces__StrongholdPiece__EntranceType entranceType{};
 	StrongholdPieces__Prison(int_t generationDepth, Random & random, const BoundingBox & bb, int_t facing);
 	virtual void addChildren(std::shared_ptr<StructurePiece> start, PieceList & pieces, Random & random);
 	static std::shared_ptr<StrongholdPieces__Prison> of(PieceList & pieces, Random & random, int_t x, int_t y, int_t z, int_t facing, int_t generationDepth);
@@ -295,8 +296,8 @@ class StrongholdPieces__RoomCrossing : public StrongholdPieces__StrongholdPiece
 public:
 	using Base = StrongholdPieces__StrongholdPiece;
 	static std::vector<WeighedTreasureItem> &LOOT_ENTRIES();
-	StrongholdPieces__StrongholdPiece__EntranceType entranceType;
-	int_t type;
+	StrongholdPieces__StrongholdPiece__EntranceType entranceType{};
+	int_t type{};
 	StrongholdPieces__RoomCrossing(int_t generationDepth, Random & random, const BoundingBox & bb, int_t facing);
 	virtual void addChildren(std::shared_ptr<StructurePiece> start, PieceList & pieces, Random & random);
 	static std::shared_ptr<StrongholdPieces__RoomCrossing> of(PieceList & pieces, Random & random, int_t x, int_t y, int_t z, int_t facing, int_t generationDepth);
@@ -307,8 +308,8 @@ class StrongholdPieces__SpiralStaircase : public StrongholdPieces__StrongholdPie
 {
 public:
 	using Base = StrongholdPieces__StrongholdPiece;
-	bool isSource;
-	StrongholdPieces__StrongholdPiece__EntranceType entranceType;
+	bool isSource{};
+	StrongholdPieces__StrongholdPiece__EntranceType entranceType{};
 	StrongholdPieces__SpiralStaircase(int_t generationDepth, Random & random, int_t x, int_t z);
 	StrongholdPieces__SpiralStaircase(int_t generationDepth, Random & random, const BoundingBox & bb, int_t facing);
 	virtual void addChildren(std::shared_ptr<StructurePiece> start, PieceList & pieces, Random & random);
@@ -320,8 +321,8 @@ class StrongholdPieces__Start : public StrongholdPieces__SpiralStaircase
 {
 public:
 	using Base = StrongholdPieces__SpiralStaircase;
-	std::shared_ptr<StrongholdPieces__StrongholdPieceWeight> previous;
-	std::shared_ptr<StrongholdPieces__EndPortalRoom> endPortalRoom;
+	std::shared_ptr<StrongholdPieces__StrongholdPieceWeight> previous{};
+	std::shared_ptr<StrongholdPieces__EndPortalRoom> endPortalRoom{};
 	PieceList children;
 	StrongholdPieces__Start(int_t var1, Random & var2, int_t var3, int_t var4);
 	TilePos3 getLocatorPosition() const override;
@@ -339,9 +340,9 @@ class StrongholdPieces__StraightCorridor : public StrongholdPieces__StrongholdPi
 {
 public:
 	using Base = StrongholdPieces__StrongholdPiece;
-	StrongholdPieces__StrongholdPiece__EntranceType entranceType;
-	bool left;
-	bool right;
+	StrongholdPieces__StrongholdPiece__EntranceType entranceType{};
+	bool left{};
+	bool right{};
 	StrongholdPieces__StraightCorridor(int_t generationDepth, Random & random, const BoundingBox & bb, int_t facing);
 	virtual void addChildren(std::shared_ptr<StructurePiece> start, PieceList & pieces, Random & random);
 	static std::shared_ptr<StrongholdPieces__StraightCorridor> of(PieceList & pieces, Random & random, int_t x, int_t y, int_t z, int_t facing, int_t generationDepth);
@@ -352,7 +353,7 @@ class StrongholdPieces__StraightStairs : public StrongholdPieces__StrongholdPiec
 {
 public:
 	using Base = StrongholdPieces__StrongholdPiece;
-	StrongholdPieces__StrongholdPiece__EntranceType entranceType;
+	StrongholdPieces__StrongholdPiece__EntranceType entranceType{};
 	StrongholdPieces__StraightStairs(int_t generationDepth, Random & random, const BoundingBox & bb, int_t facing);
 	virtual void addChildren(std::shared_ptr<StructurePiece> start, PieceList & pieces, Random & random);
 	static std::shared_ptr<StrongholdPieces__StraightStairs> of(PieceList & pieces, Random & random, int_t x, int_t y, int_t z, int_t facing, int_t generationDepth);
@@ -379,7 +380,7 @@ std::vector<std::shared_ptr<StrongholdPieces__StrongholdPieceWeight>> &Stronghol
 
 std::vector<std::shared_ptr<StrongholdPieces__StrongholdPieceWeight>> StrongholdPieces::currentWeights;
 
-int_t StrongholdPieces::forcedPiece = 0;
+int_t StrongholdPieces::forcedPiece{};
 
 int_t StrongholdPieces::totalWeight = 0;
 

@@ -71,6 +71,7 @@ T jremove(std::vector<T> &v, int_t i)
 #include "world/level/tile/MobSpawnerTile.h"
 #include "world/level/tile/MushroomTile.h"
 #include "world/level/tile/MyceliumTile.h"
+#include "world/level/tile/NetherWartTile.h"
 #include "world/level/tile/NotGateTile.h"
 #include "world/level/tile/NoteTile.h"
 #include "world/level/tile/OreTile.h"
@@ -154,7 +155,7 @@ class VillagePieces__VillagePiece : public StructurePiece
 {
 public:
 	using Base = StructurePiece;
-	int_t villageCount;
+	int_t villageCount{};
 	VillagePieces__VillagePiece(int_t var1);
 	virtual std::shared_ptr<StructurePiece> generatePieceLeft(std::shared_ptr<VillagePieces__Start> startPiece, PieceList & pieces, Random & random, int_t yOffset, int_t offset);
 	virtual std::shared_ptr<StructurePiece> generatePieceRight(std::shared_ptr<VillagePieces__Start> startPiece, PieceList & pieces, Random & random, int_t yOffset, int_t offset);
@@ -215,8 +216,8 @@ class VillagePieces__FarmerHouse : public VillagePieces__VillagePiece
 public:
 	using Base = VillagePieces__VillagePiece;
 	int_t hpos = -1;
-	bool lowCeiling;
-	int_t tablePosition;
+	bool lowCeiling{};
+	int_t tablePosition{};
 	VillagePieces__FarmerHouse(int_t generationDepth, Random & random, const BoundingBox & bb, int_t facing);
 	virtual void addChildren(std::shared_ptr<StructurePiece> start, PieceList & pieces, Random & random);
 	static std::shared_ptr<VillagePieces__FarmerHouse> of(PieceList & pieces, Random & random, int_t x, int_t y, int_t z, int_t facing, int_t generationDepth);
@@ -280,7 +281,7 @@ class VillagePieces__Road : public VillagePieces__RoadPiece
 {
 public:
 	using Base = VillagePieces__RoadPiece;
-	int_t length;
+	int_t length{};
 	VillagePieces__Road(int_t generationDepth, Random & random, const BoundingBox & bb, int_t facing);
 	virtual void addChildren(std::shared_ptr<StructurePiece> start, PieceList & pieces, Random & random);
 	static BoundingBox findSize(std::shared_ptr<VillagePieces__Start> startPiece, PieceList & pieces, Random & random, int_t x, int_t y, int_t z, int_t facing);
@@ -292,7 +293,7 @@ class VillagePieces__SmallHouse : public VillagePieces__VillagePiece
 public:
 	using Base = VillagePieces__VillagePiece;
 	int_t hpos = -1;
-	bool terrace;
+	bool terrace{};
 	VillagePieces__SmallHouse(int_t generationDepth, Random & random, const BoundingBox & bb, int_t facing);
 	virtual void addChildren(std::shared_ptr<StructurePiece> start, PieceList & pieces, Random & random);
 	static std::shared_ptr<VillagePieces__SmallHouse> of(PieceList & pieces, Random & random, int_t x, int_t y, int_t z, int_t facing, int_t generationDepth);
@@ -303,7 +304,7 @@ class VillagePieces__Well : public VillagePieces__VillagePiece
 {
 public:
 	using Base = VillagePieces__VillagePiece;
-	bool f_1400559;
+	bool f_1400559{};
 	int_t hpos = -1;
 	VillagePieces__Well(int_t generationDepth, Random & random, int_t x, int_t z);
 	virtual void addChildren(std::shared_ptr<StructurePiece> start, PieceList & pieces, Random & random);
@@ -314,9 +315,9 @@ class VillagePieces__Start : public VillagePieces__Well
 {
 public:
 	using Base = VillagePieces__Well;
-	BiomeSource * biomeSource;
-	int_t size;
-	std::shared_ptr<VillagePieces__VillagePieceWeight> previous;
+	BiomeSource * biomeSource{};
+	int_t size{};
+	std::shared_ptr<VillagePieces__VillagePieceWeight> previous{};
 	WeightList weights;
 	PieceList buildingPieces;
 	PieceList roadPieces;
@@ -327,10 +328,10 @@ public:
 class VillagePieces__VillagePieceWeight
 {
 public:
-	int_t type;
-	int_t weight;
-	int_t amountGenerated;
-	int_t maxAmount;
+	int_t type{};
+	int_t weight{};
+	int_t amountGenerated{};
+	int_t maxAmount{};
 	VillagePieces__VillagePieceWeight(int_t type, int_t weight, int_t maxAmount);
 	virtual bool isValid(int_t generationDepth);
 	virtual bool isValid();

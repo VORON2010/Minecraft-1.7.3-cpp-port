@@ -113,13 +113,7 @@ void EntityFireball::tick()
 
 	if (hit.type != HitResult::Type::NONE)
 	{
-		if (!level.isOnline)
-		{
-			if (hit.type == HitResult::Type::ENTITY && hit.entity != nullptr)
-				hit.entity->hurt(ownerRef.get(), 0);
-			level.createExplosion(nullptr, x, y, z, 1.0f, true);
-		}
-		remove();
+		onHit(hit);
 		return;
 	}
 
@@ -197,4 +191,16 @@ void EntityFireball::readAdditionalSaveData(CompoundTag &tag)
 	inTile = tag.getByte(u"inTile") & 255;
 	shakeTime = tag.getByte(u"shake") & 255;
 	inGround = tag.getByte(u"inGround") == 1;
+}
+
+void EntityFireball::onHit(HitResult &hit)
+{
+	if (!level.isOnline)
+	{
+		std::shared_ptr<Entity> ownerRef = owner.lock();
+		if (hit.type == HitResult::Type::ENTITY && hit.entity != nullptr)
+			hit.entity->hurt(ownerRef.get(), 0);
+		level.createExplosion(nullptr, x, y, z, 1.0f, true);
+	}
+	remove();
 }

@@ -117,10 +117,9 @@ public:
 	jstring customTextureUrl;
 	jstring customTextureUrl2;
 
-protected:
+public:
 	bool fireImmune = false;
 
-public:
 	virtual bool hurtByFire(int_t dmg) { return hurt(nullptr, dmg); }
 	// set while a projectile (arrow) is dealing damage, so targets can react to it (endermen dodge)
 	static Entity *damageProjectile;
@@ -196,7 +195,7 @@ public:
 
 	virtual float getHeadHeight();
 
-	bool isInLava();
+	virtual bool isInLava();
 
 	void moveRelative(float x, float z, float acc);
 
@@ -276,7 +275,7 @@ public:
 
 	virtual void setEquippedSlot(int_t slot, int_t itemId, int_t auxValue);
 
-	bool isOnFire();
+	virtual bool isOnFire();
 	bool isRiding();
 	virtual bool isSneaking();
 

@@ -18,4 +18,5 @@ protected:
 	jstring getDeathSound() override;
 	void checkHurtTarget(Entity &entity, float distance) override;
 	int_t getDeathLoot() override;
+	void dropDeathLoot() override;
 };

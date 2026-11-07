@@ -222,6 +222,7 @@ protected:
 	virtual void updateAi();
 
 	virtual bool canDespawn();
+	void checkDespawn();
 
 	virtual int_t getMaxHeadXRot();
 public:

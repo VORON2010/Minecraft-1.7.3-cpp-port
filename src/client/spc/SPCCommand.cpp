@@ -44,6 +44,8 @@
 #include "world/phys/Vec3.h"
 #include "world/entity/monster/Enderman.h"
 #include "world/entity/npc/Villager.h"
+#include "world/entity/monster/Blaze.h"
+#include "world/entity/monster/LavaSlime.h"
 #include "world/entity/monster/CaveSpider.h"
 #include "world/entity/monster/Silverfish.h"
 
@@ -551,6 +553,8 @@ std::shared_ptr<Entity> createSpawnEntity(Level &level, const jstring &name)
 	if (key == u"pigzombie" || key == u"zombiepigman") return std::make_shared<PigZombie>(level);
 	if (key == u"enderman") return std::make_shared<Enderman>(level);
 	if (key == u"villager") return std::make_shared<Villager>(level);
+	if (key == u"blaze") return std::make_shared<Blaze>(level);
+	if (key == u"magmacube" || key == u"lavaslime") return std::make_shared<LavaSlime>(level);
 	if (key == u"cavespider") return std::make_shared<CaveSpider>(level);
 	if (key == u"silverfish") return std::make_shared<Silverfish>(level);
 	return nullptr;

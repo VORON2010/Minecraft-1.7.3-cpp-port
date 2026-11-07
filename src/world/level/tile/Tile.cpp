@@ -102,6 +102,7 @@ StepSoundSand Tile::soundSandFootstep(u"sand", 1.0f, 1.0f);
 #include "world/level/tile/CakeTile.h"
 #include "world/level/tile/StoneBrickTile.h"
 #include "world/level/tile/EndPortalFrameTile.h"
+#include "world/level/tile/NetherWartTile.h"
 #include "world/level/tile/InfestedTile.h"
 #include "world/level/tile/HugeMushroomTile.h"
 #include "world/level/tile/PaneTile.h"
@@ -241,6 +242,7 @@ WaterlilyTile Tile::waterlily = WaterlilyTile(111, 76);
 Tile Tile::netherBrick = Tile(112, 224, Material::stone);
 FenceTile Tile::netherFence = FenceTile(113, 224, Material::stone);
 StairTile Tile::stairsNetherBrick = StairTile(114, Tile::netherBrick);
+NetherWartTile Tile::netherWart = NetherWartTile(115);
 EndPortalFrameTile Tile::endPortalFrame = EndPortalFrameTile(120);
 Tile Tile::endStone = Tile(121, 175, Material::stone);
 void Tile::initTiles()
@@ -367,6 +369,7 @@ void Tile::initTiles()
 	netherBrick.setDestroyTime(2.0f).setExplodeable(10.0f).setSoundType(soundStoneFootstep);
 	netherFence.setDestroyTime(2.0f).setExplodeable(10.0f).setSoundType(soundStoneFootstep);
 	stairsNetherBrick.setDestroyTime(2.0f).setExplodeable(10.0f).setLightBlock(255).setSoundType(soundStoneFootstep).setNotifyRenderOnDataChange();
+	netherWart.setNotifyRenderOnDataChange();
 	endPortalFrame.setSoundType(soundGlassFootstep).setLightEmission(1).setDestroyTime(-1.0f).setExplodeable(6000000.0f).setNotifyRenderOnDataChange();
 	endStone.setDestroyTime(3.0f).setExplodeable(15.0f).setSoundType(soundStoneFootstep);
 	stairsStoneBrick.setDestroyTime(1.5f).setExplodeable(10.0f).setLightBlock(255).setSoundType(soundStoneFootstep).setNotifyRenderOnDataChange();
@@ -472,6 +475,7 @@ void Tile::initTiles()
 	netherBrick.setDescriptionId(u"tile.netherBrick");
 	netherFence.setDescriptionId(u"tile.netherFence");
 	stairsNetherBrick.setDescriptionId(u"tile.stairsNetherBrick");
+	netherWart.setDescriptionId(u"tile.netherStalk");
 	endPortalFrame.setDescriptionId(u"tile.endPortalFrame");
 	endStone.setDescriptionId(u"tile.whiteStone");
 	portal.setDescriptionId(u"tile.portal");
@@ -1015,4 +1019,17 @@ void Tile::playBlock(Level &, int_t, int_t, int_t, int_t, int_t)
 int_t Tile::getMobilityFlag() const
 {
 	return material.getMobilityFlag();
+}
+
+void Tile::popResource(Level &level, int_t x, int_t y, int_t z, const ItemInstance &stack)
+{
+	if (level.isOnline)
+		return;
+	float spread = 0.7f;
+	float xo = level.random.nextFloat() * spread + (1.0f - spread) * 0.5f;
+	float yo = level.random.nextFloat() * spread + (1.0f - spread) * 0.5f;
+	float zo = level.random.nextFloat() * spread + (1.0f - spread) * 0.5f;
+	auto entity = std::make_shared<EntityItem>(level, x + xo, y + yo, z + zo, stack);
+	entity->throwTime = 10;
+	level.addEntity(entity);
 }

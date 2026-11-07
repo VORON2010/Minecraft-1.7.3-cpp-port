@@ -1,3 +1,4 @@
+#include "world/item/ItemInstance.h"
 #include "world/entity/monster/PigZombie.h"
 
 #include "world/item/Item.h"
@@ -101,4 +102,15 @@ void PigZombie::becomeAngryAt(Entity &target)
 	attackTarget = level.getEntityRef(target);
 	angerTime = 400 + random.nextInt(400);
 	playAngrySoundIn = random.nextInt(40);
+}
+
+// 1.0: rotten flesh and gold nuggets
+void PigZombie::dropDeathLoot()
+{
+	int_t count = random.nextInt(2);
+	for (int_t i = 0; i < count; i++)
+		spawnAtLocation(ItemInstance(Items::rottenFlesh->getShiftedIndex(), 1, 0), 0.0f);
+	count = random.nextInt(2);
+	for (int_t i = 0; i < count; i++)
+		spawnAtLocation(ItemInstance(Items::goldNugget->getShiftedIndex(), 1, 0), 0.0f);
 }

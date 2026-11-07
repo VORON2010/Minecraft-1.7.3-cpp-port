@@ -685,9 +685,8 @@ void Mob::jumpFromGround()
 		yd += static_cast<double>((jumpBoost->getAmplifier() + 1) * 0.1f);
 }
 
-void Mob::updateAi()
+void Mob::checkDespawn()
 {
-	noActionTime++;
 	std::shared_ptr<Player> nearestPlayer = level.getNearestPlayer(*this, -1.0);
 	if (canDespawn() && nearestPlayer != nullptr)
 	{
@@ -707,6 +706,13 @@ void Mob::updateAi()
 		}
 	}
 
+}
+
+void Mob::updateAi()
+{
+	noActionTime++;
+	checkDespawn();
+	std::shared_ptr<Player> nearestPlayer;
 	xxa = 0.0f;
 	yya = 0.0f;
 	float lookRange = 8.0f;

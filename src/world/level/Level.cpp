@@ -1,3 +1,4 @@
+#include <unordered_set>
 #include "world/level/Level.h"
 #include "world/level/SpawnerAnimals.h"
 #include "MinecraftException.h"
@@ -2428,6 +2429,7 @@ namespace
 
 		static JavaNaturalSpawnChunkSet eligibleChunksForSpawning;
 		eligibleChunksForSpawning.clear();
+		std::unordered_set<long_t> interiorChunks;
 		for (const auto &player : level.players)
 		{
 			int_t playerChunkX = Mth::floor(player->x / 16.0);
@@ -2437,7 +2439,13 @@ namespace
 			{
 				for (int_t z = -chunkRadius; z <= chunkRadius; ++z)
 				{
-					eligibleChunksForSpawning.add(javaIntAdd(x, playerChunkX), javaIntAdd(z, playerChunkZ));
+					// 1.0: the outer ring of chunks is tracked but never spawned in
+					bool edge = x == -chunkRadius || x == chunkRadius || z == -chunkRadius || z == chunkRadius;
+					int_t cx = javaIntAdd(x, playerChunkX);
+					int_t cz = javaIntAdd(z, playerChunkZ);
+					eligibleChunksForSpawning.add(cx, cz);
+					if (!edge)
+						interiorChunks.insert((static_cast<long_t>(cx) << 32) ^ static_cast<uint_t>(cz));
 				}
 			}
 		}
@@ -2454,28 +2462,10 @@ namespace
 
 			for (const NaturalSpawnChunk &chunk : orderedChunks)
 			{
+				if (interiorChunks.count((static_cast<long_t>(chunk.x) << 32) ^ static_cast<uint_t>(chunk.z)) == 0)
+					continue;
 				int_t chunkBlockX = javaIntMultiply(chunk.x, 16);
 				int_t chunkBlockZ = javaIntMultiply(chunk.z, 16);
-				Biome *biome = level.getBiomeSource().getBiome(chunkBlockX, chunkBlockZ);
-				const std::vector<BiomeSpawnEntry> &spawnList = biome->getMobs(toMobCategory(creatureType.category));
-				if (spawnList.empty())
-					continue;
-
-				int_t totalWeight = 0;
-				for (const BiomeSpawnEntry &entry : spawnList)
-					totalWeight = javaIntAdd(totalWeight, entry.weight);
-				int_t selectedWeight = level.random.nextInt(totalWeight);
-				const BiomeSpawnEntry *selectedEntry = &spawnList.front();
-				for (const BiomeSpawnEntry &entry : spawnList)
-				{
-					selectedWeight = javaIntSubtract(selectedWeight, entry.weight);
-					if (selectedWeight < 0)
-					{
-						selectedEntry = &entry;
-						break;
-					}
-				}
-
 				int_t baseX = javaIntAdd(chunkBlockX, level.random.nextInt(16));
 				int_t baseY = level.random.nextInt(128);
 				int_t baseZ = javaIntAdd(chunkBlockZ, level.random.nextInt(16));
@@ -2491,6 +2481,7 @@ namespace
 					int_t y = baseY;
 					int_t z = baseZ;
 					constexpr int_t spawnDistance = 6;
+					const BiomeSpawnEntry *selectedEntry = nullptr;
 					for (int_t inner = 0; inner < 4; ++inner)
 					{
 						x = javaIntAdd(x, javaIntSubtract(level.random.nextInt(spawnDistance), level.random.nextInt(spawnDistance)));
@@ -2512,6 +2503,32 @@ namespace
 						float distanceToSpawn = dx * dx + dy * dy + dz * dz;
 						if (distanceToSpawn < 576.0f)
 							continue;
+
+						if (selectedEntry == nullptr)
+						{
+							// 1.0 World.pickSpawnEntry: structure list first (nether fortress), then the biome
+							const std::vector<BiomeSpawnEntry> *spawnList = nullptr;
+							if (creatureType.category == NaturalCreatureCategory::Monster && level.getChunkSource() != nullptr)
+								spawnList = level.getChunkSource()->getStructureMonsters(x, y, z);
+							if (spawnList == nullptr)
+								spawnList = &level.getBiomeSource().getBiome(x, z)->getMobs(toMobCategory(creatureType.category));
+							if (spawnList->empty())
+								break;
+							int_t totalWeight = 0;
+							for (const BiomeSpawnEntry &entry : *spawnList)
+								totalWeight = javaIntAdd(totalWeight, entry.weight);
+							int_t selectedWeight = level.random.nextInt(totalWeight);
+							selectedEntry = &spawnList->front();
+							for (const BiomeSpawnEntry &entry : *spawnList)
+							{
+								selectedWeight = javaIntSubtract(selectedWeight, entry.weight);
+								if (selectedWeight < 0)
+								{
+									selectedEntry = &entry;
+									break;
+								}
+							}
+						}
 
 						std::shared_ptr<Mob> entity = selectedEntry->create(level);
 						if (entity == nullptr)

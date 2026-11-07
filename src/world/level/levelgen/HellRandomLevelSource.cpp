@@ -1,4 +1,5 @@
 #include "world/level/levelgen/HellRandomLevelSource.h"
+#include "world/level/levelgen/structure/FortressFeature.h"
 #include "java/Number.h"
 #include "util/Profiler.h"
 
@@ -28,7 +29,10 @@ HellRandomLevelSource::HellRandomLevelSource(Level &level, long_t seed) :
 	depthNoise(random, 16),
 	level(level)
 {
+	fortress = std::make_unique<FortressFeature>();
 }
+
+HellRandomLevelSource::~HellRandomLevelSource() = default;
 
 
 void HellRandomLevelSource::prepareHeights(int_t x, int_t z, ubyte_t *tiles)
@@ -192,6 +196,7 @@ std::shared_ptr<LevelChunk> HellRandomLevelSource::getChunk(int_t x, int_t z)
 	buildSurfaces(x, z, chunk->blocks.data());
 
 	caveFeature.apply(*this, level, x, z, chunk->blocks);
+	fortress->apply(*this, level, x, z, chunk->blocks);
 
 	return chunk;
 }
@@ -314,6 +319,7 @@ void HellRandomLevelSource::postProcess(ChunkSource &parent, int_t x, int_t z)
 	SandTile::fallInstantly = true;
 	int_t cx = x * 16;
 	int_t cz = z * 16;
+	fortress->postProcess(level, random, x, z);
 
 	for (int_t i = 0; i < 8; i++)
 	{
@@ -387,4 +393,11 @@ bool HellRandomLevelSource::shouldSave()
 jstring HellRandomLevelSource::gatherStats()
 {
 	return u"HellRandomLevelSource";
+}
+
+const std::vector<BiomeSpawnEntry> *HellRandomLevelSource::getStructureMonsters(int_t x, int_t y, int_t z)
+{
+	if (fortress->isIntersection(x, y, z))
+		return &fortress->getMonsters();
+	return nullptr;
 }

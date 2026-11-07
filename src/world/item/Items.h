@@ -41,6 +41,16 @@ namespace Items
 	extern Item *pumpkinSeeds;
 	extern Item *melonSeeds;
 	extern Item *enderPearl;
+	extern Item *blazeRod;
+	extern Item *ghastTear;
+	extern Item *goldNugget;
+	extern Item *netherWart;
+	extern Item *spiderEye;
+	extern Item *fermentedSpiderEye;
+	extern Item *blazePowder;
+	extern Item *magmaCream;
+	extern Item *speckledMelon;
+
 	extern Item *reed;
 	extern Item *doorWood;
 	extern Item *doorIron;

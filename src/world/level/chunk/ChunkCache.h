@@ -25,6 +25,7 @@ private:
 
 public:
 	ChunkCache(Level &level, ChunkStorage *storage, ChunkSource *source);
+	const std::vector<struct BiomeSpawnEntry> *getStructureMonsters(int_t x, int_t y, int_t z) override { return source ? source->getStructureMonsters(x, y, z) : nullptr; }
 
 	bool hasChunk(int_t x, int_t z) override;
 	std::shared_ptr<LevelChunk> getChunk(int_t x, int_t z) override;

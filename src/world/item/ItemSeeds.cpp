@@ -3,7 +3,7 @@
 #include "world/item/ItemInstance.h"
 #include "world/level/Level.h"
 
-ItemSeeds::ItemSeeds(int_t baseId, int_t resultTileId) : Item(baseId), resultTileId(resultTileId)
+ItemSeeds::ItemSeeds(int_t baseId, int_t resultTileId, int_t soilTileId) : Item(baseId), resultTileId(resultTileId), soilTileId(soilTileId)
 {
 }
 
@@ -12,7 +12,7 @@ bool ItemSeeds::useOn(ItemInstance &stack, Player &player, Level &level, int_t x
 	(void)player;
 	if (face != Facing::UP)
 		return false;
-	if (level.getTile(x, y, z) != 60)
+	if (level.getTile(x, y, z) != soilTileId)
 		return false;
 	if (!level.isEmptyTile(x, y + 1, z))
 		return false;

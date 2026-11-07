@@ -71,6 +71,7 @@ T jremove(std::vector<T> &v, int_t i)
 #include "world/level/tile/MobSpawnerTile.h"
 #include "world/level/tile/MushroomTile.h"
 #include "world/level/tile/MyceliumTile.h"
+#include "world/level/tile/NetherWartTile.h"
 #include "world/level/tile/NotGateTile.h"
 #include "world/level/tile/NoteTile.h"
 #include "world/level/tile/OreTile.h"
@@ -136,10 +137,10 @@ class MineshaftPieces__Corridor : public StructurePiece
 {
 public:
 	using Base = StructurePiece;
-	bool hasRails;
-	bool hasCobwebs;
-	bool hasSpiderSpawner;
-	int_t sections;
+	bool hasRails{};
+	bool hasCobwebs{};
+	bool hasSpiderSpawner{};
+	int_t sections{};
 	MineshaftPieces__Corridor(int_t generationDepth, Random & random, const BoundingBox & bb, int_t facing);
 	static BoundingBox findSize(PieceList & pieces, Random & random, int_t x, int_t y, int_t z, int_t facing);
 	virtual void addChildren(std::shared_ptr<StructurePiece> start, PieceList & pieces, Random & random);
@@ -150,8 +151,8 @@ class MineshaftPieces__Crossing : public StructurePiece
 {
 public:
 	using Base = StructurePiece;
-	int_t direction;
-	bool hasTwoFloors;
+	int_t direction{};
+	bool hasTwoFloors{};
 	MineshaftPieces__Crossing(int_t generationDepth, Random & random, const BoundingBox & bb, int_t direction);
 	static BoundingBox findSize(PieceList & pieces, Random & random, int_t x, int_t y, int_t z, int_t facing);
 	virtual void addChildren(std::shared_ptr<StructurePiece> start, PieceList & pieces, Random & random);

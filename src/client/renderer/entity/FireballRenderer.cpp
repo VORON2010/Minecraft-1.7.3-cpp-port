@@ -7,8 +7,8 @@
 #include "world/item/ItemInstance.h"
 #include "world/item/Items.h"
 
-FireballRenderer::FireballRenderer(EntityRenderDispatcher &entityRenderDispatcher)
-	: EntityRenderer(entityRenderDispatcher)
+FireballRenderer::FireballRenderer(EntityRenderDispatcher &entityRenderDispatcher, float scale)
+	: EntityRenderer(entityRenderDispatcher), fireballScale(scale)
 {
 }
 
@@ -21,7 +21,7 @@ void FireballRenderer::render(Entity &entity, double x, double y, double z, floa
 	glPushMatrix();
 	glTranslatef(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
 	glEnable(GL_RESCALE_NORMAL);
-	glScalef(2.0f, 2.0f, 2.0f);
+	glScalef(fireballScale, fireballScale, fireballScale);
 	int_t icon = Items::snowball->getIcon(ItemInstance(Items::snowball->getShiftedIndex(), 1, 0));
 	float u0 = (icon % 16 * 16.0f) / 256.0f;
 	float u1 = (icon % 16 * 16.0f + 16.0f) / 256.0f;

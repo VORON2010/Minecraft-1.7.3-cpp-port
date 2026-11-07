@@ -18,6 +18,11 @@
 #include "client/renderer/entity/SilverfishRenderer.h"
 #include "client/renderer/entity/EndermanRenderer.h"
 #include "client/renderer/entity/VillagerRenderer.h"
+#include "client/renderer/entity/BlazeRenderer.h"
+#include "client/renderer/entity/LavaSlimeRenderer.h"
+#include "world/entity/monster/Blaze.h"
+#include "world/entity/monster/LavaSlime.h"
+#include "world/entity/projectile/SmallFireball.h"
 #include "world/entity/npc/Villager.h"
 #include "world/entity/monster/Silverfish.h"
 #include "world/entity/monster/Enderman.h"
@@ -420,6 +425,30 @@ void EntityRenderDispatcher::render(Entity &entity, double x, double y, double z
 	if (dynamic_cast<Silverfish *>(&entity) != nullptr)
 	{
 		SilverfishRenderer &renderer = getSilverfishRenderer();
+		renderer.render(entity, x, y, z, rot, a);
+		renderer.postRender(entity, x, y, z, rot, a);
+		return;
+	}
+
+	if (dynamic_cast<Blaze *>(&entity) != nullptr)
+	{
+		static BlazeRenderer renderer(instance);
+		renderer.render(entity, x, y, z, rot, a);
+		renderer.postRender(entity, x, y, z, rot, a);
+		return;
+	}
+
+	if (dynamic_cast<LavaSlime *>(&entity) != nullptr)
+	{
+		static LavaSlimeRenderer renderer(instance);
+		renderer.render(entity, x, y, z, rot, a);
+		renderer.postRender(entity, x, y, z, rot, a);
+		return;
+	}
+
+	if (dynamic_cast<SmallFireball *>(&entity) != nullptr)
+	{
+		static FireballRenderer renderer(instance, 0.5f);
 		renderer.render(entity, x, y, z, rot, a);
 		renderer.postRender(entity, x, y, z, rot, a);
 		return;

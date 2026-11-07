@@ -1,3 +1,4 @@
+#include "world/item/ItemInstance.h"
 #include "world/entity/monster/Spider.h"
 
 #include "world/entity/player/Player.h"
@@ -70,4 +71,12 @@ void Spider::checkHurtTarget(Entity &entity, float distance)
 int_t Spider::getDeathLoot()
 {
 	return Items::silk->getShiftedIndex();
+}
+
+// 1.0: string, and a spider eye when a player got the kill
+void Spider::dropDeathLoot()
+{
+	Monster::dropDeathLoot();
+	if (lastHurtByPlayerTime > 0 && random.nextInt(3) == 0)
+		spawnAtLocation(ItemInstance(Items::spiderEye->getShiftedIndex(), 1, 0), 0.0f);
 }

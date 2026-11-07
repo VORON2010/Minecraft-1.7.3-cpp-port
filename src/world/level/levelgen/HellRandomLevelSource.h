@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "world/level/chunk/ChunkSource.h"
 
 #include <array>
@@ -29,6 +31,7 @@ private:
 	Level &level;
 
 	HellCaveFeature caveFeature;
+	std::unique_ptr<class FortressFeature> fortress;
 
 	std::array<double, 5 * 17 * 5> buffer = {};
 	std::array<double, 16 * 16> sandBuffer = {};
@@ -43,6 +46,7 @@ private:
 
 public:
 	HellRandomLevelSource(Level &level, long_t seed);
+	~HellRandomLevelSource() override;
 
 	void prepareHeights(int_t x, int_t z, ubyte_t *tiles);
 	void buildSurfaces(int_t x, int_t z, ubyte_t *tiles);
@@ -52,6 +56,7 @@ private:
 public:
 	bool hasChunk(int_t x, int_t z) override;
 	void postProcess(ChunkSource &parent, int_t x, int_t z) override;
+	const std::vector<struct BiomeSpawnEntry> *getStructureMonsters(int_t x, int_t y, int_t z) override;
 	bool save(bool force, std::shared_ptr<ProgressListener> progressListener) override;
 	bool tick() override;
 	bool shouldSave() override;

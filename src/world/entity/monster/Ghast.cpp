@@ -1,3 +1,4 @@
+#include "world/item/ItemInstance.h"
 #include "world/entity/monster/Ghast.h"
 
 #include "world/entity/projectile/EntityFireball.h"
@@ -207,4 +208,15 @@ bool Ghast::isCourseTraversable(double x, double y, double z, double distance)
 			return false;
 	}
 	return true;
+}
+
+// 1.0: ghast tears plus gunpowder
+void Ghast::dropDeathLoot()
+{
+	int_t count = random.nextInt(2);
+	for (int_t i = 0; i < count; i++)
+		spawnAtLocation(ItemInstance(Items::ghastTear->getShiftedIndex(), 1, 0), 0.0f);
+	count = random.nextInt(3);
+	for (int_t i = 0; i < count; i++)
+		spawnAtLocation(ItemInstance(Items::gunpowder->getShiftedIndex(), 1, 0), 0.0f);
 }

@@ -96,6 +96,7 @@ class FenceGateTile;
 class MyceliumTile;
 class WaterlilyTile;
 class EndPortalFrameTile;
+class NetherWartTile;
 
 class Tile
 {
@@ -283,6 +284,7 @@ public:
 	static Tile netherBrick;
 	static FenceTile netherFence;
 	static StairTile stairsNetherBrick;
+	static NetherWartTile netherWart;
 	static EndPortalFrameTile endPortalFrame;
 	static Tile endStone;
 	static void initTiles();
@@ -377,6 +379,7 @@ public:
 
 	void spawnResources(Level &level, int_t x, int_t y, int_t z, int_t data);
 	virtual void spawnResources(Level &level, int_t x, int_t y, int_t z, int_t data, float chance);
+	void popResource(Level &level, int_t x, int_t y, int_t z, const class ItemInstance &stack);
 
 	virtual int_t getSpawnResourcesAuxValue(int_t data);
 

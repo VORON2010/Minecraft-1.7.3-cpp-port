@@ -1499,6 +1499,15 @@ void LevelRenderer::levelEvent(Player *player, int_t event, int_t x, int_t y, in
 		level->playRecord(record == nullptr ? jstring() : record->getRecordName(), x, y, z);
 		break;
 	}
+	case 1007:
+		level->playSoundEffect(x + 0.5, y + 0.5, z + 0.5, u"mob.ghast.charge", 10.0f, (random.nextFloat() - random.nextFloat()) * 0.2f + 1.0f);
+		break;
+	case 1008:
+		level->playSoundEffect(x + 0.5, y + 0.5, z + 0.5, u"mob.ghast.fireball", 10.0f, (random.nextFloat() - random.nextFloat()) * 0.2f + 1.0f);
+		break;
+	case 1009:
+		level->playSoundEffect(x + 0.5, y + 0.5, z + 0.5, u"mob.ghast.fireball", 1.0f, (random.nextFloat() - random.nextFloat()) * 0.2f + 1.0f);
+		break;
 	case 2000:
 	{
 		int_t xDirection = data % 3 - 1;
