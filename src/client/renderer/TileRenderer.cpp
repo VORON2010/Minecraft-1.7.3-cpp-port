@@ -171,6 +171,9 @@ bool TileRenderer::tesselateInWorld(Tile &tt, int_t x, int_t y, int_t z)
 		AnvilTile &anvilTile = static_cast<AnvilTile &>(tt);
 		int_t data = forcedData >= 0 ? forcedData : level->getData(x, y, z);
 		bool rotated = (data & 3) == 1 || (data & 3) == 3;
+		// 1.4.7 topFaceRotation for the anvil top: 3, 2, none, 1 for facings 0-3
+		static const int_t anvilFlip[4] = {FLIP_180, FLIP_CW, FLIP_NONE, FLIP_CCW};
+		downFlip = anvilFlip[data & 3];
 		static const float parts[4][3] = {{0.75f, 0.25f, 0.75f}, {0.5f, 0.0625f, 0.625f}, {0.25f, 0.3125f, 0.5f}, {0.625f, 0.375f, 1.0f}};
 		float h = 0.0f;
 		for (int_t i = 0; i < 4; ++i)
@@ -186,6 +189,7 @@ bool TileRenderer::tesselateInWorld(Tile &tt, int_t x, int_t y, int_t z)
 			h += sy;
 		}
 		anvilTile.renderPart = 0;
+		downFlip = FLIP_NONE;
 		tt.setShape(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
 		return true;
 	}
@@ -283,7 +287,15 @@ bool TileRenderer::tesselateInWorld(Tile &tt, int_t x, int_t y, int_t z)
 	}
 	if (shape == Tile::SHAPE_END_PORTAL_FRAME)
 	{
-		// 1.0 tesselateEndPortalFrame: frame slab, plus the eye on top when filled
+		// 1.0 tesselateEndPortalFrame: frame slab, plus the eye on top when filled;
+		// the top texture turns with the facing (1.0 topFaceRotation 3/1/2 for data 0/3/1)
+		int_t facing = level->getData(x, y, z) & 3;
+		if (facing == 0)
+			downFlip = FLIP_180;
+		else if (facing == 3)
+			downFlip = FLIP_CCW;
+		else if (facing == 1)
+			downFlip = FLIP_CW;
 		tt.setShape(0.0f, 0.0f, 0.0f, 1.0f, 0.8125f, 1.0f);
 		tesselateBlockInWorld(tt, x, y, z);
 		if ((level->getData(x, y, z) & 4) != 0)
@@ -294,6 +306,7 @@ bool TileRenderer::tesselateInWorld(Tile &tt, int_t x, int_t y, int_t z)
 			fixedTexture = -1;
 		}
 		tt.updateDefaultShape();
+		downFlip = FLIP_NONE;
 		return true;
 	}
 	return false;
