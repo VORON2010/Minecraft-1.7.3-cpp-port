@@ -96,6 +96,7 @@ class FenceGateTile;
 class MyceliumTile;
 class WaterlilyTile;
 class EndPortalFrameTile;
+class DragonEggTile;
 class EndPortalTile;
 class NetherWartTile;
 
@@ -288,6 +289,7 @@ public:
 	static NetherWartTile netherWart;
 	static EndPortalTile endPortal;
 	static EndPortalFrameTile endPortalFrame;
+	static DragonEggTile dragonEgg;
 	static Tile endStone;
 	static void initTiles();
 

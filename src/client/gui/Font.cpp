@@ -158,14 +158,28 @@ void Font::draw(const jstring &str, int_t x, int_t y, int_t color, bool darken)
 		}
 	};
 
+	bool obfuscated = false;
+	auto setColorCode = [&](int_t cc) {
+		flushGlyphs();
+		int_t packed = colorCodes[cc + (darken ? 16 : 0)];
+		glColor4f(((packed >> 16) & 0xFF) / 255.0f, ((packed >> 8) & 0xFF) / 255.0f, (packed & 0xFF) / 255.0f, a);
+	};
+
 	for (int_t i = 0; i < str.length(); i++)
 	{
 		if (str[i] == 167 && str.length() > i + 1)
 		{
 			static const jstring codes = u"0123456789abcdef";
 			char_t code = str[i + 1];
-			if (code >= u'A' && code <= u'F')
+			if (code >= u'A' && code <= u'Z')
 				code = static_cast<char_t>(code - u'A' + u'a');
+			if (code == u'k')
+			{
+				obfuscated = true;
+				i++;
+				continue;
+			}
+			obfuscated = false;
 			int_t cc = codes.find(code);
 			if (cc == jstring::npos || cc > 15) cc = 15;
 			flushGlyphs();
@@ -180,7 +194,20 @@ void Font::draw(const jstring &str, int_t x, int_t y, int_t color, bool darken)
 
 		int_t ch = SharedConstants::acceptableLetters.find(str[i]);
 		if (ch != jstring::npos)
-			ib.push_back(listPos + ch + 32);
+		{
+			if (!obfuscated)
+				ib.push_back(listPos + ch + 32);
+			else
+			{
+				// 1.0 §k: a random glyph of the same width in colour 8 or 9
+				int_t other = 0;
+				do
+					other = random.nextInt(static_cast<int_t>(SharedConstants::acceptableLetters.length()));
+				while (charWidths.at(ch + 32) != charWidths.at(other + 32));
+				setColorCode(random.nextInt(2) + 8);
+				ib.push_back(listPos + other + 32);
+			}
+		}
 	}
 
 	flushGlyphs();
@@ -276,6 +303,92 @@ void Font::drawWordWrap(const jstring &str, int_t x, int_t y, int_t maxWidth, in
 		draw(line, x, y, color);
 		y += 8;
 	}
+}
+
+void Font::splitAndDraw(const jstring &str, int_t x, int_t y, int_t maxWidth, int_t color, bool darken)
+{
+	auto lines = splitText(str, u'\n');
+	if (lines.size() > 1)
+	{
+		for (const jstring &line : lines)
+		{
+			splitAndDraw(line, x, y, maxWidth, color);
+			y += splitAndGetHeight(line, maxWidth);
+		}
+		return;
+	}
+	auto words = splitText(str, u' ');
+	size_t word = 0;
+	jstring carry;
+	while (word < words.size())
+	{
+		jstring line = carry + words[word++] + u" ";
+		while (word < words.size() && width(line + words[word]) < maxWidth)
+			line += words[word++] + u" ";
+		while (width(line) > maxWidth)
+		{
+			size_t split = 0;
+			while (split < line.size() && width(line.substr(0, split + 1)) <= maxWidth)
+				++split;
+			if (split == 0)
+				split = 1;
+			jstring part = line.substr(0, split);
+			if (!trim(part).empty())
+			{
+				size_t sec = part.rfind(static_cast<char_t>(167));
+				if (sec != jstring::npos && sec + 1 < part.size())
+					carry = jstring(1, static_cast<char_t>(167)) + part[sec + 1];
+				draw(part, x, y, color, darken);
+				y += fontHeight;
+			}
+			line = carry + line.substr(split);
+		}
+		if (width(trim(line)) > 0)
+		{
+			size_t sec = line.rfind(static_cast<char_t>(167));
+			if (sec != jstring::npos && sec + 1 < line.size())
+				carry = jstring(1, static_cast<char_t>(167)) + line[sec + 1];
+			draw(line, x, y, color, darken);
+			y += fontHeight;
+		}
+	}
+}
+
+int_t Font::splitAndGetHeight(const jstring &str, int_t maxWidth)
+{
+	auto lines = splitText(str, u'\n');
+	if (lines.size() > 1)
+	{
+		int_t total = 0;
+		for (const jstring &line : lines)
+			total += splitAndGetHeight(line, maxWidth);
+		return total;
+	}
+	auto words = splitText(str, u' ');
+	size_t word = 0;
+	int_t h = 0;
+	while (word < words.size())
+	{
+		jstring line = words[word++] + u" ";
+		while (word < words.size() && width(line + words[word]) < maxWidth)
+			line += words[word++] + u" ";
+		while (width(line) > maxWidth)
+		{
+			size_t split = 0;
+			while (split < line.size() && width(line.substr(0, split + 1)) <= maxWidth)
+				++split;
+			if (split == 0)
+				split = 1;
+			if (!trim(line.substr(0, split)).empty())
+				h += fontHeight;
+			line = line.substr(split);
+		}
+		if (!trim(line).empty())
+			h += fontHeight;
+	}
+	if (h < fontHeight)
+		h += fontHeight;
+	return h;
 }
 
 int_t Font::wordWrapHeight(const jstring &str, int_t maxWidth)

@@ -10,6 +10,8 @@
 #include "world/level/Level.h"
 #include "world/level/tile/EndPortalTile.h"
 #include "world/level/tile/Tile.h"
+#include "world/level/tile/TorchTile.h"
+#include "world/level/tile/DragonEggTile.h"
 #include "world/phys/AABB.h"
 #include "world/phys/Vec3.h"
 

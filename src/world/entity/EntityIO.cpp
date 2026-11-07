@@ -30,6 +30,8 @@
 #include "world/entity/npc/Villager.h"
 #include "world/entity/monster/Blaze.h"
 #include "world/entity/monster/LavaSlime.h"
+#include "world/entity/boss/EnderDragon.h"
+#include "world/entity/item/EnderCrystal.h"
 #include "world/entity/projectile/SmallFireball.h"
 #include "world/entity/item/EntityItem.h"
 #include "world/entity/item/ExperienceOrb.h"

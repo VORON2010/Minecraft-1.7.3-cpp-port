@@ -1,6 +1,7 @@
 #include "world/level/dimension/Dimension.h"
 
 #include "world/level/dimension/HellDimension.h"
+#include "world/level/dimension/TheEndDimension.h"
 #include "world/level/Level.h"
 
 #include "world/level/tile/Tile.h"
@@ -111,6 +112,11 @@ Vec3 *Dimension::getFogColor(float time, float unknown)
 	return Vec3::newTemp(r, g, b);
 }
 
+float Dimension::getCloudHeight()
+{
+	return 128.0f;
+}
+
 bool Dimension::mayRespawn()
 {
 	return true;
@@ -120,6 +126,8 @@ Dimension *Dimension::getNew(Level &level, int_t id)
 {
 	if (id == -1)
 		return new HellDimension(level);
+	if (id == 1)
+		return new TheEndDimension(level);
 	
 	
 	return new Dimension(level);

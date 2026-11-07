@@ -4,6 +4,7 @@
 #include "world/level/tile/entity/EndPortalTileEntity.h"
 #include "pc/OpenGL.h"
 #include "client/renderer/LevelRenderer.h"
+#include "client/Lighting.h"
 
 #include <algorithm>
 #include <limits>
@@ -653,6 +654,44 @@ void LevelRenderer::tick()
 
 void LevelRenderer::renderSky(float alpha)
 {
+	if (mc.level->dimension->id == 1)
+	{
+		// 1.0: the End sky is a box of tunnel.png around the camera
+		glDisable(GL_FOG);
+		glDisable(GL_ALPHA_TEST);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		Lighting::turnOff();
+		glDepthMask(false);
+		glBindTexture(GL_TEXTURE_2D, textures.loadTexture(u"/misc/tunnel.png"));
+		Tesselator &t = Tesselator::instance;
+		for (int_t i = 0; i < 6; ++i)
+		{
+			glPushMatrix();
+			if (i == 1)
+				glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+			if (i == 2)
+				glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+			if (i == 3)
+				glRotatef(180.0f, 1.0f, 0.0f, 0.0f);
+			if (i == 4)
+				glRotatef(90.0f, 0.0f, 0.0f, 1.0f);
+			if (i == 5)
+				glRotatef(-90.0f, 0.0f, 0.0f, 1.0f);
+			t.begin();
+			t.color(1579032);
+			t.vertexUV(-100.0, -100.0, -100.0, 0.0, 0.0);
+			t.vertexUV(-100.0, -100.0, 100.0, 0.0, 16.0);
+			t.vertexUV(100.0, -100.0, 100.0, 16.0, 16.0);
+			t.vertexUV(100.0, -100.0, -100.0, 16.0, 0.0);
+			t.end();
+			glPopMatrix();
+		}
+		glDepthMask(true);
+		glEnable(GL_TEXTURE_2D);
+		glEnable(GL_ALPHA_TEST);
+		return;
+	}
 	if (mc.level->dimension->foggy)
 		return;
 

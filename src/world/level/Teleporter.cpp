@@ -10,6 +10,20 @@
 
 void Teleporter::teleport(Level &level, Entity &entity)
 {
+	if (level.dimension->id == 1)
+	{
+		// 1.0 PortalForcer: a 5x5 obsidian platform with air above it in the End
+		int_t x = Mth::floor(entity.x);
+		int_t y = Mth::floor(entity.y) - 1;
+		int_t z = Mth::floor(entity.z);
+		for (int_t a = -2; a <= 2; ++a)
+			for (int_t b = -2; b <= 2; ++b)
+				for (int_t h = -1; h < 3; ++h)
+					level.setTile(x + b, y + h, z - a, h < 0 ? Tile::obsidian.id : 0);
+		entity.moveTo(x, y, z, entity.yRot, 0.0f);
+		entity.xd = entity.yd = entity.zd = 0.0;
+		return;
+	}
 	if (!findPortal(level, entity))
 	{
 		createPortal(level, entity);

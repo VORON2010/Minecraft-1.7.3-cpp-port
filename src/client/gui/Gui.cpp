@@ -5,6 +5,8 @@
 #include "client/Lighting.h"
 #include "client/gui/ChatScreen.h"
 #include "client/gui/ScreenSizeCalculator.h"
+#include "client/renderer/entity/EnderDragonRenderer.h"
+#include "world/entity/boss/EnderDragon.h"
 #include "client/renderer/Tesselator.h"
 #include "client/renderer/entity/EntityRenderDispatcher.h"
 #include "client/renderer/entity/ItemRenderer.h"
@@ -293,6 +295,25 @@ void Gui::render(float a, bool inScreen, int_t xm, int_t ym)
 	int_t lastHealth = minecraft.player->lastHealth;
 
 	random.setSeed(javaIntMultiply(tickCount, 312871));
+
+	if (EnderDragonRenderer::lastDragon != nullptr)
+	{
+		// 1.0 renderBossBars
+		EnderDragon *dragon = EnderDragonRenderer::lastDragon;
+		EnderDragonRenderer::lastDragon = nullptr;
+		int_t barWidth = 182;
+		int_t bx = width / 2 - barWidth / 2;
+		int_t filled = static_cast<int_t>(static_cast<float>(dragon->getSynchedHealth()) / static_cast<float>(EnderDragon::MAX_HEALTH) * static_cast<float>(barWidth + 1));
+		int_t by = 12;
+		blit(bx, by, 0, 74, barWidth, 5);
+		blit(bx, by, 0, 74, barWidth, 5);
+		if (filled > 0)
+			blit(bx, by, 0, 79, filled, 5);
+		jstring bossText = u"Boss health";
+		font.drawShadow(bossText, width / 2 - font.width(bossText) / 2, by - 10, 0xFF00FF);
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		glBindTexture(GL_TEXTURE_2D, minecraft.textures.loadTexture(u"/gui/icons.png"));
+	}
 
 	if (minecraft.gameMode->canHurtPlayer())
 	{

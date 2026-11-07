@@ -199,6 +199,9 @@ public:
 	void selectLevel(const jstring &name, const jstring &levelName, long_t seed);
 
 	void toggleDimension();
+	void changeDimension(int_t dimension);
+	// set by the player inside a portal, applied after the level tick
+	int_t pendingDimension = -100;
 
 	void setLevel(std::shared_ptr<Level> level);
 	void setLevel(std::shared_ptr<Level> level, const jstring &title);
@@ -210,7 +213,7 @@ public:
 	jstring gatherStats2();
 	jstring gatherStats4();
 	jstring gatherStats3();
-	void respawnPlayer(int_t dimension = 0);
+	void respawnPlayer(int_t dimension = 0, bool keepInventory = false);
 	static void start(const jstring *name, const jstring *sessionId);
 	static void startAndConnectTo(const jstring *name, const jstring *sessionId, const jstring *ip);
 	

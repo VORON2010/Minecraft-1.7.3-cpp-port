@@ -54,6 +54,7 @@ public:
 	void closeContainer() override;
 	void take(Entity &entity, int_t count) override;
 	void respawn() override;
+	void changeDimension(int_t dimension) override;
 	void startCrafting(int_t x, int_t y, int_t z);
 	void startChest(std::shared_ptr<ChestTileEntity> chest);
 	void startChest(std::shared_ptr<CompoundContainer> chest);

@@ -2,6 +2,7 @@
 
 #include "util/Mth.h"
 #include "world/level/Level.h"
+#include "world/level/Explosion.h"
 #include "world/level/tile/FireTile.h"
 #include "world/level/tile/Tile.h"
 

@@ -18,6 +18,9 @@
 #include "world/entity/monster/Slime.h"
 #include "world/entity/monster/Spider.h"
 #include "world/entity/monster/Zombie.h"
+#include "world/entity/boss/EnderDragon.h"
+#include "world/level/Level.h"
+#include "world/level/levelgen/feature/EndPillarFeature.h"
 #include "world/level/FoliageColor.h"
 #include "world/level/GrassColor.h"
 #include "world/level/LevelSource.h"
@@ -229,6 +232,34 @@ namespace
 		}
 	};
 
+	// 1.0 EndIslandDecorator: ores, an obsidian pillar in one chunk of five, the dragon at 0,0
+	class EndIslandDecorator : public BiomeDecorator
+	{
+		EndPillarFeature pillar = EndPillarFeature(Tile::endStone.id);
+
+	public:
+		explicit EndIslandDecorator(Biome &biome) : BiomeDecorator(biome) {}
+
+	protected:
+		void decorate() override
+		{
+			decorateOres();
+			if (random->nextInt(5) == 0)
+			{
+				int_t x = xo + random->nextInt(16) + 8;
+				int_t z = zo + random->nextInt(16) + 8;
+				int_t y = level->getHeightmap(x, z);
+				pillar.place(*level, *random, x, y, z);
+			}
+			if (xo == 0 && zo == 0)
+			{
+				auto dragon = std::make_shared<EnderDragon>(*level);
+				dragon->moveTo(0.0, 128.0, 0.0, random->nextFloat() * 360.0f, 0.0f);
+				level->addEntity(dragon);
+			}
+		}
+	};
+
 	class SkyBiome : public Biome
 	{
 	public:
@@ -240,6 +271,7 @@ namespace
 			enemies.push_back(spawn<Enderman>(10, 4, 4));
 			topMaterial = static_cast<ubyte_t>(Tile::dirt.id);
 			material = static_cast<ubyte_t>(Tile::dirt.id);
+			decorator = std::make_unique<EndIslandDecorator>(*this);
 		}
 
 		int_t getSkyColor(float temperature) override

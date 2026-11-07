@@ -1192,6 +1192,12 @@ void Minecraft::tick()
 			level->setSpawnSettings(!unattended && options.difficulty > 0, !unattended);
 			level->tick();
 		}
+		if (pendingDimension != -100)
+		{
+			int_t dim = pendingDimension;
+			pendingDimension = -100;
+			changeDimension(dim);
+		}
 		if (!pause && level != nullptr)
 			level->animateTick(Mth::floor(player->x), Mth::floor(player->y), Mth::floor(player->z));
 		if (!pause)
@@ -1309,51 +1315,74 @@ void Minecraft::selectLevel(const jstring &name, const jstring &levelName, long_
 
 void Minecraft::toggleDimension()
 {
+	if (player == nullptr)
+		return;
+	changeDimension(player->dimension == -1 ? 0 : -1);
+}
+
+// 1.0 Minecraft.changeDimension
+void Minecraft::changeDimension(int_t dimension)
+{
 	if (level == nullptr || player == nullptr || isOnline())
 		return;
 
-	std::cout << "Toggling dimension!!" << '\n';
-	int_t newDimension = (player->dimension == -1) ? 0 : -1;
-	player->dimension = newDimension;
-
+	int_t oldDimension = player->dimension;
+	player->dimension = dimension;
 	level->removeEntity(player);
 	player->removed = false;
 
 	double x = player->x;
+	double y = player->y;
 	double z = player->z;
-	double scale = 8.0;
-	if (newDimension == -1)
+	double scale = 1.0;
+	if (oldDimension > -1 && dimension == -1)
+		scale = 0.125;
+	else if (oldDimension == -1 && dimension > -1)
+		scale = 8.0;
+	x *= scale;
+	z *= scale;
+
+	float yRot = player->yRot;
+	float xRot = player->xRot;
+	if (dimension <= 0)
 	{
-		x /= scale;
-		z /= scale;
+		player->moveTo(x, y, z, yRot, xRot);
+		if (player->isAlive())
+			level->tick(player, false);
 	}
-	else
-	{
-		x *= scale;
-		z *= scale;
-	}
-	player->moveTo(x, player->y, z, player->yRot, player->xRot);
-
-
-	if (player->isAlive())
-		level->tick(player, false);
-
-
-
 
 	CompoundTag playerTag;
 	player->saveWithoutId(playerTag);
 
-	std::shared_ptr<Level> newLevel = Util::make_shared<Level>(*level, newDimension);
+	std::shared_ptr<Level> newLevel = Util::make_shared<Level>(*level, dimension);
+	jstring title;
+	if (dimension == -1)
+		title = u"Entering the Nether";
+	else if (dimension == 0)
+		title = oldDimension == -1 ? u"Leaving the Nether" : u"Leaving the End";
+	else
+	{
+		int_t sx = 0, sy = 0, sz = 0;
+		newLevel->dimension->getForcedSpawnPoint(sx, sy, sz);
+		x = sx;
+		y = sy;
+		z = sz;
+		yRot = 90.0f;
+		xRot = 0.0f;
+		title = u"Entering the End";
+	}
+
 	std::shared_ptr<LocalPlayer> newPlayer = std::static_pointer_cast<LocalPlayer>(gameMode->createPlayer(*newLevel));
 	newPlayer->load(playerTag);
-	newPlayer->dimension = newDimension;
-	newPlayer->moveTo(x, player->y, z, player->yRot, player->xRot);
+	newPlayer->dimension = dimension;
+	newPlayer->moveTo(x, y, z, yRot, xRot);
+	if (dimension == 1 && newPlayer->isAlive())
+		newLevel->tick(newPlayer, false);
 	this->player = newPlayer;
 
-	setLevel(newLevel, newDimension == -1 ? u"Entering the Nether" : u"Leaving the Nether", newPlayer);
+	setLevel(newLevel, title, newPlayer);
 
-	if (newPlayer->isAlive())
+	if (newPlayer->isAlive() && oldDimension < 1)
 	{
 		newPlayer->moveTo(x, newPlayer->y, z, newPlayer->yRot, newPlayer->xRot);
 		newLevel->tick(newPlayer, false);
@@ -1488,13 +1517,13 @@ jstring Minecraft::gatherStats3()
 	return u"P: " + particleEngine.countParticles() + u". T: " + level->gatherStats();
 }
 
-void Minecraft::respawnPlayer(int_t dimension)
+void Minecraft::respawnPlayer(int_t dimension, bool keepInventory)
 {
 	if (level == nullptr || gameMode == nullptr)
 		return;
 
 	if (!level->isOnline && level->dimension != nullptr && !level->dimension->mayRespawn())
-		toggleDimension();
+		changeDimension(0);
 
 	level->setSpawnLocation();
 	level->updateEntityList();
@@ -1506,7 +1535,23 @@ void Minecraft::respawnPlayer(int_t dimension)
 		level->removeEntity(player);
 	}
 
+	std::shared_ptr<LocalPlayer> oldPlayer = this->player;
 	this->player = std::static_pointer_cast<LocalPlayer>(gameMode->createPlayer(*level));
+	if (keepInventory && oldPlayer != nullptr)
+	{
+		// 1.0 PlayerEntity.copyFrom
+		this->player->inventory.mainInventory = oldPlayer->inventory.mainInventory;
+		this->player->inventory.armorInventory = oldPlayer->inventory.armorInventory;
+		this->player->health = oldPlayer->health;
+		this->player->foodLevel = oldPlayer->foodLevel;
+		this->player->foodTickTimer = oldPlayer->foodTickTimer;
+		this->player->foodSaturationLevel = oldPlayer->foodSaturationLevel;
+		this->player->foodExhaustionLevel = oldPlayer->foodExhaustionLevel;
+		this->player->experienceLevel = oldPlayer->experienceLevel;
+		this->player->totalExperience = oldPlayer->totalExperience;
+		this->player->experienceProgress = oldPlayer->experienceProgress;
+		this->player->score = oldPlayer->score;
+	}
 	this->player->dimension = dimension;
 	this->player->resetPos();
 	gameMode->initPlayer(this->player);

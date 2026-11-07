@@ -14,7 +14,7 @@ public:
 	int_t getTickDelay() override;
 	void onPlace(Level &level, int_t x, int_t y, int_t z) override;
 
-private:
+public:
 	void checkSlide(Level &level, int_t x, int_t y, int_t z);
 	static bool isFree(Level &level, int_t x, int_t y, int_t z);
 };

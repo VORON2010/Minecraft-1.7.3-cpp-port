@@ -58,11 +58,15 @@ public:
 	virtual Vec3 *getFogColor(float time, float unknown);
 
 	virtual bool mayRespawn();
+	virtual bool hasGround() { return true; }
+	virtual float getCloudHeight();
+	virtual bool getForcedSpawnPoint(int_t &x, int_t &y, int_t &z) { (void)x; (void)y; (void)z; return false; }
 
 	enum Id
 	{
 		Id_Hell = -1,
 		Id_Normal = 0,
+		Id_End = 1,
 
 		
 		Id_None = 2,

@@ -39,6 +39,7 @@ DecorationMaterial Material::portal = [] {
 	return material;
 }();
 Material Material::cakeMaterial = Material().setNoPushMobility().setMapColor(MapColor::airColor);
+Material Material::egg = Material().setNoPushMobility().setMapColor(MapColor::foliageColor);
 Material &Material::plants()
 {
 	static DecorationMaterial material(false, false, false, true);

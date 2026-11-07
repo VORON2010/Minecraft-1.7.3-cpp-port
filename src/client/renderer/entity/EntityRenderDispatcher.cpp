@@ -21,6 +21,10 @@
 #include "client/renderer/entity/EndermanRenderer.h"
 #include "client/renderer/entity/VillagerRenderer.h"
 #include "client/renderer/entity/BlazeRenderer.h"
+#include "client/renderer/entity/EnderDragonRenderer.h"
+#include "client/renderer/entity/EnderCrystalRenderer.h"
+#include "world/entity/boss/EnderDragon.h"
+#include "world/entity/item/EnderCrystal.h"
 #include "client/renderer/entity/LavaSlimeRenderer.h"
 #include "world/entity/monster/Blaze.h"
 #include "world/entity/monster/LavaSlime.h"
@@ -427,6 +431,22 @@ void EntityRenderDispatcher::render(Entity &entity, double x, double y, double z
 	if (dynamic_cast<Silverfish *>(&entity) != nullptr)
 	{
 		SilverfishRenderer &renderer = getSilverfishRenderer();
+		renderer.render(entity, x, y, z, rot, a);
+		renderer.postRender(entity, x, y, z, rot, a);
+		return;
+	}
+
+	if (dynamic_cast<EnderDragon *>(&entity) != nullptr)
+	{
+		static EnderDragonRenderer renderer(instance);
+		renderer.render(entity, x, y, z, rot, a);
+		renderer.postRender(entity, x, y, z, rot, a);
+		return;
+	}
+
+	if (dynamic_cast<EnderCrystal *>(&entity) != nullptr)
+	{
+		static EnderCrystalRenderer renderer(instance);
 		renderer.render(entity, x, y, z, rot, a);
 		renderer.postRender(entity, x, y, z, rot, a);
 		return;

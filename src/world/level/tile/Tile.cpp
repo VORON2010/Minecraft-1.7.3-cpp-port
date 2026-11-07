@@ -103,6 +103,7 @@ StepSoundSand Tile::soundSandFootstep(u"sand", 1.0f, 1.0f);
 #include "world/level/tile/StoneBrickTile.h"
 #include "world/level/tile/EndPortalFrameTile.h"
 #include "world/level/tile/EndPortalTile.h"
+#include "world/level/tile/DragonEggTile.h"
 #include "world/level/material/DecorationMaterial.h"
 #include "world/level/tile/NetherWartTile.h"
 #include "world/level/tile/InfestedTile.h"
@@ -248,6 +249,7 @@ NetherWartTile Tile::netherWart = NetherWartTile(115);
 EndPortalTile Tile::endPortal = EndPortalTile(119, Material::portal);
 EndPortalFrameTile Tile::endPortalFrame = EndPortalFrameTile(120);
 Tile Tile::endStone = Tile(121, 175, Material::stone);
+DragonEggTile Tile::dragonEgg = DragonEggTile(122, 167);
 void Tile::initTiles()
 {
 	rock.setDestroyTime(1.5f).setExplodeable(10.0f).setSoundType(soundStoneFootstep);
@@ -376,6 +378,7 @@ void Tile::initTiles()
 	endPortal.setLightEmission(15).setDestroyTime(-1.0f).setExplodeable(6000000.0f);
 	endPortalFrame.setSoundType(soundGlassFootstep).setLightEmission(1).setDestroyTime(-1.0f).setExplodeable(6000000.0f).setNotifyRenderOnDataChange();
 	endStone.setDestroyTime(3.0f).setExplodeable(15.0f).setSoundType(soundStoneFootstep);
+	dragonEgg.setDestroyTime(3.0f).setExplodeable(15.0f).setSoundType(soundStoneFootstep).setLightEmission(1);
 	stairsStoneBrick.setDestroyTime(1.5f).setExplodeable(10.0f).setLightBlock(255).setSoundType(soundStoneFootstep).setNotifyRenderOnDataChange();
 
 	Tile::lightBlock[8] = 3;
@@ -482,6 +485,7 @@ void Tile::initTiles()
 	netherWart.setDescriptionId(u"tile.netherStalk");
 	endPortalFrame.setDescriptionId(u"tile.endPortalFrame");
 	endStone.setDescriptionId(u"tile.whiteStone");
+	dragonEgg.setDescriptionId(u"tile.dragonEgg");
 	portal.setDescriptionId(u"tile.portal");
 	jackOLantern.setDescriptionId(u"tile.litpumpkin");
 	mobSpawner.setDescriptionId(u"tile.mobSpawner");

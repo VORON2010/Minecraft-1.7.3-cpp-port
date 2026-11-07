@@ -31,6 +31,7 @@ public:
 	static Material leaves;
 	static DecorationMaterial portal;
 	static Material cakeMaterial;
+	static Material egg;
 
 	static Material &plants();
 	static Material &cactus();

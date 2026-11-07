@@ -164,6 +164,24 @@ bool TileRenderer::tesselateInWorld(Tile &tt, int_t x, int_t y, int_t z)
 		return tesselateFenceGateInWorld(tt, x, y, z);
 	if (shape == Tile::SHAPE_LILYPAD)
 		return tesselateLilyPadInWorld(tt, x, y, z);
+	if (shape == Tile::SHAPE_DRAGON_EGG)
+	{
+		// 1.0 tesselateDragonEgg: eight stacked slices
+	static const int_t eggW[8] = {2, 3, 4, 5, 6, 7, 6, 3};
+	static const int_t eggH[8] = {1, 1, 1, 2, 3, 5, 2, 1};
+		int_t y0 = 0;
+		for (int_t i = 0; i < 8; ++i)
+		{
+			float w = static_cast<float>(eggW[i]) / 16.0f;
+			float top = 1.0f - static_cast<float>(y0) / 16.0f;
+			float bottom = 1.0f - static_cast<float>(y0 + eggH[i]) / 16.0f;
+			y0 += eggH[i];
+			tt.setShape(0.5f - w, bottom, 0.5f - w, 0.5f + w, top, 0.5f + w);
+			tesselateBlockInWorld(tt, x, y, z);
+		}
+		tt.setShape(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+		return true;
+	}
 	if (shape == Tile::SHAPE_END_PORTAL_FRAME)
 	{
 		// 1.0 tesselateEndPortalFrame: frame slab, plus the eye on top when filled
@@ -1753,6 +1771,37 @@ void TileRenderer::renderTile(Tile &tile, int_t data)
 			t.end();
 			glTranslatef(0.5f, 0.5f, 0.5f);
 		}
+		else if (shape == Tile::SHAPE_DRAGON_EGG)
+		{
+		static const int_t eggW[8] = {2, 3, 4, 5, 6, 7, 6, 3};
+		static const int_t eggH[8] = {1, 1, 1, 2, 3, 5, 2, 1};
+			int_t y0 = 0;
+			glTranslatef(-0.5f, -0.5f, -0.5f);
+			t.begin();
+			for (int_t i = 0; i < 8; ++i)
+			{
+				float w = static_cast<float>(eggW[i]) / 16.0f;
+				float top = 1.0f - static_cast<float>(y0) / 16.0f;
+				float bottom = 1.0f - static_cast<float>(y0 + eggH[i]) / 16.0f;
+				y0 += eggH[i];
+				tile.setShape(0.5f - w, bottom, 0.5f - w, 0.5f + w, top, 0.5f + w);
+				t.normal(0.0f, -1.0f, 0.0f);
+				renderFaceUp(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::DOWN, data));
+				t.normal(0.0f, 1.0f, 0.0f);
+				renderFaceDown(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::UP, data));
+				t.normal(0.0f, 0.0f, -1.0f);
+				renderNorth(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::NORTH, data));
+				t.normal(0.0f, 0.0f, 1.0f);
+				renderSouth(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::SOUTH, data));
+				t.normal(-1.0f, 0.0f, 0.0f);
+				renderWest(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::WEST, data));
+				t.normal(1.0f, 0.0f, 0.0f);
+				renderEast(tile, 0.0, 0.0, 0.0, tile.getTexture(Facing::EAST, data));
+			}
+			t.end();
+			glTranslatef(0.5f, 0.5f, 0.5f);
+			tile.setShape(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+		}
 		else if (shape == Tile::SHAPE_CACTUS)
 		{
 			float s = 1.0f / 16.0f;
@@ -2184,7 +2233,8 @@ bool TileRenderer::canRender(int_t renderShape)
 	{
 		return renderShape == Tile::SHAPE_BLOCK || renderShape == Tile::SHAPE_CACTUS ||
 			renderShape == Tile::SHAPE_STAIRS || renderShape == Tile::SHAPE_FENCE ||
-			renderShape == Tile::SHAPE_PISTON_BASE || renderShape == Tile::SHAPE_FENCE_GATE;
+			renderShape == Tile::SHAPE_PISTON_BASE || renderShape == Tile::SHAPE_FENCE_GATE ||
+			renderShape == Tile::SHAPE_DRAGON_EGG;
 	}
 
 

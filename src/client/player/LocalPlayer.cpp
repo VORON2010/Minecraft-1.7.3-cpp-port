@@ -1,3 +1,4 @@
+#include "client/gui/WinScreen.h"
 #include "client/player/LocalPlayer.h"
 
 #include <utility>
@@ -132,7 +133,7 @@ void LocalPlayer::aiStep()
 			{
 				changingDimensionDelay = 10;
 				minecraft.soundEngine.playUI(u"portal.travel", 1.0f, random.nextFloat() * 0.4f + 0.8f);
-				minecraft.toggleDimension();
+				minecraft.pendingDimension = dimension == -1 ? 0 : -1;
 			}
 		}
 
@@ -328,5 +329,22 @@ void LocalPlayer::sendChatMessage(const jstring &message)
 		SPCCommand::execute(minecraft, message);
 	} else {
 		SPCCommand::addChatMessage(u"<" + name + u"> " + message);
+	}
+}
+
+// 1.0 ClientPlayerEntity.changeDimension: the End portal; leaving the End shows the poem
+void LocalPlayer::changeDimension(int_t dimension)
+{
+	if (level.isOnline)
+		return;
+	if (this->dimension == 1 && dimension == 1)
+	{
+		if (std::dynamic_pointer_cast<WinScreen>(minecraft.screen) == nullptr)
+			minecraft.setScreen(Util::make_shared<WinScreen>(minecraft));
+	}
+	else if (minecraft.pendingDimension == -100)
+	{
+		minecraft.soundEngine.playUI(u"portal.travel", 1.0f, random.nextFloat() * 0.4f + 0.8f);
+		minecraft.pendingDimension = 1;
 	}
 }

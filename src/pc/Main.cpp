@@ -11,6 +11,7 @@
 #include "java/System.h"
 #include "tools/BlockSmoke.h"
 #include "tools/StructureSmoke.h"
+#include "tools/EndSmoke.h"
 #include "tools/MultiplayerScreenSmoke.h"
 #include "tools/NetworkSmoke.h"
 #include "tools/SaveConverterSmoke.h"
@@ -87,6 +88,8 @@ int main(int argc, char *argv[])
 #endif
 	if (argc >= 2 && std::strcmp(argv[1], "--structure-smoke") == 0)
 		return runStructureSmoke();
+	if (argc >= 2 && std::strcmp(argv[1], "--end-smoke") == 0)
+		return runEndSmoke();
 	if (argc >= 2 && std::strcmp(argv[1], "--block-smoke") == 0)
 		return runBlockSmoke();
 	if (argc >= 2 && std::strcmp(argv[1], "--network-smoke") == 0)

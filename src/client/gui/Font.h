@@ -8,6 +8,7 @@
 
 #include "java/Type.h"
 #include "java/String.h"
+#include "java/Random.h"
 
 class Options;
 class Textures;
@@ -19,6 +20,8 @@ private:
 	std::array<int_t, 32> colorCodes = {};
 public:
 	int_t fontTexture = 0;
+	int_t fontHeight = 8;
+	Random random;
 
 	Font(Options &options, const jstring &name, Textures &textures);
 	void initialize(Options &options, const jstring &name, Textures &textures);
@@ -35,4 +38,8 @@ public:
 	int_t width(const jstring &str);
 	void drawWordWrap(const jstring &str, int_t x, int_t y, int_t maxWidth, int_t color);
 	int_t wordWrapHeight(const jstring &str, int_t maxWidth);
+
+	// 1.0 splitAndDraw / splitAndGetHeight: wrap keeps the last colour code, line step is fontHeight
+	void splitAndDraw(const jstring &str, int_t x, int_t y, int_t maxWidth, int_t color, bool darken = false);
+	int_t splitAndGetHeight(const jstring &str, int_t maxWidth);
 };
