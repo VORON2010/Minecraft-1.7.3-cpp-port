@@ -12,6 +12,8 @@ protected:
 	std::unique_ptr<PathEntity> path;
 	std::shared_ptr<Entity> attackTarget;
 	bool holdGround = false;
+	// 1.0 fastMovementCooldown: ticks of running away after being hurt
+	int_t fleeTime = 0;
 
 public:
 	PathfinderMob(Level &level);
@@ -27,6 +29,7 @@ protected:
 
 public:
 	bool canSpawn() override;
+	float getSpeedModifier() override;
 	bool hasPath() const;
 	void setPath(std::unique_ptr<PathEntity> newPath);
 	std::shared_ptr<Entity> getTarget() const;

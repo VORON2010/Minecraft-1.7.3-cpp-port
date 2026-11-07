@@ -1,4 +1,5 @@
 #include "world/level/biome/Biome.h"
+#include "world/entity/animal/MushroomCow.h"
 
 #include <algorithm>
 #include <cmath>
@@ -301,6 +302,7 @@ namespace
 			enemies.clear();
 			friendlies.clear();
 			waterFriendlies.clear();
+			friendlies.push_back(spawn<MushroomCow>(8, 4, 8));
 		}
 	};
 }

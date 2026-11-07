@@ -1870,6 +1870,30 @@ void TileRenderer::renderTile(Tile &tile, int_t data)
 			t.end();
 			glTranslatef(0.5f, 0.5f, 0.5f);
 		}
+		else if (shape == Tile::SHAPE_CROSS_TEXTURE)
+		{
+			// 1.0 renderAsItem type 1: two crossed quads centred on the origin
+			int_t tex = tile.getTexture(Facing::DOWN, data);
+			int_t xt = (tex & 0xF) << 4;
+			int_t yt = tex & 0xF0;
+			double u0 = xt / 256.0, u1 = (xt + 15.99) / 256.0, v0 = yt / 256.0, v1 = (yt + 15.99) / 256.0;
+			double x0 = -0.45, x1 = 0.45, z0 = -0.45, z1 = 0.45, y0 = -0.5, y1 = 0.5;
+			t.begin();
+			t.normal(0.0f, -1.0f, 0.0f);
+			auto quad = [&](double ax, double az, double bx, double bz) {
+				t.vertexUV(ax, y1, az, u0, v0);
+				t.vertexUV(ax, y0, az, u0, v1);
+				t.vertexUV(bx, y0, bz, u1, v1);
+				t.vertexUV(bx, y1, bz, u1, v0);
+				t.vertexUV(bx, y1, bz, u0, v0);
+				t.vertexUV(bx, y0, bz, u0, v1);
+				t.vertexUV(ax, y0, az, u1, v1);
+				t.vertexUV(ax, y1, az, u1, v0);
+			};
+			quad(x0, z0, x1, z1);
+			quad(x0, z1, x1, z0);
+			t.end();
+		}
 		else if (shape == Tile::SHAPE_DRAGON_EGG)
 		{
 		static const int_t eggW[8] = {2, 3, 4, 5, 6, 7, 6, 3};

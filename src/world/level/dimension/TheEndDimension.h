@@ -8,6 +8,11 @@ class TheEndDimension : public Dimension
 public:
 	TheEndDimension(Level &level);
 
+protected:
+	void updateLightRamp() override;
+
+public:
+
 	ChunkSource *createRandomLevelSource() override;
 	ChunkStorage *createStorage(std::shared_ptr<File> dir) override;
 

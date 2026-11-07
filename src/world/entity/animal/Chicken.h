@@ -5,6 +5,7 @@
 class Chicken : public Animal
 {
 public:
+	std::shared_ptr<Animal> getBreedOffspring(Animal &partner) override;
 	float flap = 0.0f;
 	float flapSpeed = 0.0f;
 	float oFlapSpeed = 0.0f;

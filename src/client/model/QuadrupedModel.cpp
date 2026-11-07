@@ -1,4 +1,5 @@
 #include "client/model/QuadrupedModel.h"
+#include "pc/OpenGL.h"
 
 QuadrupedModel::QuadrupedModel(int_t legSize, float grow)
 {
@@ -19,7 +20,28 @@ QuadrupedModel::QuadrupedModel(int_t legSize, float grow)
 void QuadrupedModel::render(float time, float r, float bob, float yRot, float xRot, float scale)
 {
 	setupAnim(time, r, bob, yRot, xRot, scale);
-	head.render(scale);
+	if (young)
+	{
+		float s = 2.0f;
+		glPushMatrix();
+		glTranslatef(0.0f, youngYOffset * scale, youngZOffset * scale);
+		renderHeadParts(scale);
+		glPopMatrix();
+		glPushMatrix();
+		glScalef(1.0f / s, 1.0f / s, 1.0f / s);
+		glTranslatef(0.0f, 24.0f * scale, 0.0f);
+		renderBodyParts(scale);
+		glPopMatrix();
+	}
+	else
+	{
+		renderHeadParts(scale);
+		renderBodyParts(scale);
+	}
+}
+
+void QuadrupedModel::renderBodyParts(float scale)
+{
 	body.render(scale);
 	leg1.render(scale);
 	leg2.render(scale);

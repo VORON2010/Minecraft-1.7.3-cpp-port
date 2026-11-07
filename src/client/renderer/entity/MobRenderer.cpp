@@ -28,7 +28,12 @@ void MobRenderer::render(Entity &entity, double x, double y, double z, float rot
 
 	model->attackTime = getAttackAnim(mob, a);
 	model->riding = mob.isRiding();
-	if (armor != nullptr) armor->riding = model->riding;
+	model->young = mob.isBaby();
+	if (armor != nullptr)
+	{
+		armor->riding = model->riding;
+		armor->young = model->young;
+	}
 
 	float bodyRot = mob.yBodyRotO + (mob.yBodyRot - mob.yBodyRotO) * a;
 	float headRot = mob.yRotO + (mob.yRot - mob.yRotO) * a;
@@ -48,6 +53,8 @@ void MobRenderer::render(Entity &entity, double x, double y, double z, float rot
 
 	float ws = mob.walkAnimSpeedO + (mob.walkAnimSpeed - mob.walkAnimSpeedO) * a;
 	float wp = mob.walkAnimPos - mob.walkAnimSpeed * (1.0f - a);
+	if (mob.isBaby())
+		wp *= 3.0f;
 
 	if (ws > 1.0f) ws = 1.0f;
 

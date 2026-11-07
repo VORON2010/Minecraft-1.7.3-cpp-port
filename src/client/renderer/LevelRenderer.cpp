@@ -1446,6 +1446,8 @@ void LevelRenderer::addParticle(const jstring &name, double x, double y, double 
 		mc.particleEngine.add(std::make_unique<NoteParticle>(*level, x, y, z, xa, 2.0f));
 	else if (name == u"smoke")
 		mc.particleEngine.add(std::make_unique<SmokeParticle>(*level, x, y, z, xa, ya, za));
+	else if (name == u"snowshovel")
+		mc.particleEngine.add(std::make_unique<SnowShovelParticle>(*level, x, y, z, xa, ya, za));
 	else if (name == u"largesmoke")
 		mc.particleEngine.add(std::make_unique<SmokeParticle>(*level, x, y, z, xa, ya, za, 2.5f));
 	else if (name == u"flame")

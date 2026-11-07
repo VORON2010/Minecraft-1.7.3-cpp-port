@@ -1,4 +1,5 @@
 #include "pc/OpenGL.h"
+#include "world/entity/Mob.h"
 #include "client/renderer/entity/EntityRenderer.h"
 
 #include "client/renderer/entity/EntityRenderDispatcher.h"
@@ -99,6 +100,9 @@ void EntityRenderer::renderShadow(Entity &e, double x, double y, double z, float
 
 	glDepthMask(false);
 	float r = shadowRadius;
+	if (Mob *mob = dynamic_cast<Mob *>(&e))
+		if (mob->isBaby())
+			r *= 0.5f;
 
 	double ex = e.xOld + (e.x - e.xOld) * a;
 	double ey = e.yOld + (e.y - e.yOld) * a + e.getShadowHeightOffs();

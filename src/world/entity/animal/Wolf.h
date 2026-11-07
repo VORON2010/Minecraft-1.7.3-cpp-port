@@ -16,6 +16,7 @@ private:
 	void showHeartsOrSmokeFX(bool hearts);
 
 public:
+	bool isFood(const ItemInstance &item) const override { (void)item; return false; }
 	Wolf(Level &level);
 	void tick() override;
 	jstring getEncodeId() const override { return u"Wolf"; }

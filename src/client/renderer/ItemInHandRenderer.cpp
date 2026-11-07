@@ -138,11 +138,6 @@ namespace HeldItemRenderer
 				glBindTexture(GL_TEXTURE_2D, textures.loadTexture(u"/gui/items.png"));
 
 			Tesselator &t = Tesselator::instance;
-			int_t icon = iconOverride >= 0 ? iconOverride : item.getIcon();
-			float u1 = (icon % 16 * TileSize::size + 0.0f) / TileSize::size16;
-			float u0 = (icon % 16 * TileSize::size + TileSize::sizeMinus0_01) / TileSize::size16;
-			float v0 = (icon / 16 * TileSize::size + 0.0f) / TileSize::size16;
-			float v1 = (icon / 16 * TileSize::size + TileSize::sizeMinus0_01) / TileSize::size16;
 			float r = 1.0f;
 			float xo = 0.0f;
 			float yo = 0.3f;
@@ -155,77 +150,99 @@ namespace HeldItemRenderer
 			glTranslatef(-0.9375f, -0.0625f, 0.0f);
 			float dd = 0.0625f;
 
-			t.begin();
-			t.normal(0.0f, 0.0f, 1.0f);
-			t.vertexUV(0.0, 0.0, 0.0, u0, v1);
-			t.vertexUV(r, 0.0, 0.0, u1, v1);
-			t.vertexUV(r, 1.0, 0.0, u1, v0);
-			t.vertexUV(0.0, 1.0, 0.0, u0, v0);
-			t.end();
-
-			t.begin();
-			t.normal(0.0f, 0.0f, -1.0f);
-			t.vertexUV(0.0, 1.0, 0.0f - dd, u0, v0);
-			t.vertexUV(r, 1.0, 0.0f - dd, u1, v0);
-			t.vertexUV(r, 0.0, 0.0f - dd, u1, v1);
-			t.vertexUV(0.0, 0.0, 0.0f - dd, u0, v1);
-			t.end();
-
-			t.begin();
-			t.normal(-1.0f, 0.0f, 0.0f);
-			for (int_t i = 0; i < TileSize::size; i++)
+			auto drawIcon = [&](int_t icon) {
+				float u1 = (icon % 16 * TileSize::size + 0.0f) / TileSize::size16;
+				float u0 = (icon % 16 * TileSize::size + TileSize::sizeMinus0_01) / TileSize::size16;
+				float v0 = (icon / 16 * TileSize::size + 0.0f) / TileSize::size16;
+				float v1 = (icon / 16 * TileSize::size + TileSize::sizeMinus0_01) / TileSize::size16;
+				t.begin();
+				t.normal(0.0f, 0.0f, 1.0f);
+				t.vertexUV(0.0, 0.0, 0.0, u0, v1);
+				t.vertexUV(r, 0.0, 0.0, u1, v1);
+				t.vertexUV(r, 1.0, 0.0, u1, v0);
+				t.vertexUV(0.0, 1.0, 0.0, u0, v0);
+				t.end();
+	
+				t.begin();
+				t.normal(0.0f, 0.0f, -1.0f);
+				t.vertexUV(0.0, 1.0, 0.0f - dd, u0, v0);
+				t.vertexUV(r, 1.0, 0.0f - dd, u1, v0);
+				t.vertexUV(r, 0.0, 0.0f - dd, u1, v1);
+				t.vertexUV(0.0, 0.0, 0.0f - dd, u0, v1);
+				t.end();
+	
+				t.begin();
+				t.normal(-1.0f, 0.0f, 0.0f);
+				for (int_t i = 0; i < TileSize::size; i++)
+				{
+					float p = i / TileSize::sizeFloat;
+					float uu = u0 + (u1 - u0) * p - TileSize::texNudge;
+					float xx = r * p;
+					t.vertexUV(xx, 0.0, 0.0f - dd, uu, v1);
+					t.vertexUV(xx, 0.0, 0.0, uu, v1);
+					t.vertexUV(xx, 1.0, 0.0, uu, v0);
+					t.vertexUV(xx, 1.0, 0.0f - dd, uu, v0);
+				}
+				t.end();
+	
+				t.begin();
+				t.normal(1.0f, 0.0f, 0.0f);
+				for (int_t i = 0; i < TileSize::size; i++)
+				{
+					float p = i / TileSize::sizeFloat;
+					float uu = u0 + (u1 - u0) * p - TileSize::texNudge;
+					float xx = r * p + TileSize::reciprocal;
+					t.vertexUV(xx, 1.0, 0.0f - dd, uu, v0);
+					t.vertexUV(xx, 1.0, 0.0, uu, v0);
+					t.vertexUV(xx, 0.0, 0.0, uu, v1);
+					t.vertexUV(xx, 0.0, 0.0f - dd, uu, v1);
+				}
+				t.end();
+	
+				t.begin();
+				t.normal(0.0f, 1.0f, 0.0f);
+				for (int_t i = 0; i < TileSize::size; i++)
+				{
+					float p = i / TileSize::sizeFloat;
+					float vv = v1 + (v0 - v1) * p - TileSize::texNudge;
+					float yy = r * p + TileSize::reciprocal;
+					t.vertexUV(0.0, yy, 0.0, u0, vv);
+					t.vertexUV(r, yy, 0.0, u1, vv);
+					t.vertexUV(r, yy, 0.0f - dd, u1, vv);
+					t.vertexUV(0.0, yy, 0.0f - dd, u0, vv);
+				}
+				t.end();
+	
+				t.begin();
+				t.normal(0.0f, -1.0f, 0.0f);
+				for (int_t i = 0; i < TileSize::size; i++)
+				{
+					float p = i / TileSize::sizeFloat;
+					float vv = v1 + (v0 - v1) * p - TileSize::texNudge;
+					float yy = r * p;
+					t.vertexUV(r, yy, 0.0, u1, vv);
+					t.vertexUV(0.0, yy, 0.0, u0, vv);
+					t.vertexUV(0.0, yy, 0.0f - dd, u0, vv);
+					t.vertexUV(r, yy, 0.0f - dd, u1, vv);
+				}
+				t.end();
+			};
+			int_t icon = iconOverride >= 0 ? iconOverride : item.getIcon();
+			if (item.getItem() != nullptr && item.getItem() == Items::potion)
 			{
-				float p = i / TileSize::sizeFloat;
-				float uu = u0 + (u1 - u0) * p - TileSize::texNudge;
-				float xx = r * p;
-				t.vertexUV(xx, 0.0, 0.0f - dd, uu, v1);
-				t.vertexUV(xx, 0.0, 0.0, uu, v1);
-				t.vertexUV(xx, 1.0, 0.0, uu, v0);
-				t.vertexUV(xx, 1.0, 0.0f - dd, uu, v0);
+				// 1.0: the potion colour on the liquid layer (141), then the bottle
+				int_t col = item.getItem()->getColor(item.getAuxValue());
+				glEnable(GL_COLOR_MATERIAL);
+				glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+				glColor4f(((col >> 16) & 255) / 255.0f * brightness, ((col >> 8) & 255) / 255.0f * brightness, (col & 255) / 255.0f * brightness, 1.0f);
+				drawIcon(141);
+				glColor4f(brightness, brightness, brightness, 1.0f);
+				drawIcon(icon);
+				glDisable(GL_COLOR_MATERIAL);
+				glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 			}
-			t.end();
-
-			t.begin();
-			t.normal(1.0f, 0.0f, 0.0f);
-			for (int_t i = 0; i < TileSize::size; i++)
-			{
-				float p = i / TileSize::sizeFloat;
-				float uu = u0 + (u1 - u0) * p - TileSize::texNudge;
-				float xx = r * p + TileSize::reciprocal;
-				t.vertexUV(xx, 1.0, 0.0f - dd, uu, v0);
-				t.vertexUV(xx, 1.0, 0.0, uu, v0);
-				t.vertexUV(xx, 0.0, 0.0, uu, v1);
-				t.vertexUV(xx, 0.0, 0.0f - dd, uu, v1);
-			}
-			t.end();
-
-			t.begin();
-			t.normal(0.0f, 1.0f, 0.0f);
-			for (int_t i = 0; i < TileSize::size; i++)
-			{
-				float p = i / TileSize::sizeFloat;
-				float vv = v1 + (v0 - v1) * p - TileSize::texNudge;
-				float yy = r * p + TileSize::reciprocal;
-				t.vertexUV(0.0, yy, 0.0, u0, vv);
-				t.vertexUV(r, yy, 0.0, u1, vv);
-				t.vertexUV(r, yy, 0.0f - dd, u1, vv);
-				t.vertexUV(0.0, yy, 0.0f - dd, u0, vv);
-			}
-			t.end();
-
-			t.begin();
-			t.normal(0.0f, -1.0f, 0.0f);
-			for (int_t i = 0; i < TileSize::size; i++)
-			{
-				float p = i / TileSize::sizeFloat;
-				float vv = v1 + (v0 - v1) * p - TileSize::texNudge;
-				float yy = r * p;
-				t.vertexUV(r, yy, 0.0, u1, vv);
-				t.vertexUV(0.0, yy, 0.0, u0, vv);
-				t.vertexUV(0.0, yy, 0.0f - dd, u0, vv);
-				t.vertexUV(r, yy, 0.0f - dd, u1, vv);
-			}
-			t.end();
+			else
+				drawIcon(icon);
 			glDisable(GL_RESCALE_NORMAL);
 		}
 	}

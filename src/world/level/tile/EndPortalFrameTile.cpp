@@ -6,6 +6,8 @@
 
 EndPortalFrameTile::EndPortalFrameTile(int_t id) : Tile(id, 159, Material::glass)
 {
+	// non-solid: lets light through and keeps neighbour faces
+	updateCachedProperties();
 }
 
 int_t EndPortalFrameTile::getTexture(Facing face, int_t data)

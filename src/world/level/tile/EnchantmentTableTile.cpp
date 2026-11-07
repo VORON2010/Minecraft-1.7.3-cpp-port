@@ -13,6 +13,8 @@ Random EnchantmentTableTileEntity::random;
 
 EnchantmentTableTile::EnchantmentTableTile(int_t id) : Tile(id, 166, Material::stone)
 {
+	// non-solid: lets light through and keeps neighbour faces
+	updateCachedProperties();
 	setShape(0.0f, 0.0f, 0.0f, 1.0f, 0.75f, 1.0f);
 	Tile::isEntityTile[id] = true;
 	Tile::lightBlock[id] = 0;

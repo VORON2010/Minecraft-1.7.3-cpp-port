@@ -93,3 +93,17 @@ bool TheEndDimension::getForcedSpawnPoint(int_t &x, int_t &y, int_t &z)
 	z = 0;
 	return true;
 }
+
+void TheEndDimension::updateLightRamp()
+{
+	// 1.0 has a lightmap; in the End it is 0.22-0.28 plus 0.75 of the block light.
+	// This renderer has one brightness per light level, so take the middle of that.
+	for (int_t i = 0; i < 16; i++)
+	{
+		float f1 = 1.0f - i / 15.0f;
+		float base = (1.0f - f1) / (f1 * 3.0f + 1.0f);
+		float block = base * 1.5f;
+		float v = 0.25f + block * 0.75f;
+		brightnessRamp[i] = v > 1.0f ? 1.0f : v;
+	}
+}

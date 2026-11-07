@@ -15,3 +15,11 @@ public:
 	virtual void tick() override;
 	virtual void render(Tesselator &t, float a, float xa, float ya, float za, float xa2, float za2) override;
 };
+
+// 1.0 SnowShovelParticle: white puffs that fall, used when a snow golem is built
+class SnowShovelParticle : public SmokeParticle
+{
+public:
+	SnowShovelParticle(Level &level, double x, double y, double z, double xa, double ya, double za);
+	void tick() override;
+};

@@ -1,4 +1,6 @@
 #include "world/entity/projectile/ThrownPotion.h"
+#include "world/entity/animal/MushroomCow.h"
+#include "client/renderer/entity/GolemRenderers.h"
 #include "world/entity/projectile/ThrownEnderpearl.h"
 #include "world/entity/EyeOfEnderSignal.h"
 #include "client/renderer/entity/EntityRenderDispatcher.h"
@@ -596,6 +598,22 @@ void EntityRenderDispatcher::render(Entity &entity, double x, double y, double z
 	if (dynamic_cast<Pig *>(&entity) != nullptr)
 	{
 		PigRenderer &renderer = getPigRenderer();
+		renderer.render(entity, x, y, z, rot, a);
+		renderer.postRender(entity, x, y, z, rot, a);
+		return;
+	}
+
+	if (dynamic_cast<MushroomCow *>(&entity) != nullptr)
+	{
+		static MushroomCowRenderer renderer(instance, std::make_shared<CowModel>());
+		renderer.render(entity, x, y, z, rot, a);
+		renderer.postRender(entity, x, y, z, rot, a);
+		return;
+	}
+
+	if (dynamic_cast<SnowMan *>(&entity) != nullptr)
+	{
+		static SnowManRenderer renderer(instance);
 		renderer.render(entity, x, y, z, rot, a);
 		renderer.postRender(entity, x, y, z, rot, a);
 		return;

@@ -6,6 +6,8 @@
 
 DragonEggTile::DragonEggTile(int_t id, int_t tex) : Tile(id, tex, Material::egg)
 {
+	// non-solid: lets light through and keeps neighbour faces
+	updateCachedProperties();
 }
 
 void DragonEggTile::onPlace(Level &level, int_t x, int_t y, int_t z)

@@ -1,4 +1,5 @@
 #include "world/entity/boss/EnderDragon.h"
+#include "world/entity/animal/MushroomCow.h"
 #include "SPCCommand.h"
 
 #include <algorithm>
@@ -556,6 +557,8 @@ std::shared_ptr<Entity> createSpawnEntity(Level &level, const jstring &name)
 	if (key == u"villager") return std::make_shared<Villager>(level);
 	if (key == u"blaze") return std::make_shared<Blaze>(level);
 	if (key == u"enderdragon" || key == u"dragon") return std::make_shared<EnderDragon>(level);
+	if (key == u"mooshroom" || key == u"mushroomcow") return std::make_shared<MushroomCow>(level);
+	if (key == u"snowgolem" || key == u"snowman") return std::make_shared<SnowMan>(level);
 	if (key == u"magmacube" || key == u"lavaslime") return std::make_shared<LavaSlime>(level);
 	if (key == u"cavespider") return std::make_shared<CaveSpider>(level);
 	if (key == u"silverfish") return std::make_shared<Silverfish>(level);

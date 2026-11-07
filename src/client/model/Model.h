@@ -7,6 +7,8 @@ class Model
 public:
 	float attackTime = 0.0f;
 	bool riding = false;
+	// 1.0 isBaby: big head, half-size body
+	bool young = false;
 
 	virtual ~Model() {}
 

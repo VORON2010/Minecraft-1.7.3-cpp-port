@@ -18,6 +18,7 @@ private:
 	int_t craftingWidth = 0;
 	int_t craftingHeight = 0;
 
+	bool effectShift = false;
 	static constexpr int_t imageWidth = 176;
 	static constexpr int_t imageHeight = 166;
 

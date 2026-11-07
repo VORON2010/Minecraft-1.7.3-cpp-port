@@ -88,3 +88,32 @@ void SmokeParticle::render(Tesselator &t, float a, float xa, float ya, float za,
 	size = oSize * l;  
 	Particle::render(t, a, xa, ya, za, xa2, za2);  
 }
+
+SnowShovelParticle::SnowShovelParticle(Level &level, double x, double y, double z, double xa, double ya, double za)
+	: SmokeParticle(level, x, y, z, xa, ya, za, 1.0f)
+{
+	rCol = gCol = bCol = 1.0f - random.nextFloat() * 0.3f;
+}
+
+void SnowShovelParticle::tick()
+{
+	xo = x;
+	yo = y;
+	zo = z;
+	if (age++ >= lifetime)
+	{
+		remove();
+		return;
+	}
+	tex = 7 - age * 8 / lifetime;
+	yd -= 0.03;
+	move(xd, yd, zd);
+	xd *= 0.99f;
+	yd *= 0.99f;
+	zd *= 0.99f;
+	if (onGround)
+	{
+		xd *= 0.7f;
+		zd *= 0.7f;
+	}
+}

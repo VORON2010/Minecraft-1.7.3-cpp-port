@@ -12,6 +12,8 @@
 
 BrewingStandTile::BrewingStandTile(int_t id) : Tile(id, 157, Material::iron)
 {
+	// non-solid: lets light through and keeps neighbour faces
+	updateCachedProperties();
 	Tile::isEntityTile[id] = true;
 }
 
@@ -95,6 +97,8 @@ int_t BrewingStandTile::getResource(int_t data, Random &random)
 
 CauldronTile::CauldronTile(int_t id) : Tile(id, 154, Material::iron)
 {
+	// non-solid: lets light through and keeps neighbour faces
+	updateCachedProperties();
 }
 
 int_t CauldronTile::getTexture(Facing face, int_t data)

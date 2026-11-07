@@ -5,6 +5,7 @@
 class Squid : public Animal
 {
 public:
+	bool isFood(const ItemInstance &item) const override { (void)item; return false; }
 	int_t getExperienceReward() override { return 1 + random.nextInt(3); }
 	float xBodyRot = 0.0f;
 	float xBodyRotO = 0.0f;

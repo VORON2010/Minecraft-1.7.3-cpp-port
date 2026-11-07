@@ -18,7 +18,7 @@ bool Cow::interact(Player &player)
 		player.inventory.setItem(player.inventory.currentItem, ItemInstance(Items::bucketMilk->getShiftedIndex(), 1, 0));
 		return true;
 	}
-	return false;
+	return Animal::interact(player);
 }
 
 jstring Cow::getAmbientSound()
@@ -54,4 +54,10 @@ void Cow::dropDeathLoot()
 		count += random.nextInt(1 + lootBonus);
 	for (int_t i = 0; i < count; ++i)
 		spawnAtLocation(ItemInstance(onFire > 0 ? Items::beefCooked->getShiftedIndex() : Items::beefRaw->getShiftedIndex(), 1, 0), 0.0f);
+}
+
+std::shared_ptr<Animal> Cow::getBreedOffspring(Animal &partner)
+{
+	(void)partner;
+	return std::make_shared<Cow>(level);
 }

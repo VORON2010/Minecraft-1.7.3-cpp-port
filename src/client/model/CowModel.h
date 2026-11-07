@@ -11,6 +11,7 @@ private:
 
 public:
 	CowModel();
-	void render(float time, float r, float bob, float yRot, float xRot, float scale) override;
+	void renderHeadParts(float scale) override;
+	void renderBodyParts(float scale) override;
 	void setupAnim(float time, float r, float bob, float yRot, float xRot, float scale) override;
 };

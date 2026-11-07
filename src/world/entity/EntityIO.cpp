@@ -1,4 +1,5 @@
 #include "world/entity/projectile/ThrownPotion.h"
+#include "world/entity/animal/MushroomCow.h"
 #include "world/entity/projectile/ThrownEnderpearl.h"
 #include "world/entity/EyeOfEnderSignal.h"
 #include "world/entity/EntityIO.h"

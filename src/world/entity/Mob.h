@@ -145,7 +145,9 @@ public:
 	virtual int_t decreaseAirSupply(int_t air) { return air - 1; }
 	bool hurtByMagic(Entity *source, int_t dmg);
 	bool hurtByFire(int_t dmg) override;
-	float getSpeedModifier();
+	virtual float getSpeedModifier();
+	// 1.0 isBaby: animals with a negative age
+	virtual bool isBaby() { return false; }
 	int_t getEffectColor() const { return effectColor; }
 
 public:

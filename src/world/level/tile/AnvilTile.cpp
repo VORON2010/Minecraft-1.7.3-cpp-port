@@ -9,6 +9,8 @@
 
 AnvilTile::AnvilTile(int_t id) : SandTile(id, 215, Material::iron)
 {
+	// non-solid: lets light through and keeps neighbour faces
+	updateCachedProperties();
 	Tile::lightBlock[id] = 0;
 }
 

@@ -21,13 +21,19 @@ CowModel::CowModel() : QuadrupedModel(12, 0.0f)
 	leg4.x += 1.0f;
 	leg3.z -= 1.0f;
 	leg4.z -= 1.0f;
+	youngZOffset += 2.0f;
 }
 
-void CowModel::render(float time, float r, float bob, float yRot, float xRot, float scale)
+void CowModel::renderHeadParts(float scale)
 {
-	QuadrupedModel::render(time, r, bob, yRot, xRot, scale);
+	head.render(scale);
 	horn1.render(scale);
 	horn2.render(scale);
+}
+
+void CowModel::renderBodyParts(float scale)
+{
+	QuadrupedModel::renderBodyParts(scale);
 	udders.render(scale);
 }
 

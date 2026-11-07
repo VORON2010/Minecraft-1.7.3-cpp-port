@@ -65,3 +65,9 @@ void Chicken::dropDeathLoot()
 	Animal::dropDeathLoot();
 	spawnAtLocation(ItemInstance(onFire > 0 ? Items::chickenCooked->getShiftedIndex() : Items::chickenRaw->getShiftedIndex(), 1, 0), 0.0f);
 }
+
+std::shared_ptr<Animal> Chicken::getBreedOffspring(Animal &partner)
+{
+	(void)partner;
+	return std::make_shared<Chicken>(level);
+}

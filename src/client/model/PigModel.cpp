@@ -2,6 +2,7 @@
 
 PigModel::PigModel() : PigModel(0.0f)
 {
+	youngYOffset = 4.0f;
 }
 
 PigModel::PigModel(float grow) : QuadrupedModel(6, grow)

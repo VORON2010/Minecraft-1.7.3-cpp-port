@@ -1,4 +1,5 @@
 #include "client/model/ChickenModel.h"
+#include "pc/OpenGL.h"
 
 ChickenModel::ChickenModel()
 {
@@ -24,6 +25,26 @@ ChickenModel::ChickenModel()
 void ChickenModel::render(float time, float r, float bob, float yRot, float xRot, float scale)
 {
 	setupAnim(time, r, bob, yRot, xRot, scale);
+	if (young)
+	{
+		float s = 2.0f;
+		glPushMatrix();
+		glTranslatef(0.0f, 5.0f * scale, 2.0f * scale);
+		head.render(scale);
+		bill.render(scale);
+		chin.render(scale);
+		glPopMatrix();
+		glPushMatrix();
+		glScalef(1.0f / s, 1.0f / s, 1.0f / s);
+		glTranslatef(0.0f, 24.0f * scale, 0.0f);
+		body.render(scale);
+		rightLeg.render(scale);
+		leftLeg.render(scale);
+		rightWing.render(scale);
+		leftWing.render(scale);
+		glPopMatrix();
+		return;
+	}
 	head.render(scale);
 	bill.render(scale);
 	chin.render(scale);

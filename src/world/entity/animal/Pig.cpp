@@ -17,6 +17,8 @@ Pig::Pig(Level &level) : Animal(level)
 
 bool Pig::interact(Player &player)
 {
+	if (Animal::interact(player))
+		return true;
 	if (!isSaddled() || level.isOnline || (rider != nullptr && rider.get() != &player))
 		return false;
 	auto self = level.getEntityRef(*this);
@@ -90,4 +92,10 @@ bool Pig::isSaddled() const
 void Pig::setSaddled(bool saddled)
 {
 	dataWatcher.updateObject(16, static_cast<byte_t>(saddled ? 1 : 0));
+}
+
+std::shared_ptr<Animal> Pig::getBreedOffspring(Animal &partner)
+{
+	(void)partner;
+	return std::make_shared<Pig>(level);
 }

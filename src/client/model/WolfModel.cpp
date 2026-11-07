@@ -1,4 +1,5 @@
 #include "client/model/WolfModel.h"
+#include "pc/OpenGL.h"
 
 #include "OpenGL.h"
 #include "world/entity/animal/Wolf.h"
@@ -33,6 +34,29 @@ WolfModel::WolfModel()
 void WolfModel::render(float time, float r, float bob, float yRot, float xRot, float scale)
 {
 	setupAnim(time, r, bob, yRot, xRot, scale);
+	if (young)
+	{
+		float s = 2.0f;
+		glPushMatrix();
+		glTranslatef(0.0f, 5.0f * scale, 2.0f * scale);
+		head.render(scale);
+		rightEar.render(scale);
+		leftEar.render(scale);
+		snout.render(scale);
+		glPopMatrix();
+		glPushMatrix();
+		glScalef(1.0f / s, 1.0f / s, 1.0f / s);
+		glTranslatef(0.0f, 24.0f * scale, 0.0f);
+		body.render(scale);
+		leg1.render(scale);
+		leg2.render(scale);
+		leg3.render(scale);
+		leg4.render(scale);
+		tail.render(scale);
+		mane.render(scale);
+		glPopMatrix();
+		return;
+	}
 	head.render(scale);
 	body.render(scale);
 	leg1.render(scale);

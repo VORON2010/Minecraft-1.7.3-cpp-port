@@ -5,6 +5,7 @@
 class Cow : public Animal
 {
 public:
+	std::shared_ptr<Animal> getBreedOffspring(Animal &partner) override;
 	Cow(Level &level);
 	jstring getEncodeId() const override { return u"Cow"; }
 	bool interact(Player &player) override;

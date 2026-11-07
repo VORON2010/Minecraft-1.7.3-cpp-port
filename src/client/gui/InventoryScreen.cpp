@@ -81,7 +81,9 @@ InventoryScreen::InventoryScreen(Minecraft &minecraft, int_t craftingWidth, int_
 void InventoryScreen::init()
 {
 	buttons.clear();
-	int_t xo = (width - imageWidth) / 2;
+	// 1.0 SurvivalInventoryScreen.init: with active effects the window moves right
+	effectShift = minecraft.player != nullptr && !minecraft.player->getActiveEffects().empty() && getBackgroundTexture() == u"/gui/inventory.png";
+	int_t xo = getGuiLeft();
 	int_t yo = (height - imageHeight) / 2;
 
 	// Add Recipes button
@@ -317,7 +319,7 @@ void InventoryScreen::mouseClicked(int_t x, int_t y, int_t buttonNum)
 int_t InventoryScreen::getGuiLeft() const
 {
 	// 1.0: the window moves right when active effects are listed on its left
-	if (minecraft.player != nullptr && !minecraft.player->getActiveEffects().empty() && getBackgroundTexture() == u"/gui/inventory.png")
+	if (effectShift)
 		return 160 + (width - imageWidth - 200) / 2;
 	return (width - imageWidth) / 2;
 }

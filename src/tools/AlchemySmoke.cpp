@@ -9,6 +9,12 @@
 #include "world/item/ItemInstance.h"
 #include "world/item/Items.h"
 #include "world/item/PotionItem.h"
+#include "world/entity/animal/MushroomCow.h"
+#include "world/level/tile/SnowBlockTile.h"
+#include "world/level/tile/PumpkinTile.h"
+#include "world/level/tile/DragonEggTile.h"
+#include "world/level/tile/EndPortalFrameTile.h"
+#include "world/level/tile/BrewingStandTile.h"
 #include "world/inventory/ContainerRepair.h"
 #include "world/inventory/ContainerMenus.h"
 #include "world/entity/player/Player.h"
@@ -234,6 +240,57 @@ int runAlchemySmoke()
 		}
 		std::unique_ptr<File> workdir(File::open(u"build/alchemy-smoke-workdir"));
 		Level::deleteLevel(*workdir, u"alchemy-anvil-world");
+	}
+
+	std::cerr << "alchemy-smoke: blocks, golem, mooshroom, breeding" << std::endl;
+	{
+		for (int_t id : {Tile::brewingStand.id, Tile::cauldron.id, Tile::enchantTable.id, Tile::anvil.id, Tile::dragonEgg.id, Tile::endPortalFrame.id})
+			ok &= expect(!Tile::solid[id] && Tile::lightBlock[id] == 0, "new non-solid blocks let light through and keep neighbour faces");
+		{
+			std::unique_ptr<File> workdir(File::open(u"build/alchemy-smoke-workdir"));
+			Level::deleteLevel(*workdir, u"alchemy-mob-world");
+		}
+		{
+			Level level(File::open(u"build/alchemy-smoke-workdir"), u"alchemy-mob-world", 9LL);
+			level.getChunk(0, 0);
+			level.setTile(3, 100, 3, Tile::snowBlock.id);
+			level.setTile(3, 101, 3, Tile::snowBlock.id);
+			level.setTile(3, 102, 3, Tile::pumpkin.id);
+			int_t golems = 0;
+			for (auto &e : level.entities)
+				golems += dynamic_cast<SnowMan *>(e.get()) != nullptr;
+			ok &= expect(golems == 1 && level.getTile(3, 102, 3) == 0 && level.getTile(3, 100, 3) == 0, "a pumpkin on two snow blocks becomes a snow golem");
+
+			struct TestPlayer : public Player
+			{
+				using Player::Player;
+			};
+			auto player = std::make_shared<TestPlayer>(level);
+			player->moveTo(0.5, 101.0, 0.5, 0.0f, 0.0f);
+			level.addEntity(player);
+			auto mooshroom = std::make_shared<MushroomCow>(level);
+			mooshroom->moveTo(5.5, 101.0, 5.5, 0.0f, 0.0f);
+			level.addEntity(mooshroom);
+			player->inventory.setItem(0, ItemInstance(Items::bowlEmpty->getShiftedIndex(), 1, 0));
+			player->inventory.currentItem = 0;
+			ok &= expect(mooshroom->interact(*player) && player->inventory.mainInventory[0].itemID == Items::bowlSoup->getShiftedIndex(), "a bowl on a mooshroom gives stew");
+			player->inventory.setItem(0, ItemInstance(Items::shears->getShiftedIndex(), 1, 0));
+			ok &= expect(mooshroom->interact(*player) && mooshroom->removed, "shears turn the mooshroom into a cow");
+
+			auto cow = std::make_shared<Cow>(level);
+			cow->moveTo(7.5, 101.0, 7.5, 0.0f, 0.0f);
+			level.addEntity(cow);
+			player->inventory.setItem(0, ItemInstance(Items::wheat->getShiftedIndex(), 2, 0));
+			ok &= expect(cow->interact(*player) && cow->isInLove() && player->inventory.mainInventory[0].stackSize == 1, "wheat puts a cow in love");
+			auto calf = cow->getBreedOffspring(*cow);
+			calf->setAge(-24000);
+			ok &= expect(calf != nullptr && calf->isBaby() && dynamic_cast<Cow *>(calf.get()) != nullptr, "cows make calves");
+			CompoundTag tag;
+			calf->saveWithoutId(tag);
+			ok &= expect(tag.getInt(u"Age") == -24000, "age is saved");
+		}
+		std::unique_ptr<File> workdir(File::open(u"build/alchemy-smoke-workdir"));
+		Level::deleteLevel(*workdir, u"alchemy-mob-world");
 	}
 
 	std::cerr << "alchemy-smoke: " << (ok ? "PASS" : "FAIL") << std::endl;

@@ -36,8 +36,9 @@ bool Sheep::interact(Player &player)
 		selected->damageItem(1, player);
 		if (selected->isEmpty())
 			player.removeSelectedItem();
+		return true;
 	}
-	return false;
+	return Animal::interact(player);
 }
 
 void Sheep::dropDeathLoot()
@@ -112,4 +113,13 @@ int_t Sheep::getRandomFleeceColor(Random &random)
 	if (value < 15) return 8;
 	if (value < 18) return 12;
 	return random.nextInt(500) == 0 ? 6 : 0;
+}
+
+std::shared_ptr<Animal> Sheep::getBreedOffspring(Animal &partner)
+{
+	// 1.0: the lamb takes the colour of one of its parents
+	auto child = std::make_shared<Sheep>(level);
+	Sheep *other = dynamic_cast<Sheep *>(&partner);
+	child->setFleeceColor(random.nextBoolean() || other == nullptr ? getFleeceColor() : other->getFleeceColor());
+	return child;
 }

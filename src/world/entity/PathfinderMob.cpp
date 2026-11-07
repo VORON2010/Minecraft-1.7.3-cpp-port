@@ -16,6 +16,8 @@ bool PathfinderMob::isMovementCeased()
 
 void PathfinderMob::updateAi()
 {
+	if (fleeTime > 0)
+		fleeTime--;
 	holdGround = isMovementCeased();
 	float targetRange = 16.0f;
 	if (attackTarget == nullptr)
@@ -39,7 +41,7 @@ void PathfinderMob::updateAi()
 
 	if (holdGround || attackTarget == nullptr || (path != nullptr && random.nextInt(20) != 0))
 	{
-		if (!holdGround && ((path == nullptr && random.nextInt(80) == 0) || random.nextInt(80) == 0))
+		if (!holdGround && ((path == nullptr && random.nextInt(180) == 0) || random.nextInt(120) == 0 || fleeTime > 0) && noActionTime < 100)
 			findRandomStrollLocation();
 	}
 	else
@@ -188,4 +190,12 @@ std::shared_ptr<Entity> PathfinderMob::getTarget() const
 void PathfinderMob::setTarget(const std::shared_ptr<Entity> &target)
 {
 	attackTarget = target;
+}
+
+float PathfinderMob::getSpeedModifier()
+{
+	float speed = Mob::getSpeedModifier();
+	if (fleeTime > 0)
+		speed *= 2.0f;
+	return speed;
 }
