@@ -224,7 +224,8 @@ protected:
 	virtual void updateAi();
 
 	virtual bool canDespawn();
-	void checkDespawn();
+	virtual void checkDespawn();
+	virtual void tickDeath();
 
 	virtual int_t getMaxHeadXRot();
 public:

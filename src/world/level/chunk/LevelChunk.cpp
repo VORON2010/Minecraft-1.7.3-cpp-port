@@ -487,6 +487,12 @@ void LevelChunk::getEntities(Entity *ignore, AABB &aabb, std::vector<std::shared
 		{
 			if (entity.get() != ignore && entity->bb.intersects(aabb))
 				entities.push_back(entity);
+			// 1.0: multi-part mobs (the ender dragon) expose their parts to hit tests
+			for (const auto &part : entity->getSubEntities())
+			{
+				if (part.get() != ignore && part->bb.intersects(aabb))
+					entities.push_back(part);
+			}
 		}
 	}
 }

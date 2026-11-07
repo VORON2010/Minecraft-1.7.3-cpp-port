@@ -108,6 +108,21 @@ void Mob::baseTick()
 
 	if (health <= 0)
 	{
+		tickDeath();
+	}
+
+	tickEffects();
+
+	animStepO = animStep;
+	yBodyRotO = yBodyRot;
+	yRotO = yRot;
+	xRotO = xRot;
+}
+
+// 1.0 MobEntity.tickPostDeath; the ender dragon replaces it
+void Mob::tickDeath()
+{
+	{
 		deathTime++;
 		if (deathTime == 20 && !level.isOnline && (lastHurtByPlayerTime > 0 || alwaysDropsExperience()))
 		{
@@ -138,12 +153,6 @@ void Mob::baseTick()
 		}
 	}
 
-	tickEffects();
-
-	animStepO = animStep;
-	yBodyRotO = yBodyRot;
-	yRotO = yRot;
-	xRotO = xRot;
 }
 
 void Mob::playAmbientSound()

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include <memory>
 
 #include "world/phys/AABB.h"
@@ -225,6 +227,9 @@ public:
 	bool intersects(double x0, double y0, double z0, double x1, double y1, double z1);
 
 	virtual bool isPickable();
+	virtual const std::vector<std::shared_ptr<Entity>> &getSubEntities() const { static const std::vector<std::shared_ptr<Entity>> none; return none; }
+	// true when this entity is the given one or one of its parts (1.0 Entity.is)
+	virtual bool is(const Entity &other) const { return this == &other; }
 	virtual bool isPushable();
 	virtual bool isShootable();
 
