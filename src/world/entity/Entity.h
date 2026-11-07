@@ -74,7 +74,9 @@ public:
 
 protected:
 	bool makeStepSound = true;
+public:
 	float fallDistance = 0.0f;
+protected:
 
 private:
 	int_t nextStep = 1;

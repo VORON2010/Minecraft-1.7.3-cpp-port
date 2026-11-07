@@ -1,3 +1,7 @@
+#include "world/item/Item.h"
+#include "Facing.h"
+#include "world/item/ItemInstance.h"
+#include "world/level/tile/EndPortalTile.h"
 #include "tools/StructureSmoke.h"
 
 #include <algorithm>
@@ -272,6 +276,34 @@ int runStructureSmoke()
 		player->addExhaustion(3.0f);
 		ok &= expect(player->foodExhaustionLevel == 0.0f, "invulnerable players do not get hungry");
 		level.removeEntity(player);
+	}
+
+	std::cerr << "structure-smoke: end portal from eyes of ender" << std::endl;
+	{
+		const int_t py = 100;
+		auto frame = [&](int_t fx, int_t fz, int_t dir, bool eye) {
+			level.setTileAndData(fx, py, fz, Tile::endPortalFrame.id, dir | (eye ? 4 : 0));
+		};
+		for (int_t i = 0; i < 3; i++)
+		{
+			frame(i, -1, 0, i != 1);
+			frame(i, 3, 2, true);
+			frame(-1, i, 3, true);
+			frame(3, i, 1, true);
+		}
+		for (int_t i = 0; i < 3; i++)
+			for (int_t j = 0; j < 3; j++)
+				level.setTile(i, py, j, 0);
+		auto player = std::make_shared<Player>(level);
+		ItemInstance eye(Items::eyeOfEnder->getShiftedIndex(), 1, 0);
+		bool used = eye.useOn(*player, level, 1, py, -1, Facing::UP);
+		int_t portal = 0;
+		for (int_t i = 0; i < 3; i++)
+			for (int_t j = 0; j < 3; j++)
+				portal += level.getTile(i, py, j) == Tile::endPortal.id;
+		std::cerr << "structure-smoke: portal blocks " << portal << std::endl;
+		ok &= expect(used && EndPortalFrameTile::hasEye(level.getData(1, py, -1)), "the eye goes into the frame");
+		ok &= expect(portal == 9, "twelve filled frames open a 3x3 end portal");
 	}
 
 	std::cerr << "structure-smoke: " << (ok ? "PASS" : "FAIL") << std::endl;

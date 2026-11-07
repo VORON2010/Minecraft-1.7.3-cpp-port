@@ -51,6 +51,7 @@ private:
 
 	std::unique_ptr<TileRenderer> tileRenderer;
 	std::unique_ptr<PistonTileEntityRenderer> pistonRenderer;
+	void renderEndPortal(double x, double y, double z);
 	std::unordered_map<jstring, std::shared_ptr<Entity>> spawnerRenderMobs;
 
 	std::vector<int_t> occlusionCheckIds;

@@ -376,6 +376,8 @@ Recipes::Recipes()
 		ItemInstance(Items::spiderEye->getShiftedIndex(), 1, 0), ItemInstance(Tile::brownMushroom.id, 1, 0), ItemInstance(Items::sugar->getShiftedIndex(), 1, 0)});
 	addShapelessRecipe(ItemInstance(Items::speckledMelon->getShiftedIndex(), 1, 0), {
 		ItemInstance(Items::melon->getShiftedIndex(), 1, 0), ItemInstance(Items::goldNugget->getShiftedIndex(), 1, 0)});
+	addShapelessRecipe(ItemInstance(Items::eyeOfEnder->getShiftedIndex(), 1, 0), {
+		ItemInstance(Items::enderPearl->getShiftedIndex(), 1, 0), ItemInstance(Items::blazePowder->getShiftedIndex(), 1, 0)});
 	addShapelessRecipe(ItemInstance(Items::blazePowder->getShiftedIndex(), 2, 0), {ItemInstance(Items::blazeRod->getShiftedIndex(), 1, 0)});
 	addShapelessRecipe(ItemInstance(Items::magmaCream->getShiftedIndex(), 1, 0), {
 		ItemInstance(Items::blazePowder->getShiftedIndex(), 1, 0), ItemInstance(Items::slimeball->getShiftedIndex(), 1, 0)});

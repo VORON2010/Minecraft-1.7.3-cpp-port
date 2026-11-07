@@ -96,6 +96,7 @@ class FenceGateTile;
 class MyceliumTile;
 class WaterlilyTile;
 class EndPortalFrameTile;
+class EndPortalTile;
 class NetherWartTile;
 
 class Tile
@@ -285,6 +286,7 @@ public:
 	static FenceTile netherFence;
 	static StairTile stairsNetherBrick;
 	static NetherWartTile netherWart;
+	static EndPortalTile endPortal;
 	static EndPortalFrameTile endPortalFrame;
 	static Tile endStone;
 	static void initTiles();

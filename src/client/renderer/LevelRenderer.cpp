@@ -1,3 +1,7 @@
+#include <cmath>
+#include "java/String.h"
+#include "java/System.h"
+#include "world/level/tile/entity/EndPortalTileEntity.h"
 #include "pc/OpenGL.h"
 #include "client/renderer/LevelRenderer.h"
 
@@ -328,6 +332,9 @@ void LevelRenderer::renderEntities(Vec3 &cam, Culler &culler, float a)
 			glColor3f(brightness, brightness, brightness);
 			pistonRenderer->render(*pistonEntity, pistonEntity->x - EntityRenderDispatcher::xOff, pistonEntity->y - EntityRenderDispatcher::yOff, pistonEntity->z - EntityRenderDispatcher::zOff, a);
 		}
+
+		if (std::dynamic_pointer_cast<EndPortalTileEntity>(tileEntity) != nullptr)
+			renderEndPortal(tileEntity->x - EntityRenderDispatcher::xOff, tileEntity->y - EntityRenderDispatcher::yOff, tileEntity->z - EntityRenderDispatcher::zOff);
 
 		auto spawnerEntity = std::dynamic_pointer_cast<MobSpawnerTileEntity>(tileEntity);
 		if (spawnerEntity && level != nullptr)
@@ -1499,6 +1506,21 @@ void LevelRenderer::levelEvent(Player *player, int_t event, int_t x, int_t y, in
 		level->playRecord(record == nullptr ? jstring() : record->getRecordName(), x, y, z);
 		break;
 	}
+	case 2003:
+	{
+		double ex = x + 0.5;
+		double ey = y;
+		double ez = z + 0.5;
+		jstring crack = u"iconcrack_" + String::toString(Items::eyeOfEnder->getShiftedIndex());
+		for (int_t i = 0; i < 8; i++)
+			addParticle(crack, ex, ey, ez, random.nextGaussian() * 0.15, random.nextDouble() * 0.2, random.nextGaussian() * 0.15);
+		for (double t = 0.0; t < 3.141592653589793 * 2; t += 3.141592653589793 / 20)
+		{
+			addParticle(u"portal", ex + std::cos(t) * 5.0, ey - 0.4, ez + std::sin(t) * 5.0, std::cos(t) * -5.0, 0.0, std::sin(t) * -5.0);
+			addParticle(u"portal", ex + std::cos(t) * 5.0, ey - 0.4, ez + std::sin(t) * 5.0, std::cos(t) * -7.0, 0.0, std::sin(t) * -7.0);
+		}
+		break;
+	}
 	case 1007:
 		level->playSoundEffect(x + 0.5, y + 0.5, z + 0.5, u"mob.ghast.charge", 10.0f, (random.nextFloat() - random.nextFloat()) * 0.2f + 1.0f);
 		break;
@@ -1542,4 +1564,95 @@ void LevelRenderer::levelEvent(Player *player, int_t event, int_t x, int_t y, in
 		break;
 	}
 	}
+}
+
+// 1.0 EndPortalRenderer: sixteen texgen layers of tunnel.png and particlefield.png scrolling over the hole
+void LevelRenderer::renderEndPortal(double x, double y, double z)
+{
+	float camX = static_cast<float>(EntityRenderDispatcher::xOff);
+	float camY = static_cast<float>(EntityRenderDispatcher::yOff);
+	float camZ = static_cast<float>(EntityRenderDispatcher::zOff);
+	// ActiveRenderInfo offset of the eye from the entity; zero in first person
+	const float eyeX = 0.0f, eyeY = 0.0f, eyeZ = 0.0f;
+	glDisable(GL_LIGHTING);
+	Random random(31100LL);
+	float surface = 0.75f;
+	for (int_t layer = 0; layer < 16; layer++)
+	{
+		glPushMatrix();
+		float depth = static_cast<float>(16 - layer);
+		float scale = 0.0625f;
+		float brightness = 1.0f / (depth + 1.0f);
+		if (layer == 0)
+		{
+			glBindTexture(GL_TEXTURE_2D, mc.textures.loadTexture(u"/misc/tunnel.png"));
+			brightness = 0.1f;
+			depth = 65.0f;
+			scale = 0.125f;
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		}
+		if (layer == 1)
+		{
+			glBindTexture(GL_TEXTURE_2D, mc.textures.loadTexture(u"/misc/particlefield.png"));
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_ONE, GL_ONE);
+			scale = 0.5f;
+		}
+		float top = static_cast<float>(-(y + surface));
+		float near = top + eyeY;
+		float far = top + depth + eyeY;
+		float ratio = near / far;
+		ratio = static_cast<float>(y + surface) + ratio;
+		glTranslatef(camX, ratio, camZ);
+		glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+		glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+		glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+		glTexGeni(GL_Q, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+		const float planeS[] = {1.0f, 0.0f, 0.0f, 0.0f};
+		const float planeT[] = {0.0f, 0.0f, 1.0f, 0.0f};
+		const float planeR[] = {0.0f, 0.0f, 0.0f, 1.0f};
+		const float planeQ[] = {0.0f, 1.0f, 0.0f, 0.0f};
+		glTexGenfv(GL_S, GL_OBJECT_PLANE, planeS);
+		glTexGenfv(GL_T, GL_OBJECT_PLANE, planeT);
+		glTexGenfv(GL_R, GL_OBJECT_PLANE, planeR);
+		glTexGenfv(GL_Q, GL_EYE_PLANE, planeQ);
+		glEnable(GL_TEXTURE_GEN_S);
+		glEnable(GL_TEXTURE_GEN_T);
+		glEnable(GL_TEXTURE_GEN_R);
+		glEnable(GL_TEXTURE_GEN_Q);
+		glPopMatrix();
+		glMatrixMode(GL_TEXTURE);
+		glPushMatrix();
+		glLoadIdentity();
+		glTranslatef(0.0f, static_cast<float>(System::currentTimeMillis() % 700000LL) / 700000.0f, 0.0f);
+		glScalef(scale, scale, scale);
+		glTranslatef(0.5f, 0.5f, 0.0f);
+		glRotatef(static_cast<float>(layer * layer * 4321 + layer * 9) * 2.0f, 0.0f, 0.0f, 1.0f);
+		glTranslatef(-0.5f, -0.5f, 0.0f);
+		glTranslatef(-camX, -camZ, -camY);
+		near = top + eyeY;
+		glTranslatef(eyeX * depth / near, eyeZ * depth / near, -camY);
+		Tesselator &t = Tesselator::instance;
+		t.begin();
+		float r = random.nextFloat() * 0.5f + 0.1f;
+		float g = random.nextFloat() * 0.5f + 0.4f;
+		float b = random.nextFloat() * 0.5f + 0.5f;
+		if (layer == 0)
+			r = g = b = 1.0f;
+		t.color(r * brightness, g * brightness, b * brightness, 1.0f);
+		t.vertex(x, y + surface, z);
+		t.vertex(x, y + surface, z + 1.0);
+		t.vertex(x + 1.0, y + surface, z + 1.0);
+		t.vertex(x + 1.0, y + surface, z);
+		t.end();
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+	}
+	glDisable(GL_BLEND);
+	glDisable(GL_TEXTURE_GEN_S);
+	glDisable(GL_TEXTURE_GEN_T);
+	glDisable(GL_TEXTURE_GEN_R);
+	glDisable(GL_TEXTURE_GEN_Q);
+	glEnable(GL_LIGHTING);
 }

@@ -22,5 +22,6 @@ public:
 	virtual bool shouldSave() = 0;
 	virtual jstring gatherStats() = 0;
 	// 1.0 getSpawnEntries: structures (nether fortress) can replace the biome's monster list
+	virtual bool findNearestStronghold(int_t x, int_t y, int_t z, int_t &outX, int_t &outY, int_t &outZ) { (void)x; (void)y; (void)z; (void)outX; (void)outY; (void)outZ; return false; }
 	virtual const std::vector<struct BiomeSpawnEntry> *getStructureMonsters(int_t x, int_t y, int_t z) { (void)x; (void)y; (void)z; return nullptr; }
 };

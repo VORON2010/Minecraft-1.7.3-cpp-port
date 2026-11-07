@@ -1,3 +1,5 @@
+#include "world/entity/projectile/ThrownEnderpearl.h"
+#include "world/entity/EyeOfEnderSignal.h"
 #include "world/entity/EntityIO.h"
 
 #include <unordered_map>

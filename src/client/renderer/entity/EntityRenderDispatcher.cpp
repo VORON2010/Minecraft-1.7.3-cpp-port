@@ -1,3 +1,5 @@
+#include "world/entity/projectile/ThrownEnderpearl.h"
+#include "world/entity/EyeOfEnderSignal.h"
 #include "client/renderer/entity/EntityRenderDispatcher.h"
 
 #include "client/renderer/entity/ArrowRenderer.h"
@@ -441,6 +443,22 @@ void EntityRenderDispatcher::render(Entity &entity, double x, double y, double z
 	if (dynamic_cast<LavaSlime *>(&entity) != nullptr)
 	{
 		static LavaSlimeRenderer renderer(instance);
+		renderer.render(entity, x, y, z, rot, a);
+		renderer.postRender(entity, x, y, z, rot, a);
+		return;
+	}
+
+	if (dynamic_cast<ThrownEnderpearl *>(&entity) != nullptr)
+	{
+		static ThrownItemRenderer renderer(instance, 11 + 6 * 16);
+		renderer.render(entity, x, y, z, rot, a);
+		renderer.postRender(entity, x, y, z, rot, a);
+		return;
+	}
+
+	if (dynamic_cast<EyeOfEnderSignal *>(&entity) != nullptr)
+	{
+		static ThrownItemRenderer renderer(instance, 11 + 9 * 16);
 		renderer.render(entity, x, y, z, rot, a);
 		renderer.postRender(entity, x, y, z, rot, a);
 		return;

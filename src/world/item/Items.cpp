@@ -1,3 +1,5 @@
+#include "world/item/ItemEnderPearl.h"
+#include "world/item/ItemEnderEye.h"
 #include "world/level/tile/NetherWartTile.h"
 #include "world/level/tile/SoulSandTile.h"
 #include "world/item/Items.h"
@@ -82,6 +84,7 @@ namespace Items
 	Item *pumpkinSeeds = nullptr;
 	Item *melonSeeds = nullptr;
 	Item *enderPearl = nullptr;
+	Item *eyeOfEnder = nullptr;
 	Item *blazeRod = nullptr;
 	Item *ghastTear = nullptr;
 	Item *goldNugget = nullptr;
@@ -400,7 +403,7 @@ namespace Items
 		melonSeeds = new ItemSeeds(132, Tile::melonStem.id);
 		melonSeeds->setIconIndex(62).setDescriptionId(u"item.seeds_melon");
 
-		enderPearl = new Item(112);
+		enderPearl = new ItemEnderPearl(112);
 		enderPearl->setMaxStackSize(16).setIconIndex(107).setDescriptionId(u"item.enderPearl");
 
 		// 1.0 nether and brewing ingredients
@@ -421,6 +424,8 @@ namespace Items
 		blazePowder->setIconIndex(13 + 9 * 16).setDescriptionId(u"item.blazePowder");
 		magmaCream = new Item(122);
 		magmaCream->setIconIndex(13 + 10 * 16).setDescriptionId(u"item.magmaCream");
+		eyeOfEnder = new ItemEnderEye(125);
+		eyeOfEnder->setIconIndex(11 + 9 * 16).setDescriptionId(u"item.eyeOfEnder");
 		speckledMelon = new Item(126);
 		speckledMelon->setIconIndex(9 + 8 * 16).setDescriptionId(u"item.speckledMelon");
 

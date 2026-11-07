@@ -147,6 +147,7 @@ public:
 	void die(Entity *source) override;
 	bool hurt(Entity *source, int_t dmg) override;
 	void outOfWorld() override;
+	virtual void changeDimension(int_t dimension) { (void)dimension; }
 
 protected:
 	void actuallyHurt(int_t dmg) override;

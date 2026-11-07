@@ -317,6 +317,7 @@ public:
 	HitResult clip(Vec3 &from, Vec3 &to, bool canPickLiquid);
 	std::shared_ptr<Player> getNearestPlayer(Entity &entity, double radius);
 	std::shared_ptr<Player> getNearestAttackablePlayer(Entity &entity, double radius);
+	bool findNearestStronghold(int_t x, int_t y, int_t z, int_t &outX, int_t &outY, int_t &outZ) { return chunkSource != nullptr && chunkSource->findNearestStronghold(x, y, z, outX, outY, outZ); }
 	std::shared_ptr<Player> getNearestPlayer(double x, double y, double z, double radius);
 	std::unique_ptr<PathEntity> getPathToEntity(Entity &entity, Entity &target, float distance);
 	std::unique_ptr<PathEntity> getEntityPathToXYZ(Entity &entity, int_t x, int_t y, int_t z, float distance);

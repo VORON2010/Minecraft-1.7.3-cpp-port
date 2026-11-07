@@ -41,6 +41,7 @@ namespace Items
 	extern Item *pumpkinSeeds;
 	extern Item *melonSeeds;
 	extern Item *enderPearl;
+	extern Item *eyeOfEnder;
 	extern Item *blazeRod;
 	extern Item *ghastTear;
 	extern Item *goldNugget;

@@ -25,6 +25,7 @@ private:
 
 public:
 	ChunkCache(Level &level, ChunkStorage *storage, ChunkSource *source);
+	bool findNearestStronghold(int_t x, int_t y, int_t z, int_t &outX, int_t &outY, int_t &outZ) override { return source ? source->findNearestStronghold(x, y, z, outX, outY, outZ) : false; }
 	const std::vector<struct BiomeSpawnEntry> *getStructureMonsters(int_t x, int_t y, int_t z) override { return source ? source->getStructureMonsters(x, y, z) : nullptr; }
 
 	bool hasChunk(int_t x, int_t z) override;

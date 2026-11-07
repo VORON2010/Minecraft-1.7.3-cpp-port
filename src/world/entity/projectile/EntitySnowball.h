@@ -33,6 +33,7 @@ public:
 	float getShadowHeightOffs() override { return 0.0f; }
 
 protected:
+	virtual void onHit(class HitResult &hit);
 	void addAdditionalSaveData(CompoundTag &tag) override;
 	void readAdditionalSaveData(CompoundTag &tag) override;
 };

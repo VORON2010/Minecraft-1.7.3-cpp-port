@@ -138,11 +138,7 @@ void EntitySnowball::tick()
 
 	if (hit.type != HitResult::Type::NONE)
 	{
-		if (hit.type == HitResult::Type::ENTITY && hit.entity != nullptr)
-			hit.entity->hurt(ownerRef.get(), 0);
-		for (int_t i = 0; i < 8; ++i)
-			level.addParticle(u"snowballpoof", x, y, z, 0.0, 0.0, 0.0);
-		remove();
+		onHit(hit);
 		return;
 	}
 
@@ -191,4 +187,14 @@ void EntitySnowball::readAdditionalSaveData(CompoundTag &tag)
 	inTile = tag.getByte(u"inTile") & 255;
 	shakeTime = tag.getByte(u"shake") & 255;
 	inGround = tag.getByte(u"inGround") == 1;
+}
+
+void EntitySnowball::onHit(HitResult &hit)
+{
+	std::shared_ptr<Entity> ownerRef = owner.lock();
+	if (hit.type == HitResult::Type::ENTITY && hit.entity != nullptr)
+		hit.entity->hurt(ownerRef.get(), 0);
+	for (int_t i = 0; i < 8; ++i)
+		level.addParticle(u"snowballpoof", x, y, z, 0.0, 0.0, 0.0);
+	remove();
 }

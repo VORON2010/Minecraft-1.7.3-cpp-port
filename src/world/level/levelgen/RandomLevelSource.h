@@ -74,5 +74,5 @@ public:
 	jstring gatherStats() override;
 
 	// position of the nearest stronghold (for eyes of ender); returns false if none
-	bool findNearestStronghold(int_t x, int_t y, int_t z, int_t &outX, int_t &outY, int_t &outZ);
+	bool findNearestStronghold(int_t x, int_t y, int_t z, int_t &outX, int_t &outY, int_t &outZ) override;
 };

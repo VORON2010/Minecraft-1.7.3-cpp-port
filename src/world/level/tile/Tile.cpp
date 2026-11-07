@@ -102,6 +102,8 @@ StepSoundSand Tile::soundSandFootstep(u"sand", 1.0f, 1.0f);
 #include "world/level/tile/CakeTile.h"
 #include "world/level/tile/StoneBrickTile.h"
 #include "world/level/tile/EndPortalFrameTile.h"
+#include "world/level/tile/EndPortalTile.h"
+#include "world/level/material/DecorationMaterial.h"
 #include "world/level/tile/NetherWartTile.h"
 #include "world/level/tile/InfestedTile.h"
 #include "world/level/tile/HugeMushroomTile.h"
@@ -243,6 +245,7 @@ Tile Tile::netherBrick = Tile(112, 224, Material::stone);
 FenceTile Tile::netherFence = FenceTile(113, 224, Material::stone);
 StairTile Tile::stairsNetherBrick = StairTile(114, Tile::netherBrick);
 NetherWartTile Tile::netherWart = NetherWartTile(115);
+EndPortalTile Tile::endPortal = EndPortalTile(119, Material::portal);
 EndPortalFrameTile Tile::endPortalFrame = EndPortalFrameTile(120);
 Tile Tile::endStone = Tile(121, 175, Material::stone);
 void Tile::initTiles()
@@ -370,6 +373,7 @@ void Tile::initTiles()
 	netherFence.setDestroyTime(2.0f).setExplodeable(10.0f).setSoundType(soundStoneFootstep);
 	stairsNetherBrick.setDestroyTime(2.0f).setExplodeable(10.0f).setLightBlock(255).setSoundType(soundStoneFootstep).setNotifyRenderOnDataChange();
 	netherWart.setNotifyRenderOnDataChange();
+	endPortal.setLightEmission(15).setDestroyTime(-1.0f).setExplodeable(6000000.0f);
 	endPortalFrame.setSoundType(soundGlassFootstep).setLightEmission(1).setDestroyTime(-1.0f).setExplodeable(6000000.0f).setNotifyRenderOnDataChange();
 	endStone.setDestroyTime(3.0f).setExplodeable(15.0f).setSoundType(soundStoneFootstep);
 	stairsStoneBrick.setDestroyTime(1.5f).setExplodeable(10.0f).setLightBlock(255).setSoundType(soundStoneFootstep).setNotifyRenderOnDataChange();

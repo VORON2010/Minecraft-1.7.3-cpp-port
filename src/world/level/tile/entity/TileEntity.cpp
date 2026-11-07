@@ -1,3 +1,4 @@
+#include "world/level/tile/entity/EndPortalTileEntity.h"
 #include "world/level/tile/entity/TileEntity.h"
 
 #include "world/level/Level.h"
@@ -55,6 +56,8 @@ TileEntity *TileEntity::loadStatic(CompoundTag &tag)
 		tileEntity = new PistonTileEntity();
 	if (id == u"MobSpawner")
 		tileEntity = new MobSpawnerTileEntity();
+	if (id == u"Airportal")
+		tileEntity = new EndPortalTileEntity();
 	if (tileEntity != nullptr)
 		tileEntity->load(tag);
 	return tileEntity;
