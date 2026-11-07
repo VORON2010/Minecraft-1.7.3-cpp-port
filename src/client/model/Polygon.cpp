@@ -10,14 +10,14 @@ Polygon::Polygon(std::array<Vertex, 4> &&vertices) : vertices(std::move(vertices
 	vertexCount = this->vertices.size();
 }
 
-Polygon::Polygon(std::array<Vertex, 4> &&vertices, int_t u0, int_t v0, int_t u1, int_t v1) : Polygon(std::move(vertices))
+Polygon::Polygon(std::array<Vertex, 4> &&vertices, int_t u0, int_t v0, int_t u1, int_t v1, int_t texW, int_t texH) : Polygon(std::move(vertices))
 {
 	float us = 1.0F / 640.0F;
 	float vs = 1.0F / 480.0F;
-	this->vertices[0] = this->vertices[0].remap(u1 / 64.0f - us, v0 / 32.0f + vs);
-	this->vertices[1] = this->vertices[1].remap(u0 / 64.0f + us, v0 / 32.0f + vs);
-	this->vertices[2] = this->vertices[2].remap(u0 / 64.0f + us, v1 / 32.0f - vs);
-	this->vertices[3] = this->vertices[3].remap(u1 / 64.0f - us, v1 / 32.0f - vs);
+	this->vertices[0] = this->vertices[0].remap(u1 / static_cast<float>(texW) - us, v0 / static_cast<float>(texH) + vs);
+	this->vertices[1] = this->vertices[1].remap(u0 / static_cast<float>(texW) + us, v0 / static_cast<float>(texH) + vs);
+	this->vertices[2] = this->vertices[2].remap(u0 / static_cast<float>(texW) + us, v1 / static_cast<float>(texH) - vs);
+	this->vertices[3] = this->vertices[3].remap(u1 / static_cast<float>(texW) - us, v1 / static_cast<float>(texH) - vs);
 }
 
 Polygon::Polygon(std::array<Vertex, 4> &&vertices, float u0, float v0, float u1, float v1) : Polygon(std::move(vertices))

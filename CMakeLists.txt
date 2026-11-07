@@ -401,6 +401,16 @@ set(McBetaCpp_SOURCES
 	"src/util/Profiler.h"
 	"src/tools/BlockSmoke.cpp"
 	"src/tools/BlockSmoke.h"
+	"src/tools/StructureSmoke.cpp"
+	"src/tools/StructureSmoke.h"
+	"src/world/level/tile/EndPortalFrameTile.cpp"
+	"src/world/level/tile/EndPortalFrameTile.h"
+	"src/world/entity/npc/Villager.cpp"
+	"src/world/entity/npc/Villager.h"
+	"src/client/model/VillagerModel.cpp"
+	"src/client/model/VillagerModel.h"
+	"src/client/renderer/entity/VillagerRenderer.cpp"
+	"src/client/renderer/entity/VillagerRenderer.h"
 	"src/client/gamemode/CreativeMode.h"
 	"src/client/gui/CreativeInventoryScreen.h"
 	"src/client/model/EndermanModel.cpp"
@@ -1015,6 +1025,12 @@ set(McBetaCpp_SOURCES
 	"external/zlib/contrib/minizip/ioapi.c"
 	"external/zlib/contrib/minizip/unzip.c"
 )
+
+if(MSVC)
+	# symbols in release too, so crash_dump.txt has real file:line
+	add_compile_options($<$<CONFIG:Release>:/Zi>)
+	add_link_options($<$<CONFIG:Release>:/DEBUG> $<$<CONFIG:Release>:/OPT:REF> $<$<CONFIG:Release>:/OPT:ICF>)
+endif()
 
 add_library(McBetaCppCore OBJECT
 	${McBetaCpp_SOURCES}

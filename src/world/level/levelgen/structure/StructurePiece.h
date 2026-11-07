@@ -82,11 +82,12 @@ public:
 
 class StructurePiece : public std::enable_shared_from_this<StructurePiece>
 {
-protected:
+public:
 	BoundingBox boundingBox;
 	int_t orientation = -1;
 	int_t genDepth = 0;
 
+protected:
 	explicit StructurePiece(int_t genDepth) : genDepth(genDepth) {}
 
 public:
@@ -100,7 +101,7 @@ public:
 	int_t getGenDepth() const { return genDepth; }
 
 	static std::shared_ptr<StructurePiece> findCollisionPiece(PieceList &pieces, const BoundingBox &box);
-	TilePos3 getLocatorPosition() const { return {boundingBox.getXCenter(), boundingBox.getYCenter(), boundingBox.getZCenter()}; }
+	virtual TilePos3 getLocatorPosition() const { return {boundingBox.getXCenter(), boundingBox.getYCenter(), boundingBox.getZCenter()}; }
 
 protected:
 	bool edgesLiquid(Level &level, const BoundingBox &chunkBB);

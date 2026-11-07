@@ -65,6 +65,7 @@ private:
 	static ExperienceOrbRenderer &getExperienceOrbRenderer();
 	static SilverfishRenderer &getSilverfishRenderer();
 	static EndermanRenderer &getEndermanRenderer();
+	static class VillagerRenderer &getVillagerRenderer();
 	static SlimeRenderer &getSlimeRenderer();
 	static WolfRenderer &getWolfRenderer();
 	static GiantRenderer &getGiantRenderer();

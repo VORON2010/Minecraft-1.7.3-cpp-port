@@ -17,6 +17,8 @@
 #include "world/entity/item/ExperienceOrb.h"
 #include "client/renderer/entity/SilverfishRenderer.h"
 #include "client/renderer/entity/EndermanRenderer.h"
+#include "client/renderer/entity/VillagerRenderer.h"
+#include "world/entity/npc/Villager.h"
 #include "world/entity/monster/Silverfish.h"
 #include "world/entity/monster/Enderman.h"
 #include "client/renderer/entity/SlimeRenderer.h"
@@ -177,6 +179,12 @@ CreeperRenderer &EntityRenderDispatcher::getCreeperRenderer()
 SilverfishRenderer &EntityRenderDispatcher::getSilverfishRenderer()
 {
 	static SilverfishRenderer renderer(instance);
+	return renderer;
+}
+
+VillagerRenderer &EntityRenderDispatcher::getVillagerRenderer()
+{
+	static VillagerRenderer renderer(instance);
 	return renderer;
 }
 
@@ -412,6 +420,14 @@ void EntityRenderDispatcher::render(Entity &entity, double x, double y, double z
 	if (dynamic_cast<Silverfish *>(&entity) != nullptr)
 	{
 		SilverfishRenderer &renderer = getSilverfishRenderer();
+		renderer.render(entity, x, y, z, rot, a);
+		renderer.postRender(entity, x, y, z, rot, a);
+		return;
+	}
+
+	if (dynamic_cast<Villager *>(&entity) != nullptr)
+	{
+		VillagerRenderer &renderer = getVillagerRenderer();
 		renderer.render(entity, x, y, z, rot, a);
 		renderer.postRender(entity, x, y, z, rot, a);
 		return;

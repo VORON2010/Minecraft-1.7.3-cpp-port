@@ -164,6 +164,21 @@ bool TileRenderer::tesselateInWorld(Tile &tt, int_t x, int_t y, int_t z)
 		return tesselateFenceGateInWorld(tt, x, y, z);
 	if (shape == Tile::SHAPE_LILYPAD)
 		return tesselateLilyPadInWorld(tt, x, y, z);
+	if (shape == Tile::SHAPE_END_PORTAL_FRAME)
+	{
+		// 1.0 tesselateEndPortalFrame: frame slab, plus the eye on top when filled
+		tt.setShape(0.0f, 0.0f, 0.0f, 1.0f, 0.8125f, 1.0f);
+		tesselateBlockInWorld(tt, x, y, z);
+		if ((level->getData(x, y, z) & 4) != 0)
+		{
+			fixedTexture = 174;
+			tt.setShape(0.25f, 0.8125f, 0.25f, 0.75f, 1.0f, 0.75f);
+			tesselateBlockInWorld(tt, x, y, z);
+			fixedTexture = -1;
+		}
+		tt.updateDefaultShape();
+		return true;
+	}
 	return false;
 }
 

@@ -11,6 +11,8 @@ private:
 	std::array<Polygon, 6> polygons;
 	int_t xTexOffs = 0;
 	int_t yTexOffs = 0;
+	int_t texW = 64;
+	int_t texH = 32;
 
 public:
 	float x = 0.0f, y = 0.0f, z = 0.0f;
@@ -32,6 +34,7 @@ public:
 	Cube(int_t xTexOffs, int_t yTexOffs);
 	
 	void setTexOffs(int_t xTexOffs, int_t yTexOffs);
+	Cube &setTexSize(int_t w, int_t h) { texW = w; texH = h; return *this; }
 	void addBox(float x0, float y0, float z0, int_t w, int_t h, int_t d);
 	void addBox(float x0, float y0, float z0, int_t w, int_t h, int_t d, float g);
 	void addTexBox(float x0, float y0, float z0, int_t w, int_t h, int_t d, int_t tex);

@@ -15,9 +15,15 @@
 #include "world/level/tile/Tile.h"
 #include "world/level/tile/entity/ChestTileEntity.h"
 #include "world/level/tile/entity/MobSpawnerTileEntity.h"
+#include "world/entity/npc/Villager.h"
 
 namespace
 {
+struct MathHelper
+{
+	static int_t nextInt(Random &random, int_t a, int_t b) { return a >= b ? a : random.nextInt(b - a + 1) + a; }
+};
+
 template <typename T>
 T jremove(std::vector<T> &v, int_t i)
 {
@@ -41,6 +47,7 @@ T jremove(std::vector<T> &v, int_t i)
 #include "world/level/tile/DirtTile.h"
 #include "world/level/tile/DispenserTile.h"
 #include "world/level/tile/DoorTile.h"
+#include "world/level/tile/EndPortalFrameTile.h"
 #include "world/level/tile/FarmlandTile.h"
 #include "world/level/tile/FenceGateTile.h"
 #include "world/level/tile/FenceTile.h"
@@ -108,12 +115,14 @@ T jremove(std::vector<T> &v, int_t i)
 #include "world/level/tile/WoodTile.h"
 #include "world/level/tile/WorkbenchTile.h"
 #include "world/item/ItemPickaxe.h"
+#include "world/item/ItemArmor.h"
 
 class MineshaftPieces;
 class MineshaftPieces__Corridor;
 class MineshaftPieces__Crossing;
 class MineshaftPieces__Room;
 class MineshaftPieces__Stairs;
+enum : int_t { CLS_MineshaftPieces = 1, CLS_MineshaftPieces__Corridor = 2, CLS_MineshaftPieces__Crossing = 3, CLS_MineshaftPieces__Room = 4, CLS_MineshaftPieces__Stairs = 5 };
 
 class MineshaftPieces
 {
