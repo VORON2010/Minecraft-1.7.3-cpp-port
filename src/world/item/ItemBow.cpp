@@ -15,13 +15,13 @@ ItemBow::ItemBow(int_t id) : Item(id)
 void ItemBow::use(ItemInstance &stack, Level &level, Player &player) const
 {
 	(void)level;
-	if (player.gameType == 1 || player.inventory.hasItem(Items::arrow->getShiftedIndex()))
+	if (player.abilities.instabuild || player.inventory.hasItem(Items::arrow->getShiftedIndex()))
 		player.startUsingItem(stack, getUseDuration(stack));
 }
 
 void ItemBow::releaseUsing(ItemInstance &stack, Level &level, Player &player, int_t remainingTime) const
 {
-	bool creative = player.gameType == 1;
+	bool creative = player.abilities.instabuild;
 	if (!creative && !player.inventory.hasItem(Items::arrow->getShiftedIndex()))
 		return;
 

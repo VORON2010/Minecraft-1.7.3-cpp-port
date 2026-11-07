@@ -67,13 +67,15 @@ void ItemBucket::use(ItemInstance &stack, Level &level, Player &player) const
 			if (&mat == static_cast<const Material *>(&Material::water) && level.getData(x, y, z) == 0)
 			{
 				level.setTile(x, y, z, 0);
-				stack = ItemInstance(Items::bucketWater->getShiftedIndex(), 1, 0);
+				if (!player.abilities.instabuild)
+					stack = ItemInstance(Items::bucketWater->getShiftedIndex(), 1, 0);
 				return;
 			}
 			if (&mat == static_cast<const Material *>(&Material::lava) && level.getData(x, y, z) == 0)
 			{
 				level.setTile(x, y, z, 0);
-				stack = ItemInstance(Items::bucketLava->getShiftedIndex(), 1, 0);
+				if (!player.abilities.instabuild)
+					stack = ItemInstance(Items::bucketLava->getShiftedIndex(), 1, 0);
 				return;
 			}
 		}
@@ -82,7 +84,8 @@ void ItemBucket::use(ItemInstance &stack, Level &level, Player &player) const
 			if (containedBlockId < 0)
 			{
 
-				stack = ItemInstance(Items::bucketEmpty->getShiftedIndex(), 1, 0);
+				if (!player.abilities.instabuild)
+					stack = ItemInstance(Items::bucketEmpty->getShiftedIndex(), 1, 0);
 				return;
 			}
 
@@ -111,7 +114,8 @@ void ItemBucket::use(ItemInstance &stack, Level &level, Player &player) const
 				{
 					level.setTileAndData(placeX, placeY, placeZ, containedBlockId, 0);
 				}
-				stack = ItemInstance(Items::bucketEmpty->getShiftedIndex(), 1, 0);
+				if (!player.abilities.instabuild)
+					stack = ItemInstance(Items::bucketEmpty->getShiftedIndex(), 1, 0);
 				return;
 			}
 		}

@@ -316,6 +316,8 @@ void Gui::render(float a, bool inScreen, int_t xm, int_t ym)
 		int_t yArmor = yHealthBase - 10;
 		int_t regenWave = minecraft.player->hasEffect(MobEffect::regeneration) ? tickCount % 25 : -1;
 		int_t heartBase = minecraft.player->hasEffect(MobEffect::poison) ? 52 : 16;
+		// 1.0: hardcore hearts are the row 5 * 9 pixels down
+		int_t heartV = minecraft.level != nullptr && minecraft.level->hardcore ? 9 * 5 : 0;
 
 		for (int_t x = 0; x < 10; x++)
 		{
@@ -333,14 +335,14 @@ void Gui::render(float a, bool inScreen, int_t xm, int_t ym)
 				yHealth += random.nextInt(2);
 			if (x == regenWave)
 				yHealth -= 2;
-			blit(healthX, yHealth, 16 + flicker * 9, 0, 9, 9);
+			blit(healthX, yHealth, 16 + flicker * 9, heartV, 9, 9);
 			if (flicker)
 			{
-				if (x * 2 + 1 < lastHealth) blit(healthX, yHealth, heartBase + 54, 0, 9, 9);
-				if (x * 2 + 1 == lastHealth) blit(healthX, yHealth, heartBase + 63, 0, 9, 9);
+				if (x * 2 + 1 < lastHealth) blit(healthX, yHealth, heartBase + 54, heartV, 9, 9);
+				if (x * 2 + 1 == lastHealth) blit(healthX, yHealth, heartBase + 63, heartV, 9, 9);
 			}
-			if (x * 2 + 1 < nowHealth) blit(healthX, yHealth, heartBase + 36, 0, 9, 9);
-			if (x * 2 + 1 == nowHealth) blit(healthX, yHealth, heartBase + 45, 0, 9, 9);
+			if (x * 2 + 1 < nowHealth) blit(healthX, yHealth, heartBase + 36, heartV, 9, 9);
+			if (x * 2 + 1 == nowHealth) blit(healthX, yHealth, heartBase + 45, heartV, 9, 9);
 		}
 
 		bool hungry = minecraft.player->hasEffect(MobEffect::hunger);

@@ -206,7 +206,15 @@ bool InventoryPlayer::add(ItemInstance &item)
 	{
 		int_t slot = getFreeSlot();
 		if (slot < 0)
+		{
+			// 1.0: a creative player with a full inventory just eats the pickup
+			if (player != nullptr && player->abilities.instabuild)
+			{
+				item.stackSize = 0;
+				return true;
+			}
 			return false;
+		}
 		mainInventory[slot] = item;
 		mainInventory[slot].popTime = 5;
 		item.stackSize = 0;
@@ -238,6 +246,11 @@ bool InventoryPlayer::add(ItemInstance &item)
 		item.stackSize -= toMove;
 	}
 	while (item.stackSize > 0 && item.stackSize < previous);
+	if (item.stackSize == previous && player != nullptr && player->abilities.instabuild)
+	{
+		item.stackSize = 0;
+		return true;
+	}
 	return item.stackSize < previous;
 }
 

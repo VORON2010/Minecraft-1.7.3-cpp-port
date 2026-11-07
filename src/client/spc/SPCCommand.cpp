@@ -622,23 +622,17 @@ void SPCCommand::execute(Minecraft &mc, const jstring &input)
 			sendError(u"Usage: gamemode <0|1>");
 			return;
 		}
-		if (parts[1] == u"1" || parts[1] == u"creative")
+		if ((parts[1] == u"1" || parts[1] == u"creative") && mc.level != nullptr)
 		{
-			mc.gameMode = std::make_shared<CreativeMode>(mc);
-			if (mc.player) {
-				mc.player->gameType = 1;
-				mc.gameMode->initPlayer(mc.player);
-				addMessage(u"Game mode updated to Creative");
-			}
+			mc.level->gameType = 1;
+			mc.syncGameModeWithLevel();
+			addMessage(u"Game mode updated to Creative");
 		}
-		else if (parts[1] == u"0" || parts[1] == u"survival")
+		else if ((parts[1] == u"0" || parts[1] == u"survival") && mc.level != nullptr)
 		{
-			mc.gameMode = std::make_shared<SurvivalMode>(mc);
-			if (mc.player) {
-				mc.player->gameType = 0;
-				mc.gameMode->initPlayer(mc.player);
-				addMessage(u"Game mode updated to Survival");
-			}
+			mc.level->gameType = 0;
+			mc.syncGameModeWithLevel();
+			addMessage(u"Game mode updated to Survival");
 		}
 		else
 		{

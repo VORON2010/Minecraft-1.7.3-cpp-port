@@ -68,7 +68,7 @@ void Ghast::updateAi()
 		target.reset();
 	if (target.lock() == nullptr || aggroCooldown-- <= 0)
 	{
-		target = std::static_pointer_cast<Entity>(level.getNearestPlayer(*this, 100.0));
+		target = std::static_pointer_cast<Entity>(level.getNearestAttackablePlayer(*this, 100.0));
 		if (target.lock() != nullptr)
 			aggroCooldown = 20;
 		targetRef = target.lock();

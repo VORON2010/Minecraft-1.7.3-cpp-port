@@ -102,6 +102,8 @@ protected:
 	bool jumping = false;
 	float defaultLookAngle = 0.0f;
 	float runSpeed = 0.7f;
+	float landSpeed = 0.1f;
+	float flyingSpeed = 0.02f;
 
 private:
 	std::shared_ptr<Entity> lookingAt;

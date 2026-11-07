@@ -12,6 +12,17 @@ private:
 	std::shared_ptr<GuiTextField> seedField;
 	jstring folderName;
 	bool createClicked = false;
+	// 1.0 world options
+	jstring gameModeName = u"survival";
+	bool structures = true;
+	bool hardcore = false;
+	bool moreOptionsOpen = false;
+	std::shared_ptr<Button> gameModeButton;
+	std::shared_ptr<Button> moreOptionsButton;
+	std::shared_ptr<Button> structuresButton;
+	std::shared_ptr<Button> mapTypeButton;
+	jstring gameModeLine1;
+	jstring gameModeLine2;
 
 public:
 	CreateWorldScreen(Minecraft &minecraft, std::shared_ptr<Screen> lastScreen);
@@ -32,5 +43,6 @@ public:
 private:
 	void updateFolderName();
 	void updateCreateButton();
+	void updateSettingsLabels();
 	long_t parseSeed() const;
 };

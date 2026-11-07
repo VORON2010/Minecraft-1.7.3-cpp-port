@@ -2,22 +2,30 @@
 
 #include "client/gamemode/GameMode.h"
 
+// 1.0 CreativeInteractionManager
 class CreativeMode : public GameMode
 {
+	int_t destroyDelay = 0;
+
 public:
 	CreativeMode(Minecraft &minecraft);
 
-	virtual void initPlayer(std::shared_ptr<Player> player) override;
-	virtual void initLevel(std::shared_ptr<Level> level) override;
+	static void setCreative(Player &player);
+	static void setSurvival(Player &player);
 
-	virtual void startDestroyBlock(int_t x, int_t y, int_t z, Facing face) override;
-	virtual void continueDestroyBlock(int_t x, int_t y, int_t z, Facing face) override;
-	virtual bool destroyBlock(int_t x, int_t y, int_t z, Facing face) override;
-	virtual bool useItemOn(std::shared_ptr<Player> &player, Level &level, ItemInstance *item, int_t x, int_t y, int_t z, Facing face) override;
-	virtual bool useItem(std::shared_ptr<Player> &player, Level &level, ItemInstance *item) override;
-	
-	virtual float getPickRange() override;
-	virtual bool canHurtPlayer() override;
-	
-	virtual bool isCreativeMode() const override { return true; }
+	void initPlayer(std::shared_ptr<Player> player) override;
+	void adjustPlayer(std::shared_ptr<Player> player) override;
+
+	void startDestroyBlock(int_t x, int_t y, int_t z, Facing face) override;
+	void continueDestroyBlock(int_t x, int_t y, int_t z, Facing face) override;
+	void stopDestroyBlock() override;
+	bool useItemOn(std::shared_ptr<Player> &player, Level &level, ItemInstance *item, int_t x, int_t y, int_t z, Facing face) override;
+
+	float getPickRange() override;
+	bool canHurtPlayer() override;
+
+	bool isCreativeMode() const override { return true; }
+
+private:
+	void destroyInCreative(int_t x, int_t y, int_t z, Facing face);
 };

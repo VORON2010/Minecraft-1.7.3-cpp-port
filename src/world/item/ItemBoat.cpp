@@ -39,6 +39,7 @@ void ItemBoat::use(ItemInstance &stack, Level &level, Player &player) const
 	{
 		if (!level.isOnline)
 			level.addEntity(std::make_shared<EntityBoat>(level, hit.x + 0.5, hit.y + 1.5, hit.z + 0.5));
-		stack.stackSize--;
+		if (!player.abilities.instabuild)
+			stack.stackSize--;
 	}
 }

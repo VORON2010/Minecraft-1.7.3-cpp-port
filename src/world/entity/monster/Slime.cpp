@@ -71,7 +71,7 @@ void Slime::tick()
 void Slime::updateAi()
 {
 	checkDespawn();
-	std::shared_ptr<Player> target = level.getNearestPlayer(*this, 16.0);
+	std::shared_ptr<Player> target = level.getNearestAttackablePlayer(*this, 16.0);
 	if (target != nullptr)
 		lookAt(*target, 10.0f, 20.0f);
 	if (onGround && slimeJumpDelay-- <= 0)

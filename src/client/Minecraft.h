@@ -195,6 +195,7 @@ public:
 	bool isOnline();
 
 	void selectLevel(const jstring &name);
+	void syncGameModeWithLevel();
 	void selectLevel(const jstring &name, const jstring &levelName, long_t seed);
 
 	void toggleDimension();

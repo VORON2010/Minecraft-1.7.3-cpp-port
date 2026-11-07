@@ -493,12 +493,7 @@ void Mob::travel(float x, float z)
 
 		float acceleration = 0.16277136f / (friction * friction * friction);
 		acceleration *= getSpeedModifier();
-		if (isSprinting && onGround) acceleration *= 1.5f;
-		// Creative flight has its own air-control speed.  Sprint doubles it,
-		// matching the expected accelerated flight behaviour.
-		float airAcceleration = isFlying ? (isSprinting ? 0.10f : 0.05f)
-			: (isSprinting ? 0.025f : 0.02f);
-		moveRelative(x, z, onGround ? (0.1f * acceleration) : airAcceleration);
+		moveRelative(x, z, onGround ? (landSpeed * acceleration) : flyingSpeed);
 
 		friction = 0.91f;
 		if (onGround)
@@ -526,12 +521,8 @@ void Mob::travel(float x, float z)
 		if (horizontalCollision && onLadder())
 			yd = 0.2;
 
-		if (!isFlying) {
-			yd -= 0.08;
-			yd *= 0.98;
-		} else {
-			yd *= 0.8; // Dampen vertical speed slightly
-		}
+		yd -= 0.08;
+		yd *= 0.98;
 		xd *= friction;
 		zd *= friction;
 	}

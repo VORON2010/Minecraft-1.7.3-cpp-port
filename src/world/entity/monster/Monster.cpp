@@ -41,7 +41,7 @@ bool Monster::hurt(Entity *source, int_t damage)
 
 std::shared_ptr<Entity> Monster::findAttackTarget()
 {
-	std::shared_ptr<Player> player = level.getNearestPlayer(*this, 16.0);
+	std::shared_ptr<Player> player = level.getNearestAttackablePlayer(*this, 16.0);
 	if (player != nullptr && canSee(*player))
 		return std::static_pointer_cast<Entity>(player);
 	return nullptr;

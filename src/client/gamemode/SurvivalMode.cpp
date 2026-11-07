@@ -1,3 +1,4 @@
+#include "client/gamemode/CreativeMode.h"
 #include "client/gamemode/SurvivalMode.h"
 
 #include "client/Minecraft.h"
@@ -137,4 +138,11 @@ void SurvivalMode::initLevel(std::shared_ptr<Level> level)
 void SurvivalMode::tick()
 {
 	oDestroyProgress = destroyProgress;
+}
+
+// 1.0 ClientPlayerInteractionManager.adjustPlayer: survival players lose creative abilities
+void SurvivalMode::adjustPlayer(std::shared_ptr<Player> player)
+{
+	if (player != nullptr)
+		CreativeMode::setSurvival(*player);
 }

@@ -159,6 +159,17 @@ public:
 	std::shared_ptr<File> workDir, dir;
 
 	long_t seed = 0;
+	// 1.0 WorldData: game mode, structures and hardcore are chosen when the world is created
+	int_t gameType = 0;
+	bool mapFeatures = true;
+	bool hardcore = false;
+	struct CreateSettings
+	{
+		int_t gameType = 0;
+		bool mapFeatures = true;
+		bool hardcore = false;
+	};
+	static CreateSettings nextCreateSettings;
 
 private:
 	std::shared_ptr<CompoundTag> loadedPlayerTag;
@@ -305,6 +316,7 @@ public:
 	HitResult clip(Vec3 &from, Vec3 &to);
 	HitResult clip(Vec3 &from, Vec3 &to, bool canPickLiquid);
 	std::shared_ptr<Player> getNearestPlayer(Entity &entity, double radius);
+	std::shared_ptr<Player> getNearestAttackablePlayer(Entity &entity, double radius);
 	std::shared_ptr<Player> getNearestPlayer(double x, double y, double z, double radius);
 	std::unique_ptr<PathEntity> getPathToEntity(Entity &entity, Entity &target, float distance);
 	std::unique_ptr<PathEntity> getEntityPathToXYZ(Entity &entity, int_t x, int_t y, int_t z, float distance);

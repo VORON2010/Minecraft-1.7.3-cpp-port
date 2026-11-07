@@ -18,6 +18,7 @@ public:
 	SurvivalMode(Minecraft &minecraft);
 
 	void initPlayer(std::shared_ptr<Player> player) override;
+	void adjustPlayer(std::shared_ptr<Player> player) override;
 
 	void init();
 

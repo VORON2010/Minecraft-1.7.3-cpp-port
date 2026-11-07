@@ -30,7 +30,16 @@ public:
 
 	jstring name;
 	int_t dimension = 0;
-	int_t gameType = 0; // 0 = survival, 1 = creative
+	// 1.0 PlayerAbilities
+	struct Abilities
+	{
+		bool invulnerable = false;
+		bool flying = false;
+		bool mayfly = false;
+		bool instabuild = false;
+	} abilities;
+	int_t pressedJumpTwiceTimer = 0;
+	bool takingOutOfWorldDamage = false;
 
 	jstring cloakTexture;
 	double xCloakO = 0.0, yCloakO = 0.0, zCloakO = 0.0;
@@ -50,7 +59,7 @@ public:
 
 	void feed(int_t food, float saturationModifier);
 	void addExhaustion(float exhaustion);
-	bool canEat(bool ignoreHunger) const { return ignoreHunger || foodLevel < 20; }
+	bool canEat(bool ignoreHunger) const { return (ignoreHunger || foodLevel < 20) && !abilities.invulnerable; }
 
 	// b1.8 experience
 	int_t experienceLevel = 0;
@@ -137,6 +146,7 @@ public:
 	double getRidingHeight() override;
 	void die(Entity *source) override;
 	bool hurt(Entity *source, int_t dmg) override;
+	void outOfWorld() override;
 
 protected:
 	void actuallyHurt(int_t dmg) override;

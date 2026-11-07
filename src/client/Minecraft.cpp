@@ -1173,7 +1173,7 @@ void Minecraft::tick()
 			}
 		}
 
-		level->difficulty = options.difficulty;
+		level->difficulty = level->hardcore ? 3 : options.difficulty;
 		if (level->isOnline)
 			level->difficulty = 3;
 
@@ -1424,15 +1424,7 @@ void Minecraft::setLevel(std::shared_ptr<Level> level, const jstring &title, std
 
 
 		level->loadPlayer(this->player);
-		if (this->player->gameType == 1 && !gameMode->isCreativeMode()) {
-			gameMode = std::make_shared<CreativeMode>(*this);
-			gameMode->initPlayer(this->player);
-			gameMode->adjustPlayer(this->player);
-		} else if (this->player->gameType == 0 && gameMode->isCreativeMode()) {
-			gameMode = std::make_shared<SurvivalMode>(*this);
-			gameMode->initPlayer(this->player);
-			gameMode->adjustPlayer(this->player);
-		}
+		syncGameModeWithLevel();
 
 		if (level->isNew)
 			level->forceSave(progressRenderer);
@@ -1519,15 +1511,7 @@ void Minecraft::respawnPlayer(int_t dimension)
 	this->player->resetPos();
 	gameMode->initPlayer(this->player);
 	level->loadPlayer(this->player);
-	if (this->player->gameType == 1 && !gameMode->isCreativeMode()) {
-		gameMode = std::make_shared<CreativeMode>(*this);
-		gameMode->initPlayer(this->player);
-		gameMode->adjustPlayer(this->player);
-	} else if (this->player->gameType == 0 && gameMode->isCreativeMode()) {
-		gameMode = std::make_shared<SurvivalMode>(*this);
-		gameMode->initPlayer(this->player);
-		gameMode->adjustPlayer(this->player);
-	}
+	syncGameModeWithLevel();
 	this->player->input = std::make_unique<KeyboardInput>(options);
 	this->player->entityId = entityId;
 	this->player->animateRespawn();
@@ -1568,4 +1552,26 @@ void Minecraft::startAndConnectTo(const jstring *name, const jstring *sessionId,
 
 	minecraft->run();
 
+}
+
+// 1.0: the world's game type picks the interaction manager
+void Minecraft::syncGameModeWithLevel()
+{
+	if (level == nullptr || player == nullptr || isOnline())
+		return;
+	if (player->abilities.instabuild && level->gameType == 0 && !level->isNew)
+		level->gameType = 1; // world saved by the old per-player /gamemode
+	bool wantCreative = level->gameType == 1;
+	if (wantCreative != gameMode->isCreativeMode())
+	{
+		if (wantCreative)
+			gameMode = std::make_shared<CreativeMode>(*this);
+		else
+		{
+			gameMode = std::make_shared<SurvivalMode>(*this);
+			CreativeMode::setSurvival(*player);
+		}
+		gameMode->initPlayer(player);
+	}
+	gameMode->adjustPlayer(player);
 }

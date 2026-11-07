@@ -40,7 +40,7 @@ void Dimension::init()
 
 ChunkSource *Dimension::createRandomLevelSource()
 {
-	return new RandomLevelSource(level, level.seed);
+	return new RandomLevelSource(level, level.seed, level.mapFeatures);
 }
 
 ChunkStorage *Dimension::createStorage(std::shared_ptr<File> dir)

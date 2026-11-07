@@ -35,8 +35,6 @@ public:
 private:
 	bool isInsidePortal = false;
 
-	int_t jumpTriggerTime = 0;
-	bool flyActive = false;
 
 public:
 	LocalPlayer(Minecraft &minecraft, Level &level, User *user, int_t dimension);

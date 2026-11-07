@@ -10,6 +10,7 @@
 #include "world/stats/StatList.h"
 #include "world/entity/Entity.h"
 #include "world/entity/npc/Villager.h"
+#include "world/entity/player/Player.h"
 #include "world/level/Level.h"
 #include "world/level/levelgen/RandomLevelSource.h"
 #include "world/level/levelgen/structure/VillageFeature.h"
@@ -238,6 +239,39 @@ int runStructureSmoke()
 		ok &= expect(blaze->y < 120.0 && blaze->y > 100.0, "blazes fall slowly (60% of the speed each tick)");
 		ok &= expect(cube->getSlimeSize() == 4 && cube->bbWidth > 2.3f, "a size 4 magma cube is 2.4 blocks wide");
 		ok &= expect(!cube->isOnFire(), "magma cubes are never drawn burning");
+	}
+
+	std::cerr << "structure-smoke: 1.0 player abilities" << std::endl;
+	{
+		struct TestPlayer : public Player
+		{
+			using Player::Player;
+			using Player::causeFallDamage;
+			using Player::travel;
+		};
+		auto player = std::make_shared<TestPlayer>(level);
+		player->moveTo(0.5, 110.0, 0.5, 0.0f, 0.0f);
+		level.addEntity(player);
+		player->abilities.invulnerable = player->abilities.mayfly = player->abilities.instabuild = true;
+		int_t healthBefore = player->health;
+		ok &= expect(!player->hurt(nullptr, 5) && player->health == healthBefore, "invulnerable players take no damage");
+		player->causeFallDamage(30.0f);
+		ok &= expect(player->health == healthBefore, "players that may fly take no fall damage");
+		player->abilities.flying = true;
+		player->yd = 0.0;
+		double startY = player->y;
+		for (int_t i = 0; i < 20; i++)
+			player->travel(0.0f, 0.0f);
+		ok &= expect(std::abs(player->y - startY) < 0.01, "a flying player does not fall");
+		player->abilities.flying = false;
+		player->yd = 0.0;
+		for (int_t i = 0; i < 20; i++)
+			player->travel(0.0f, 0.0f);
+		ok &= expect(player->y < startY - 1.0, "without flight gravity pulls the player down");
+		player->foodExhaustionLevel = 0.0f;
+		player->addExhaustion(3.0f);
+		ok &= expect(player->foodExhaustionLevel == 0.0f, "invulnerable players do not get hungry");
+		level.removeEntity(player);
 	}
 
 	std::cerr << "structure-smoke: " << (ok ? "PASS" : "FAIL") << std::endl;

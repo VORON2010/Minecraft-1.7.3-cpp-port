@@ -282,6 +282,9 @@ Level::Level(Level &level, int_t dimension)
 	this->name = level.name;
 	this->levelName = level.levelName;
 	this->seed = level.seed;
+	this->gameType = level.gameType;
+	this->mapFeatures = level.mapFeatures;
+	this->hardcore = level.hardcore;
 	this->time = level.time;
 	this->xSpawn = level.xSpawn;
 	this->ySpawn = level.ySpawn;
@@ -315,6 +318,8 @@ void Level::initializeStorage(File *workingDirectory)
 	IOUtil::writeLong(*output, sessionId);
 }
 
+Level::CreateSettings Level::nextCreateSettings;
+
 std::shared_ptr<Level> Level::createSimulationLevel(File *workingDirectory, const jstring &name, long_t seed)
 {
 	auto level = std::shared_ptr<Level>(new Level(name, Dimension::Id_Normal, seed, false));
@@ -342,6 +347,9 @@ Level::Level(File *workingDirectory, const jstring &name, const jstring &levelNa
 	if (data != nullptr)
 	{
 		this->seed = data->getLong(u"RandomSeed");
+		gameType = data->getInt(u"GameType");
+		mapFeatures = data->contains(u"MapFeatures") ? data->getBoolean(u"MapFeatures") : true;
+		hardcore = data->getBoolean(u"hardcore");
 		xSpawn = data->getInt(u"SpawnX");
 		ySpawn = data->getInt(u"SpawnY");
 		zSpawn = data->getInt(u"SpawnZ");
@@ -381,6 +389,13 @@ Level::Level(File *workingDirectory, const jstring &name, const jstring &levelNa
 	{
 		this->seed = seed;
 		findSpawn = true;
+	}
+	if (isNew)
+	{
+		gameType = nextCreateSettings.gameType;
+		mapFeatures = nextCreateSettings.mapFeatures;
+		hardcore = nextCreateSettings.hardcore;
+		nextCreateSettings = CreateSettings();
 	}
 
 	if (this->levelName.empty())
@@ -532,6 +547,9 @@ void Level::saveLevelData()
 
 	std::shared_ptr<CompoundTag> data = Util::make_shared<CompoundTag>();
 	data->putLong(u"RandomSeed", seed);
+	data->putInt(u"GameType", gameType);
+	data->putBoolean(u"MapFeatures", mapFeatures);
+	data->putBoolean(u"hardcore", hardcore);
 	data->putInt(u"SpawnX", xSpawn);
 	data->putInt(u"SpawnY", ySpawn);
 	data->putInt(u"SpawnZ", zSpawn);
@@ -1227,6 +1245,28 @@ std::shared_ptr<Player> Level::getNearestPlayer(double x, double y, double z, do
 		}
 	}
 
+	return nearest;
+}
+
+// 1.0 World.getNearestPlayerToAttack: monsters ignore invulnerable (creative) players
+std::shared_ptr<Player> Level::getNearestAttackablePlayer(Entity &entity, double radius)
+{
+	double bestDistance = -1.0;
+	std::shared_ptr<Player> nearest;
+	for (const auto &player : players)
+	{
+		if (player->abilities.invulnerable)
+			continue;
+		double dx = player->x - entity.x;
+		double dy = player->y - entity.y;
+		double dz = player->z - entity.z;
+		double distance = dx * dx + dy * dy + dz * dz;
+		if ((radius < 0.0 || distance < radius * radius) && (bestDistance == -1.0 || distance < bestDistance))
+		{
+			bestDistance = distance;
+			nearest = player;
+		}
+	}
 	return nearest;
 }
 

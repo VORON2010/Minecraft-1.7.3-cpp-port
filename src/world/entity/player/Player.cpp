@@ -65,6 +65,8 @@ void Player::withdrawExperienceLevels(int_t levels)
 
 void Player::addExhaustion(float exhaustion)
 {
+	if (abilities.invulnerable)
+		return;
 	if (level.difficulty > 0 && !level.isOnline)
 	{
 		foodExhaustionLevel = std::min(foodExhaustionLevel + exhaustion, 40.0f);
@@ -378,6 +380,18 @@ void Player::updateAi()
 
 void Player::aiStep()
 {
+	if (pressedJumpTwiceTimer > 0)
+		pressedJumpTwiceTimer--;
+	// 1.0: sprinting adds 30% to ground and air control
+	landSpeed = 0.1f;
+	flyingSpeed = 0.02f;
+	if (isSprinting)
+	{
+		landSpeed += 0.1f * 0.3f;
+		flyingSpeed += 0.02f * 0.3f;
+	}
+	if (onFire > 0 && abilities.invulnerable)
+		onFire = 0;
 	if (level.difficulty == 0 && health < MAX_HEALTH && (tickCount % 20) * 12 == 0)
 		heal(1);
 	if (level.difficulty == 0 && foodLevel < 20 && tickCount % 20 == 0)
@@ -563,7 +577,19 @@ void Player::readAdditionalSaveData(CompoundTag &tag)
 	experienceLevel = tag.getInt(u"XpLevel");
 	totalExperience = tag.getInt(u"XpTotal");
 	dimension = tag.getInt(u"Dimension");
-	gameType = tag.getInt(u"GameType");
+	if (tag.contains(u"abilities"))
+	{
+		auto ab = tag.getCompound(u"abilities");
+		abilities.invulnerable = ab->getBoolean(u"invulnerable");
+		abilities.flying = ab->getBoolean(u"flying");
+		abilities.mayfly = ab->getBoolean(u"mayfly");
+		abilities.instabuild = ab->getBoolean(u"instabuild");
+	}
+	else if (tag.getInt(u"GameType") == 1)
+	{
+		// saves from the old /gamemode command
+		abilities.invulnerable = abilities.mayfly = abilities.instabuild = true;
+	}
 	auto inventoryTag = tag.getList(u"Inventory");
 	if (inventoryTag != nullptr)
 		inventory.load(*inventoryTag);
@@ -610,7 +636,12 @@ void Player::addAdditionalSaveData(CompoundTag &tag)
 	tag.putInt(u"XpLevel", experienceLevel);
 	tag.putInt(u"XpTotal", totalExperience);
 	tag.putInt(u"Dimension", dimension);
-	tag.putInt(u"GameType", gameType);
+	auto ab = std::make_shared<CompoundTag>();
+	ab->putBoolean(u"invulnerable", abilities.invulnerable);
+	ab->putBoolean(u"flying", abilities.invulnerable); // 1.0 writes invulnerable here too
+	ab->putBoolean(u"mayfly", abilities.mayfly);
+	ab->putBoolean(u"instabuild", abilities.instabuild);
+	tag.put(u"abilities", ab);
 	auto inventoryTag = std::make_shared<ListTag>();
 	inventory.save(*inventoryTag);
 	tag.put(u"Inventory", inventoryTag);
@@ -676,6 +707,8 @@ void Player::die(Entity *source)
 
 bool Player::hurt(Entity *source, int_t dmg)
 {
+	if (abilities.invulnerable && !takingOutOfWorldDamage)
+		return false;
 	noActionTime = 0;
 
 	if (health <= 0)
@@ -926,7 +959,20 @@ void Player::travel(float xInput, float zInput)
 	double oldX = x;
 	double oldY = y;
 	double oldZ = z;
-	Mob::travel(xInput, zInput);
+	if (abilities.flying)
+	{
+		// 1.0: flight ignores gravity and keeps 60% of the vertical speed
+		double oldYd = yd;
+		float oldFlyingSpeed = flyingSpeed;
+		flyingSpeed = 0.05f;
+		Mob::travel(xInput, zInput);
+		yd = oldYd * 0.6;
+		flyingSpeed = oldFlyingSpeed;
+	}
+	else
+	{
+		Mob::travel(xInput, zInput);
+	}
 
 	double dx = x - oldX;
 	double dy = y - oldY;
@@ -976,8 +1022,17 @@ void Player::travel(float xInput, float zInput)
 
 void Player::causeFallDamage(float distance)
 {
+	if (abilities.mayfly)
+		return;
 	if (distance >= 2.0f)
 		addStat(*StatList::distanceFallenStat,
 			static_cast<int_t>(std::round(static_cast<double>(distance) * 100.0)));
 	Mob::causeFallDamage(distance);
+}
+
+void Player::outOfWorld()
+{
+	takingOutOfWorldDamage = true;
+	Mob::outOfWorld();
+	takingOutOfWorldDamage = false;
 }

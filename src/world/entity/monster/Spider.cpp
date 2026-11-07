@@ -28,7 +28,7 @@ bool Spider::onLadder()
 std::shared_ptr<Entity> Spider::findAttackTarget()
 {
 	if (getBrightness(1.0f) < 0.5f)
-		return std::static_pointer_cast<Entity>(level.getNearestPlayer(*this, 16.0));
+		return std::static_pointer_cast<Entity>(level.getNearestAttackablePlayer(*this, 16.0));
 	return nullptr;
 }
 

@@ -1,73 +1,114 @@
 #include "client/gamemode/CreativeMode.h"
+
 #include "client/Minecraft.h"
 #include "world/entity/player/Player.h"
+#include "world/item/ItemInstance.h"
 #include "world/level/Level.h"
+#include "world/level/tile/Tile.h"
+#include "world/level/tile/StoneTile.h"
+#include "world/level/tile/DirtTile.h"
+#include "world/level/tile/WoodTile.h"
+#include "world/level/tile/TreeTile.h"
+#include "world/level/tile/LeafTile.h"
+#include "world/level/tile/TorchTile.h"
+#include "world/level/tile/SlabTile.h"
+
+namespace
+{
+	// 1.0 Session.CREATIVE_INVENTORY: the blocks that fill an empty creative hotbar
+	int_t creativeHotbarTile(int_t slot)
+	{
+		const int_t ids[] = {
+			Tile::rock.id, Tile::cobblestone.id, Tile::brick.id, Tile::dirt.id, Tile::wood.id, Tile::treeTrunk.id, Tile::leaves.id, Tile::torch.id, Tile::slabSingle.id
+		};
+		return ids[slot];
+	}
+}
 
 CreativeMode::CreativeMode(Minecraft &minecraft) : GameMode(minecraft)
 {
 	instaBuild = true;
 }
 
+void CreativeMode::setCreative(Player &player)
+{
+	player.abilities.mayfly = true;
+	player.abilities.instabuild = true;
+	player.abilities.invulnerable = true;
+}
+
+void CreativeMode::setSurvival(Player &player)
+{
+	player.abilities.mayfly = false;
+	player.abilities.flying = false;
+	player.abilities.instabuild = false;
+	player.abilities.invulnerable = false;
+	player.isFlying = false;
+}
+
 void CreativeMode::initPlayer(std::shared_ptr<Player> player)
 {
 	GameMode::initPlayer(player);
+	if (player != nullptr)
+		setCreative(*player);
 }
 
-void CreativeMode::initLevel(std::shared_ptr<Level> level)
+void CreativeMode::adjustPlayer(std::shared_ptr<Player> player)
 {
-	GameMode::initLevel(level);
+	if (player == nullptr)
+		return;
+	setCreative(*player);
+	for (int_t i = 0; i < 9; i++)
+	{
+		if (player->inventory.mainInventory[i].isEmpty())
+			player->inventory.mainInventory[i] = ItemInstance(creativeHotbarTile(i), 1, 0);
+	}
+}
+
+void CreativeMode::destroyInCreative(int_t x, int_t y, int_t z, Facing face)
+{
+	minecraft.level->extinguishFire(x, y, z, face);
+	destroyBlock(x, y, z, face);
 }
 
 void CreativeMode::startDestroyBlock(int_t x, int_t y, int_t z, Facing face)
 {
-	destroyBlock(x, y, z, face);
+	destroyInCreative(x, y, z, face);
+	destroyDelay = 5;
 }
 
 void CreativeMode::continueDestroyBlock(int_t x, int_t y, int_t z, Facing face)
 {
+	destroyDelay--;
+	if (destroyDelay <= 0)
+	{
+		destroyDelay = 5;
+		destroyInCreative(x, y, z, face);
+	}
 }
 
-bool CreativeMode::destroyBlock(int_t x, int_t y, int_t z, Facing face)
+void CreativeMode::stopDestroyBlock()
 {
-	int_t t = minecraft.level->getTile(x, y, z);
-	int_t data = minecraft.level->getData(x, y, z);
-	if (t > 0)
-		minecraft.particleEngine.destroy(x, y, z, t, data);
-	
-	return GameMode::destroyBlock(x, y, z, face);
 }
 
 bool CreativeMode::useItemOn(std::shared_ptr<Player> &player, Level &level, ItemInstance *item, int_t x, int_t y, int_t z, Facing face)
 {
-	if (item == nullptr) return false;
-	int_t initialStackSize = item->stackSize.load(std::memory_order_relaxed);
-	int_t initialDamage = item->itemDamage.load(std::memory_order_relaxed);
-	
-	item->stackSize.store(initialStackSize + 1, std::memory_order_relaxed); // Prevent removeSelectedItem
-	
-	bool result = GameMode::useItemOn(player, level, item, x, y, z, face);
-	item->stackSize.store(initialStackSize, std::memory_order_relaxed);
-	item->itemDamage.store(initialDamage, std::memory_order_relaxed);
-	return result;
-}
-
-bool CreativeMode::useItem(std::shared_ptr<Player> &player, Level &level, ItemInstance *item)
-{
-	if (item == nullptr) return false;
-	int_t initialStackSize = item->stackSize.load(std::memory_order_relaxed);
-	int_t initialDamage = item->itemDamage.load(std::memory_order_relaxed);
-
-	item->stackSize.store(initialStackSize + 1, std::memory_order_relaxed); // Prevent removeSelectedItem
-	
-	bool result = GameMode::useItem(player, level, item);
-	item->stackSize.store(initialStackSize, std::memory_order_relaxed);
-	item->itemDamage.store(initialDamage, std::memory_order_relaxed);
-	return result;
+	int_t tile = level.getTile(x, y, z);
+	if (tile > 0 && Tile::tiles[tile] != nullptr && Tile::tiles[tile]->use(level, x, y, z, *player))
+		return true;
+	if (item == nullptr || item->isEmpty())
+		return false;
+	int_t damage = item->getAuxValue();
+	int_t count = item->stackSize;
+	bool used = item->useOn(*player, level, x, y, z, face);
+	item->itemDamage = damage;
+	item->stackSize = count;
+	return used;
 }
 
 float CreativeMode::getPickRange()
 {
-	return 5.0f; // Creative reach is longer
+	return 5.0f;
 }
 
 bool CreativeMode::canHurtPlayer()

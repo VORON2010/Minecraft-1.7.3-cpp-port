@@ -32,7 +32,7 @@ void Silverfish::tick()
 
 std::shared_ptr<Entity> Silverfish::findAttackTarget()
 {
-	return std::static_pointer_cast<Entity>(level.getNearestPlayer(*this, 8.0));
+	return std::static_pointer_cast<Entity>(level.getNearestAttackablePlayer(*this, 8.0));
 }
 
 jstring Silverfish::getAmbientSound()

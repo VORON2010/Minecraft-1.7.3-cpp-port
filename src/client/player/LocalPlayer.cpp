@@ -69,26 +69,29 @@ void LocalPlayer::updateAi()
 			isSprinting = false;
 		}
 
-		if (!minecraft.gameMode->isCreativeMode()) {
-			flyActive = false;
-		}
-
-		if (input->jumping && !input->wasJumping) {
-			if (jumpTriggerTime > 0) {
-				flyActive = !flyActive;
-				jumpTriggerTime = 0;
-			} else {
-				jumpTriggerTime = 7;
+		// 1.0 ClientPlayerEntity: double tap jump toggles flight when the player may fly
+		if (abilities.mayfly && !input->wasJumping && input->jumping)
+		{
+			if (pressedJumpTwiceTimer == 0)
+			{
+				pressedJumpTwiceTimer = 7;
+			}
+			else
+			{
+				abilities.flying = !abilities.flying;
+				pressedJumpTwiceTimer = 0;
 			}
 		}
-		if (jumpTriggerTime > 0) jumpTriggerTime--;
-
-		isFlying = minecraft.gameMode->isCreativeMode() && flyActive;
-		if (isFlying) {
-			if (jumping) yd = 0.5f;
-			else if (input->sneaking) yd = -0.5f;
-			else yd = 0.0f;
+		if (!abilities.mayfly)
+			abilities.flying = false;
+		if (abilities.flying)
+		{
+			if (input->sneaking)
+				yd -= 0.15;
+			if (input->jumping)
+				yd += 0.15;
 		}
+		isFlying = abilities.flying;
 	}
 }
 
@@ -153,6 +156,11 @@ void LocalPlayer::aiStep()
 		ySlideOffset = 0.2f;
 
 	Player::aiStep();
+	if (onGround && abilities.flying)
+	{
+		abilities.flying = false;
+		isFlying = false;
+	}
 }
 
 void LocalPlayer::addStat(const StatBase &stat, int_t amount)

@@ -1,3 +1,4 @@
+#include "world/level/Level.h"
 #include "client/gui/OptionsScreen.h"
 
 #include "client/Minecraft.h"
@@ -53,6 +54,12 @@ void OptionsScreen::init()
 	{
 		Options::Option::Element &option = *OPTION_SCREEN_OPTIONS[i];
 		addOptionButton(buttons, width / 2 - 155 + i % 2 * 160, height / 6 + 24 * (i >> 1), i, option, options);
+		if (&option == &Options::Option::DIFFICULTY && minecraft.level != nullptr && minecraft.level->hardcore)
+		{
+			// 1.0: hardcore worlds stay on hard
+			buttons.back()->active = false;
+			buttons.back()->msg = language.getElement(u"options.difficulty") + u": " + language.getElement(u"options.difficulty.hardcore");
+		}
 	}
 	usernameField = std::make_unique<GuiTextField>(*this, font, width / 2 - 100,
 		height / 6 + 84, 200, 20, options.username);

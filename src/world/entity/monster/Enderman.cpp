@@ -54,7 +54,7 @@ void Enderman::readAdditionalSaveData(CompoundTag &tag)
 
 std::shared_ptr<Entity> Enderman::findAttackTarget()
 {
-	std::shared_ptr<Player> player = level.getNearestPlayer(*this, 64.0);
+	std::shared_ptr<Player> player = level.getNearestAttackablePlayer(*this, 64.0);
 	if (player != nullptr)
 	{
 		if (isLookingAtMe(*player))

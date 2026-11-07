@@ -7,6 +7,7 @@
 #include "client/locale/Language.h"
 
 #include "client/gamemode/SurvivalMode.h"
+#include "client/gamemode/CreativeMode.h"
 #include "client/gui/GuiTextField.h"
 #include "client/gui/SelectWorldScreen.h"
 
@@ -140,14 +141,37 @@ void CreateWorldScreen::init()
 {
 	Language &language = Language::getInstance();
 	lwjgl::Keyboard::enableRepeatEvents(true);
-	buttons.push_back(Util::make_shared<Button>(0, width / 2 - 100, height / 4 + 108, language.getElement(u"selectWorld.create")));
-	buttons.push_back(Util::make_shared<Button>(1, width / 2 - 100, height / 4 + 132, language.getElement(u"gui.cancel")));
+	buttons.clear();
+	buttons.push_back(Util::make_shared<Button>(0, width / 2 - 155, height - 28, 150, 20, language.getElement(u"selectWorld.create")));
+	buttons.push_back(Util::make_shared<Button>(1, width / 2 + 5, height - 28, 150, 20, language.getElement(u"gui.cancel")));
+	gameModeButton = Util::make_shared<Button>(2, width / 2 - 75, 100, 150, 20, language.getElement(u"selectWorld.gameMode"));
+	moreOptionsButton = Util::make_shared<Button>(3, width / 2 - 75, 172, 150, 20, language.getElement(u"selectWorld.moreWorldOptions"));
+	structuresButton = Util::make_shared<Button>(4, width / 2 - 155, 100, 150, 20, language.getElement(u"selectWorld.mapFeatures"));
+	structuresButton->visible = false;
+	mapTypeButton = Util::make_shared<Button>(5, width / 2 + 5, 100, 150, 20, language.getElement(u"selectWorld.mapType"));
+	mapTypeButton->visible = false;
+	mapTypeButton->active = false;
+	buttons.push_back(gameModeButton);
+	buttons.push_back(moreOptionsButton);
+	buttons.push_back(structuresButton);
+	buttons.push_back(mapTypeButton);
 	worldNameField = Util::make_shared<GuiTextField>(*this, font, width / 2 - 100, 60, 200, 20, language.getElement(u"selectWorld.newWorld"));
 	worldNameField->isFocused = true;
 	worldNameField->setMaxStringLength(32);
-	seedField = Util::make_shared<GuiTextField>(*this, font, width / 2 - 100, 116, 200, 20, u"");
+	seedField = Util::make_shared<GuiTextField>(*this, font, width / 2 - 100, 60, 200, 20, u"");
 	updateFolderName();
+	updateSettingsLabels();
 	updateCreateButton();
+}
+
+void CreateWorldScreen::updateSettingsLabels()
+{
+	Language &language = Language::getInstance();
+	gameModeButton->msg = language.getElement(u"selectWorld.gameMode") + u" " + language.getElement(u"selectWorld.gameMode." + gameModeName);
+	gameModeLine1 = language.getElement(u"selectWorld.gameMode." + gameModeName + u".line1");
+	gameModeLine2 = language.getElement(u"selectWorld.gameMode." + gameModeName + u".line2");
+	structuresButton->msg = language.getElement(u"selectWorld.mapFeatures") + u" " + language.getElement(structures ? u"options.on" : u"options.off");
+	mapTypeButton->msg = language.getElement(u"selectWorld.mapType") + u" " + language.getElement(u"selectWorld.mapType.normal");
 }
 
 void CreateWorldScreen::tick()
@@ -195,20 +219,59 @@ void CreateWorldScreen::buttonClicked(Button &button)
 	{
 		if (createClicked)
 			return;
-
 		createClicked = true;
 		minecraft.setScreen(nullptr);
-		minecraft.gameMode = Util::make_shared<SurvivalMode>(minecraft);
+		Level::nextCreateSettings.gameType = gameModeName == u"creative" ? 1 : 0;
+		Level::nextCreateSettings.mapFeatures = structures;
+		Level::nextCreateSettings.hardcore = hardcore;
+		if (gameModeName == u"creative")
+			minecraft.gameMode = Util::make_shared<CreativeMode>(minecraft);
+		else
+			minecraft.gameMode = Util::make_shared<SurvivalMode>(minecraft);
 		minecraft.selectLevel(folderName, worldNameField->getText(), parseSeed());
 		minecraft.setScreen(nullptr);
+	}
+	else if (button.id == 3)
+	{
+		Language &language = Language::getInstance();
+		moreOptionsOpen = !moreOptionsOpen;
+		gameModeButton->visible = !moreOptionsOpen;
+		structuresButton->visible = moreOptionsOpen;
+		mapTypeButton->visible = moreOptionsOpen;
+		moreOptionsButton->msg = language.getElement(moreOptionsOpen ? u"gui.done" : u"selectWorld.moreWorldOptions");
+	}
+	else if (button.id == 2)
+	{
+		// survival -> hardcore -> creative
+		if (gameModeName == u"survival")
+		{
+			gameModeName = u"hardcore";
+			hardcore = true;
+		}
+		else if (gameModeName == u"hardcore")
+		{
+			gameModeName = u"creative";
+			hardcore = false;
+		}
+		else
+		{
+			gameModeName = u"survival";
+			hardcore = false;
+		}
+		updateSettingsLabels();
+	}
+	else if (button.id == 4)
+	{
+		structures = !structures;
+		updateSettingsLabels();
 	}
 }
 
 void CreateWorldScreen::keyPressed(char_t eventCharacter, int_t eventKey)
 {
-	if (worldNameField != nullptr && worldNameField->isFocused)
+	if (worldNameField != nullptr && worldNameField->isFocused && !moreOptionsOpen)
 		worldNameField->textboxKeyTyped(eventCharacter, eventKey);
-	else if (seedField != nullptr)
+	else if (seedField != nullptr && seedField->isFocused && moreOptionsOpen)
 		seedField->textboxKeyTyped(eventCharacter, eventKey);
 
 	
@@ -222,9 +285,9 @@ void CreateWorldScreen::keyPressed(char_t eventCharacter, int_t eventKey)
 void CreateWorldScreen::mouseClicked(int_t x, int_t y, int_t buttonNum)
 {
 	Screen::mouseClicked(x, y, buttonNum);
-	if (worldNameField != nullptr)
+	if (!moreOptionsOpen && worldNameField != nullptr)
 		worldNameField->mouseClicked(x, y, buttonNum);
-	if (seedField != nullptr)
+	else if (moreOptionsOpen && seedField != nullptr)
 		seedField->mouseClicked(x, y, buttonNum);
 }
 
@@ -232,15 +295,24 @@ void CreateWorldScreen::render(int_t xm, int_t ym, float a)
 {
 	Language &language = Language::getInstance();
 	renderBackground();
-	drawCenteredString(font, language.getElement(u"selectWorld.create"), width / 2, height / 4 - 40, 0xFFFFFF);
-	drawString(font, language.getElement(u"selectWorld.enterName"), width / 2 - 100, 47, 0xA0A0A0);
-	drawString(font, language.getElement(u"selectWorld.resultFolder") + u" " + folderName, width / 2 - 100, 85, 0xA0A0A0);
-	drawString(font, language.getElement(u"selectWorld.enterSeed"), width / 2 - 100, 104, 0xA0A0A0);
-	drawString(font, language.getElement(u"selectWorld.seedInfo"), width / 2 - 100, 140, 0xA0A0A0);
-	if (worldNameField != nullptr)
-		worldNameField->drawTextBox();
-	if (seedField != nullptr)
-		seedField->drawTextBox();
+	drawCenteredString(font, language.getElement(u"selectWorld.create"), width / 2, 20, 0xFFFFFF);
+	if (!moreOptionsOpen)
+	{
+		drawString(font, language.getElement(u"selectWorld.enterName"), width / 2 - 100, 47, 0xA0A0A0);
+		drawString(font, language.getElement(u"selectWorld.resultFolder") + u" " + folderName, width / 2 - 100, 85, 0xA0A0A0);
+		if (worldNameField != nullptr)
+			worldNameField->drawTextBox();
+		drawString(font, gameModeLine1, width / 2 - 100, 122, 0xA0A0A0);
+		drawString(font, gameModeLine2, width / 2 - 100, 134, 0xA0A0A0);
+	}
+	else
+	{
+		drawString(font, language.getElement(u"selectWorld.enterSeed"), width / 2 - 100, 47, 0xA0A0A0);
+		drawString(font, language.getElement(u"selectWorld.seedInfo"), width / 2 - 100, 85, 0xA0A0A0);
+		drawString(font, language.getElement(u"selectWorld.mapFeatures.info"), width / 2 - 150, 122, 0xA0A0A0);
+		if (seedField != nullptr)
+			seedField->drawTextBox();
+	}
 	Screen::render(xm, ym, a);
 }
 
