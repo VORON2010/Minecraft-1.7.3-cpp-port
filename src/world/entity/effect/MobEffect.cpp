@@ -19,8 +19,10 @@ MobEffect MobEffect::damageResistance(11, false, 10044730, u"potion.resistance",
 MobEffect MobEffect::fireResistance(12, false, 14981690, u"potion.fireResistance", 7, 1);
 MobEffect MobEffect::waterBreathing(13, false, 3035801, u"potion.waterBreathing", 0, 2);
 MobEffect MobEffect::invisibility(14, false, 8356754, u"potion.invisibility", 0, 1);
+static bool invisibilityDisabled = (MobEffect::invisibility.setDisabled(), true);
 MobEffect MobEffect::blindness(15, true, 2039587, u"potion.blindness", 5, 1, false, 0.25);
 MobEffect MobEffect::nightVision(16, false, 2039713, u"potion.nightVision", 4, 1);
+static bool nightVisionDisabled = (MobEffect::nightVision.setDisabled(), true);
 MobEffect MobEffect::hunger(17, true, 5797459, u"potion.hunger", 1, 1);
 MobEffect MobEffect::weakness(18, true, 4738376, u"potion.weakness", 5, 0);
 MobEffect MobEffect::poison(19, true, 5149489, u"potion.poison", 6, 0, false, 0.25);

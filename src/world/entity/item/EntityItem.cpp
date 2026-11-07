@@ -74,6 +74,10 @@ void EntityItem::playerTouch(Player &player)
 			player.triggerAchievement(*AchievementList::mineWood);
 		if (originalId == Items::leather->getShiftedIndex())
 			player.triggerAchievement(*AchievementList::killCow);
+		if (originalId == Items::diamond->getShiftedIndex())
+			player.triggerAchievement(*AchievementList::diamonds);
+		if (originalId == Items::blazeRod->getShiftedIndex())
+			player.triggerAchievement(*AchievementList::blazeRod);
 		level.playSoundAtEntity(*this, u"random.pop", 0.2f, ((random.nextFloat() - random.nextFloat()) * 0.7f + 1.0f) * 2.0f);
 		player.take(*this, originalCount);
 		if (item.isEmpty())

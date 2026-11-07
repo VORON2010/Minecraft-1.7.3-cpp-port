@@ -10,6 +10,8 @@
 #include "world/level/tile/Tile.h"
 #include "world/level/tile/TreeTile.h"
 #include "world/level/tile/WorkbenchTile.h"
+#include "world/level/tile/DragonEggTile.h"
+#include "world/level/tile/BookshelfTile.h"
 #include "world/stats/Achievement.h"
 
 std::vector<std::unique_ptr<Achievement>> AchievementList::ownedAchievements;
@@ -35,6 +37,17 @@ Achievement *AchievementList::buildSword = nullptr;
 Achievement *AchievementList::killEnemy = nullptr;
 Achievement *AchievementList::killCow = nullptr;
 Achievement *AchievementList::flyPig = nullptr;
+Achievement *AchievementList::snipeSkeleton = nullptr;
+Achievement *AchievementList::diamonds = nullptr;
+Achievement *AchievementList::portal = nullptr;
+Achievement *AchievementList::ghast = nullptr;
+Achievement *AchievementList::blazeRod = nullptr;
+Achievement *AchievementList::potion = nullptr;
+Achievement *AchievementList::theEnd = nullptr;
+Achievement *AchievementList::theEnd2 = nullptr;
+Achievement *AchievementList::enchantments = nullptr;
+Achievement *AchievementList::overkill = nullptr;
+Achievement *AchievementList::bookcase = nullptr;
 
 void AchievementList::init()
 {
@@ -65,5 +78,17 @@ void AchievementList::init()
 	killEnemy = &add(13, u"killEnemy", 8, -1, Items::bone->getShiftedIndex(), buildSword)->registerAchievement();
 	killCow = &add(14, u"killCow", 7, -3, Items::leather->getShiftedIndex(), buildSword)->registerAchievement();
 	flyPig = &add(15, u"flyPig", 8, -4, Items::saddle->getShiftedIndex(), killCow)->setSpecial().registerAchievement();
+	// 1.0
+	snipeSkeleton = &add(16, u"snipeSkeleton", 7, 0, Items::bow->getShiftedIndex(), killEnemy)->setSpecial().registerAchievement();
+	diamonds = &add(17, u"diamonds", -1, 5, Items::diamond->getShiftedIndex(), acquireIron)->registerAchievement();
+	portal = &add(18, u"portal", -1, 7, Tile::obsidian.id, diamonds)->registerAchievement();
+	ghast = &add(19, u"ghast", -4, 8, Items::ghastTear->getShiftedIndex(), portal)->setSpecial().registerAchievement();
+	blazeRod = &add(20, u"blazeRod", 0, 9, Items::blazeRod->getShiftedIndex(), portal)->registerAchievement();
+	potion = &add(21, u"potion", 2, 8, Items::potion->getShiftedIndex(), blazeRod)->registerAchievement();
+	theEnd = &add(22, u"theEnd", 3, 10, Items::eyeOfEnder->getShiftedIndex(), blazeRod)->setSpecial().registerAchievement();
+	theEnd2 = &add(23, u"theEnd2", 4, 13, Tile::dragonEgg.id, theEnd)->setSpecial().registerAchievement();
+	enchantments = &add(24, u"enchantments", -4, 4, 116, diamonds)->registerAchievement();
+	overkill = &add(25, u"overkill", -4, 1, Items::swordDiamond->getShiftedIndex(), enchantments)->setSpecial().registerAchievement();
+	bookcase = &add(26, u"bookcase", -3, 6, Tile::bookshelf.id, enchantments)->registerAchievement();
 
 }

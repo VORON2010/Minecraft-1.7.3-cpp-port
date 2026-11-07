@@ -6,6 +6,9 @@
 #include "client/renderer/Textures.h"
 #include "world/entity/item/EntityItem.h"
 #include "world/item/ItemInstance.h"
+#include "world/item/Item.h"
+#include "world/item/Items.h"
+#include "java/System.h"
 #include "world/level/tile/Tile.h"
 #include "world/level/tile/PistonBaseTile.h"
 
@@ -79,6 +82,7 @@ void ItemRenderer::render(Entity &entity, double x, double y, double z, float ro
 	{
 		glScalef(0.5f, 0.5f, 0.5f);
 		int_t icon = item.getIcon();
+		bool potion = item.getItem() != nullptr && item.getItem() == Items::potion;
 		if (item.itemID < 256)
 			bindTexture(u"/terrain.png");
 		else
@@ -100,6 +104,22 @@ void ItemRenderer::render(Entity &entity, double x, double y, double z, float ro
 					(random.nextFloat() * 2.0f - 1.0f) * 0.3f,
 					(random.nextFloat() * 2.0f - 1.0f) * 0.3f);
 			glRotatef(180.0f - entityRenderDispatcher.playerRotY, 0.0f, 1.0f, 0.0f);
+			if (potion)
+			{
+				// 1.0: tinted liquid layer under the bottle
+				int_t col = item.getItem()->getColor(item.getAuxValue());
+				glColor4f(((col >> 16) & 255) / 255.0f, ((col >> 8) & 255) / 255.0f, (col & 255) / 255.0f, 1.0f);
+				float pu0 = (141 % 16 * 16) / 256.0f, pu1 = (141 % 16 * 16 + 16) / 256.0f;
+				float pv0 = (141 / 16 * 16) / 256.0f, pv1 = (141 / 16 * 16 + 16) / 256.0f;
+				t.begin();
+				t.normal(0.0f, 1.0f, 0.0f);
+				t.vertexUV(0.0f - xo, 0.0f - yo, 0.0, pu0, pv1);
+				t.vertexUV(1.0f - xo, 0.0f - yo, 0.0, pu1, pv1);
+				t.vertexUV(1.0f - xo, 1.0f - yo, 0.0, pu1, pv0);
+				t.vertexUV(0.0f - xo, 1.0f - yo, 0.0, pu0, pv0);
+				t.end();
+				glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+			}
 			t.begin();
 			t.normal(0.0f, 1.0f, 0.0f);
 			t.vertexUV(0.0f - xo, 0.0f - yo, 0.0, u0, v1);
@@ -122,7 +142,8 @@ void ItemRenderer::renderGuiItem(Font &font, Textures &textures, ItemInstance &i
 
 	Tile *tile = item.itemID >= 0 && item.itemID < static_cast<int_t>(Tile::tiles.size()) ? Tile::tiles[item.itemID] : nullptr;
 	
-	int_t color = tile != nullptr ? tile->getItemColor(item.getAuxValue()) : 0xFFFFFF;
+	Item *itemType = item.getItem();
+	int_t color = tile != nullptr ? tile->getItemColor(item.getAuxValue()) : (itemType != nullptr ? itemType->getColor(item.getAuxValue()) : 0xFFFFFF);
 	float r = static_cast<float>((color >> 16) & 0xFF) / 255.0f;
 	float g = static_cast<float>((color >> 8) & 0xFF) / 255.0f;
 	float b = static_cast<float>(color & 0xFF) / 255.0f;
@@ -143,6 +164,19 @@ void ItemRenderer::renderGuiItem(Font &font, Textures &textures, ItemInstance &i
 		tileRenderer.renderGuiTile(*tile, item.getAuxValue());
 		glPopMatrix();
 	}
+	else if (itemType != nullptr && itemType == Items::potion)
+	{
+		// 1.0: the liquid overlay (141) takes the potion colour, the bottle is drawn over it
+		glDisable(GL_LIGHTING);
+		textures.bind(textures.loadTexture(u"/gui/items.png"));
+		if (renderWithColor)
+			glColor4f(r, g, b, 1.0f);
+		blit(x, y, 141 % 16 * 16, 141 / 16 * 16, 16, 16);
+		if (renderWithColor)
+			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		blit(x, y, item.getIcon() % 16 * 16, item.getIcon() / 16 * 16, 16, 16);
+		glEnable(GL_LIGHTING);
+	}
 	else if (item.getIcon() >= 0)
 	{
 		glDisable(GL_LIGHTING);
@@ -156,7 +190,43 @@ void ItemRenderer::renderGuiItem(Font &font, Textures &textures, ItemInstance &i
 		glEnable(GL_LIGHTING);
 	}
 
+	if (item.isFoil())
+		renderGuiFoil(textures, x, y);
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	glEnable(GL_CULL_FACE);
+}
+
+// 1.0 renderEnchantmentGlint: two scrolling layers of glint.png over the item pixels
+void ItemRenderer::renderGuiFoil(Textures &textures, int_t x, int_t y)
+{
+	glDepthFunc(GL_EQUAL);
+	glDisable(GL_LIGHTING);
+	glDepthMask(false);
+	textures.bind(textures.loadTexture(u"%blur%/misc/glint.png"));
+	glEnable(GL_BLEND);
+	glColor4f(0.5f, 0.25f, 0.8f, 1.0f);
+	Tesselator &t = Tesselator::instance;
+	for (int_t layer = 0; layer < 2; ++layer)
+	{
+		glBlendFunc(GL_SRC_COLOR, GL_ONE);
+		float us = 0.00390625f;
+		float vs = 0.00390625f;
+		float period = 3000.0f + layer * 1873.0f;
+		float u = static_cast<float>(System::currentTimeMillis() % static_cast<long_t>(period)) / period * 256.0f;
+		float v = 0.0f;
+		float slope = layer == 1 ? -1.0f : 4.0f;
+		int_t w = 16, h = 16;
+		t.begin();
+		t.vertexUV(x, y + h, 0.0, (u + h * slope) * us, (v + h) * vs);
+		t.vertexUV(x + w, y + h, 0.0, (u + w + h * slope) * us, (v + h) * vs);
+		t.vertexUV(x + w, y, 0.0, (u + w) * us, v * vs);
+		t.vertexUV(x, y, 0.0, u * us, v * vs);
+		t.end();
+	}
+	glDisable(GL_BLEND);
+	glDepthMask(true);
+	glEnable(GL_LIGHTING);
+	glDepthFunc(GL_LEQUAL);
 }
 
 void ItemRenderer::renderGuiItemDecorations(Font &font, Textures &textures, ItemInstance &item, int_t x, int_t y)

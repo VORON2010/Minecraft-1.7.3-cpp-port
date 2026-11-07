@@ -26,6 +26,9 @@ jstring ContainerScreen::getTooltipName(const ItemInstance &stack)
 	Item *item = stack.getItem();
 	if (item != nullptr)
 	{
+		jstring custom = item->getHoverName(stack);
+		if (!custom.empty())
+			return custom;
 		key = item->getDescriptionId(stack);
 	}
 	else if (stack.itemID > 0 && stack.itemID < static_cast<int_t>(Tile::tiles.size()) && Tile::tiles[stack.itemID] != nullptr)
@@ -52,6 +55,8 @@ std::vector<jstring> ContainerScreen::getTooltipLines(const ItemInstance &stack,
 	jstring name = getTooltipName(stack);
 	if (!name.empty())
 		lines.push_back(name);
+	if (Item *item = stack.getItem())
+		item->appendHoverText(stack, lines);
 
 	if (options != nullptr && options->advancedItemTooltips)
 	{

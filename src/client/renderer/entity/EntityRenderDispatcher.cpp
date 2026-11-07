@@ -1,3 +1,4 @@
+#include "world/entity/projectile/ThrownPotion.h"
 #include "world/entity/projectile/ThrownEnderpearl.h"
 #include "world/entity/EyeOfEnderSignal.h"
 #include "client/renderer/entity/EntityRenderDispatcher.h"
@@ -340,6 +341,22 @@ void EntityRenderDispatcher::render(Entity &entity, double x, double y, double z
 	}
 
 
+	if (dynamic_cast<ThrownEnderpearl *>(&entity) != nullptr)
+	{
+		static ThrownItemRenderer renderer(instance, 11 + 6 * 16);
+		renderer.render(entity, x, y, z, rot, a);
+		renderer.postRender(entity, x, y, z, rot, a);
+		return;
+	}
+
+	if (dynamic_cast<ThrownPotion *>(&entity) != nullptr)
+	{
+		static ThrownItemRenderer renderer(instance, 154);
+		renderer.render(entity, x, y, z, rot, a);
+		renderer.postRender(entity, x, y, z, rot, a);
+		return;
+	}
+
 	if (dynamic_cast<EntitySnowball *>(&entity) != nullptr)
 	{
 		EntityRenderer &renderer = getSnowballRenderer();
@@ -468,13 +485,6 @@ void EntityRenderDispatcher::render(Entity &entity, double x, double y, double z
 		return;
 	}
 
-	if (dynamic_cast<ThrownEnderpearl *>(&entity) != nullptr)
-	{
-		static ThrownItemRenderer renderer(instance, 11 + 6 * 16);
-		renderer.render(entity, x, y, z, rot, a);
-		renderer.postRender(entity, x, y, z, rot, a);
-		return;
-	}
 
 	if (dynamic_cast<EyeOfEnderSignal *>(&entity) != nullptr)
 	{

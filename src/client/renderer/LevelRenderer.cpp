@@ -45,6 +45,7 @@
 #include "util/Memory.h"
 #include "client/particle/CritParticle.h"
 #include "client/particle/SpellParticle.h"
+#include "world/item/PotionItem.h"
 #include "client/particle/NewParticles.h"
 
 LevelRenderer::LevelRenderer(Minecraft &mc, Textures &textures) : mc(mc), textures(textures)
@@ -1543,6 +1544,40 @@ void LevelRenderer::levelEvent(Player *player, int_t event, int_t x, int_t y, in
 		if (data >= 0 && data < static_cast<int_t>(Item::items.size()))
 			record = dynamic_cast<RecordItem *>(Item::items[data]);
 		level->playRecord(record == nullptr ? jstring() : record->getRecordName(), x, y, z);
+		break;
+	}
+	case 2002:
+	{
+		// 1.0: splash potion breaks
+		double ex = x, ey = y, ez = z;
+		jstring crack = u"iconcrack_" + String::toString(Items::potion->getShiftedIndex());
+		for (int_t i = 0; i < 8; i++)
+			addParticle(crack, ex, ey, ez, random.nextGaussian() * 0.15, random.nextDouble() * 0.2, random.nextGaussian() * 0.15);
+		int_t col = Items::potion->getColor(data);
+		float cr = ((col >> 16) & 255) / 255.0f, cg = ((col >> 8) & 255) / 255.0f, cb = (col & 255) / 255.0f;
+		bool instant = static_cast<const PotionItem *>(Items::potion)->hasInstantenousEffects(data);
+		for (int_t i = 0; i < 100; i++)
+		{
+			double dist = random.nextDouble() * 4.0;
+			double angle = random.nextDouble() * 3.141592653589793 * 2.0;
+			double xa = std::cos(angle) * dist;
+			double ya = 0.01 + random.nextDouble() * 0.5;
+			double za = std::sin(angle) * dist;
+			if (mc.player != nullptr)
+			{
+				double dx = mc.player->x - ex, dy = mc.player->y - ey, dz = mc.player->z - ez;
+				if (dx * dx + dy * dy + dz * dz > 16.0 * 16.0)
+					continue;
+			}
+			auto particle = std::make_unique<SpellParticle>(*level, ex + xa * 0.1, ey + 0.3, ez + za * 0.1, xa, ya, za);
+			if (instant)
+				particle->setBaseTex(144);
+			float k = 0.75f + random.nextFloat() * 0.25f;
+			particle->setColor(cr * k, cg * k, cb * k);
+			particle->setPower(static_cast<float>(dist));
+			mc.particleEngine.add(std::move(particle));
+		}
+		level->playSoundEffect(x + 0.5, y + 0.5, z + 0.5, u"random.glass", 1.0f, level->random.nextFloat() * 0.1f + 0.9f);
 		break;
 	}
 	case 2003:

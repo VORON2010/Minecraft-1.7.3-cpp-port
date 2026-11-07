@@ -6,6 +6,7 @@
 #include "world/inventory/CraftingInventory.h"
 
 class FurnaceTileEntity;
+class BrewingStandTileEntity;
 class IInventory;
 class InventoryPlayer;
 class Level;
@@ -75,6 +76,19 @@ public:
 	ContainerWorkbench(InventoryPlayer &inventory, Level &level, int_t x, int_t y, int_t z);
 	void onCraftMatrixChanged(IInventory &inventory) override;
 	void onClosed(Player &player) override;
+	bool canUse(Player &player) const override;
+	std::unique_ptr<ItemInstance> quickMoveStack(int_t slot) override;
+};
+
+// 1.0 BrewingStandMenu: three bottle slots, one ingredient slot, then the player inventory
+class ContainerBrewingStand : public Container
+{
+private:
+	std::shared_ptr<BrewingStandTileEntity> stand;
+
+public:
+	ContainerBrewingStand(InventoryPlayer &inventory, std::shared_ptr<BrewingStandTileEntity> stand);
+	void updateProgressBar(int_t id, int_t value) override;
 	bool canUse(Player &player) const override;
 	std::unique_ptr<ItemInstance> quickMoveStack(int_t slot) override;
 };

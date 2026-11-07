@@ -199,7 +199,11 @@ void EntityFireball::onHit(HitResult &hit)
 	{
 		std::shared_ptr<Entity> ownerRef = owner.lock();
 		if (hit.type == HitResult::Type::ENTITY && hit.entity != nullptr)
+		{
+			Entity::damageProjectile = this;
 			hit.entity->hurt(ownerRef.get(), 0);
+			Entity::damageProjectile = nullptr;
+		}
 		level.createExplosion(nullptr, x, y, z, 1.0f, true);
 	}
 	remove();

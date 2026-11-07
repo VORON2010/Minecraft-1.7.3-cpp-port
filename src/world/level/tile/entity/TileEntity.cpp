@@ -4,6 +4,7 @@
 #include "world/level/Level.h"
 #include "world/level/tile/Tile.h"
 #include "world/level/tile/entity/FurnaceTileEntity.h"
+#include "world/level/tile/entity/BrewingStandTileEntity.h"
 #include "world/level/tile/entity/NoteTileEntity.h"
 #include "world/level/tile/entity/RecordPlayerTileEntity.h"
 #include "world/level/tile/entity/DispenserTileEntity.h"
@@ -56,6 +57,8 @@ TileEntity *TileEntity::loadStatic(CompoundTag &tag)
 		tileEntity = new PistonTileEntity();
 	if (id == u"MobSpawner")
 		tileEntity = new MobSpawnerTileEntity();
+	if (id == u"Cauldron")
+		tileEntity = new BrewingStandTileEntity();
 	if (id == u"Airportal")
 		tileEntity = new EndPortalTileEntity();
 	if (tileEntity != nullptr)

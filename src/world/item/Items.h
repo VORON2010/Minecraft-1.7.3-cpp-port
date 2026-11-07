@@ -51,6 +51,10 @@ namespace Items
 	extern Item *blazePowder;
 	extern Item *magmaCream;
 	extern Item *speckledMelon;
+	extern Item *potion;
+	extern Item *glassBottle;
+	extern Item *brewingStand;
+	extern Item *cauldron;
 
 	extern Item *reed;
 	extern Item *doorWood;

@@ -1,6 +1,8 @@
 #include "client/renderer/entity/ThrownItemRenderer.h"
 
 #include "OpenGL.h"
+#include "world/entity/projectile/ThrownPotion.h"
+#include "world/item/alchemy/PotionBrewing.h"
 #include "client/renderer/Tesselator.h"
 #include "client/renderer/entity/EntityRenderDispatcher.h"
 
@@ -12,7 +14,6 @@ ThrownItemRenderer::ThrownItemRenderer(EntityRenderDispatcher &entityRenderDispa
 
 void ThrownItemRenderer::render(Entity &entity, double x, double y, double z, float rot, float a)
 {
-	(void)entity;
 	(void)rot;
 	(void)a;
 	bindTexture(u"/gui/items.png");
@@ -29,6 +30,22 @@ void ThrownItemRenderer::render(Entity &entity, double x, double y, double z, fl
 	glRotatef(180.0f - entityRenderDispatcher.playerRotY, 0.0f, 1.0f, 0.0f);
 	glRotatef(-entityRenderDispatcher.playerRotX, 1.0f, 0.0f, 0.0f);
 	Tesselator &t = Tesselator::instance;
+	if (ThrownPotion *potion = dynamic_cast<ThrownPotion *>(&entity))
+	{
+		// 1.0: the potion colour layer (141) behind the splash bottle
+		int_t col = PotionBrewing::getColorValue(potion->getPotionValue(), false);
+		glColor4f(((col >> 16) & 255) / 255.0f, ((col >> 8) & 255) / 255.0f, (col & 255) / 255.0f, 1.0f);
+		float pu0 = (141 % 16 * 16) / 256.0f, pu1 = (141 % 16 * 16 + 16) / 256.0f;
+		float pv0 = (141 / 16 * 16) / 256.0f, pv1 = (141 / 16 * 16 + 16) / 256.0f;
+		t.begin();
+		t.normal(0.0f, 1.0f, 0.0f);
+		t.vertexUV(-0.5, -0.25, 0.0, pu0, pv1);
+		t.vertexUV(0.5, -0.25, 0.0, pu1, pv1);
+		t.vertexUV(0.5, 0.75, 0.0, pu1, pv0);
+		t.vertexUV(-0.5, 0.75, 0.0, pu0, pv0);
+		t.end();
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	}
 	t.begin();
 	t.normal(0.0f, 1.0f, 0.0f);
 	t.vertexUV(-0.5, -0.25, 0.0, u0, v1);

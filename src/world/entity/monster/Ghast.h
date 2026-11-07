@@ -27,6 +27,7 @@ public:
 	void travel(float x, float z) override;
 	void causeFallDamage(float distance) override;
 	bool canSpawn() override;
+	bool hurt(Entity *source, int_t dmg) override;
 	int_t getMaxSpawnClusterSize() override;
 
 protected:

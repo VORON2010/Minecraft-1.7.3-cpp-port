@@ -148,3 +148,8 @@ Item &Item::setContainerItem(Item &item)
 	containerItem = &item;
 	return *this;
 }
+
+bool Item::isFoil(const ItemInstance &stack) const
+{
+	return stack.isEnchanted();
+}

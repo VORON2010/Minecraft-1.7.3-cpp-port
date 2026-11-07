@@ -11,6 +11,7 @@ public:
 	jstring getEncodeId() const override { return u"Skeleton"; }
 	void aiStep() override;
 	ItemInstance *getCarriedItem() override;
+	void die(Entity *source) override;
 
 protected:
 	void checkHurtTarget(Entity &entity, float distance) override;

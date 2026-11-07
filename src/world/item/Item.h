@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <vector>
 
 #include "java/String.h"
 #include "java/Type.h"
@@ -78,4 +79,23 @@ public:
 	virtual void useTimeDepleted(ItemInstance &stack, Level &level, Player &player) const { (void)stack; (void)level; (void)player; }
 	// called when right click is released early (bow shot)
 	virtual void releaseUsing(ItemInstance &stack, Level &level, Player &player, int_t remainingTime) const { (void)stack; (void)level; (void)player; (void)remainingTime; }
+
+	// 1.0: tint for the item icon (potions)
+	virtual int_t getColor(int_t data) const { (void)data; return 0xFFFFFF; }
+	// 1.0 getName(stack): a full display name, empty means "translate the description id"
+	virtual jstring getHoverName(const ItemInstance &stack) const { (void)stack; return u""; }
+	// 1.0 addHoverText: extra tooltip lines (potion effects, enchantments)
+	virtual void appendHoverText(const ItemInstance &stack, std::vector<jstring> &lines) const { (void)stack; (void)lines; }
+	// 1.0 hasEnchantmentGlint
+	virtual bool isFoil(const ItemInstance &stack) const;
+	// 1.0 getEnchantability: 0 means the enchanting table refuses it
+	virtual int_t getEnchantmentValue() const { return 0; }
+
+	// 1.0 potion ingredient formula (see PotionBrewing)
+	Item &setPotionBrewingFormula(const jstring &formula) { potionBrewingFormula = formula; return *this; }
+	bool hasPotionBrewingFormula() const { return !potionBrewingFormula.empty(); }
+	const jstring &getPotionBrewingFormula() const { return potionBrewingFormula; }
+
+private:
+	jstring potionBrewingFormula;
 };

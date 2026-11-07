@@ -535,6 +535,8 @@ void Player::attack(const std::shared_ptr<Entity> &entity)
 	}
 	if (target != nullptr)
 		addStat(*StatList::damageDealtStat, attackDamage);
+	if (damaged && attackDamage >= 18)
+		triggerAchievement(*AchievementList::overkill);
 	addExhaustion(0.3f);
 }
 

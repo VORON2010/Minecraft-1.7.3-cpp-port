@@ -2,6 +2,7 @@
 
 #include "Facing.h"
 #include "nbt/CompoundTag.h"
+#include "nbt/ListTag.h"
 #include "world/entity/Entity.h"
 #include "world/entity/Mob.h"
 #include "world/entity/player/Player.h"
@@ -54,14 +55,14 @@ void ItemInstanceReference::move(const ItemInstance &from, const ItemInstance &t
 ItemInstance::ItemInstance(const ItemInstance &other)
 	: stackSize(other.stackSize.load(std::memory_order_relaxed)),
 	  itemID(other.itemID.load(std::memory_order_relaxed)),
-	  itemDamage(other.itemDamage.load(std::memory_order_relaxed)), popTime(other.popTime)
+	  itemDamage(other.itemDamage.load(std::memory_order_relaxed)), popTime(other.popTime), enchantments(other.enchantments)
 {
 }
 
 ItemInstance::ItemInstance(ItemInstance &&other) noexcept
 	: stackSize(other.stackSize.load(std::memory_order_relaxed)),
 	  itemID(other.itemID.load(std::memory_order_relaxed)),
-	  itemDamage(other.itemDamage.load(std::memory_order_relaxed)), popTime(other.popTime)
+	  itemDamage(other.itemDamage.load(std::memory_order_relaxed)), popTime(other.popTime), enchantments(other.enchantments)
 {
 	moveJavaReference(other);
 }
@@ -75,6 +76,7 @@ ItemInstance &ItemInstance::operator=(const ItemInstance &other)
 	itemID.store(other.itemID.load(std::memory_order_relaxed), std::memory_order_relaxed);
 	itemDamage.store(other.itemDamage.load(std::memory_order_relaxed), std::memory_order_relaxed);
 	popTime = other.popTime;
+	enchantments = other.enchantments;
 	return *this;
 }
 
@@ -87,6 +89,7 @@ ItemInstance &ItemInstance::operator=(ItemInstance &&other) noexcept
 	itemID.store(other.itemID.load(std::memory_order_relaxed), std::memory_order_relaxed);
 	itemDamage.store(other.itemDamage.load(std::memory_order_relaxed), std::memory_order_relaxed);
 	popTime = other.popTime;
+	enchantments = other.enchantments;
 	moveJavaReference(other);
 	return *this;
 }
@@ -334,6 +337,20 @@ void ItemInstance::save(CompoundTag &tag) const
 	tag.putShort(u"id", static_cast<short_t>(itemID));
 	tag.putByte(u"Count", static_cast<byte_t>(stackSize));
 	tag.putShort(u"Damage", static_cast<short_t>(itemDamage));
+	if (!enchantments.empty())
+	{
+		auto list = std::make_shared<ListTag>();
+		for (const auto &e : enchantments)
+		{
+			auto entry = std::make_shared<CompoundTag>();
+			entry->putShort(u"id", e.first);
+			entry->putShort(u"lvl", e.second);
+			list->add(entry);
+		}
+		auto extra = std::make_shared<CompoundTag>();
+		extra->put(u"ench", list);
+		tag.put(u"tag", extra);
+	}
 }
 
 void ItemInstance::load(CompoundTag &tag)
@@ -341,6 +358,34 @@ void ItemInstance::load(CompoundTag &tag)
 	itemID = tag.getShort(u"id");
 	stackSize = tag.getByte(u"Count");
 	itemDamage = tag.getShort(u"Damage");
+	enchantments.clear();
+	if (tag.contains(u"tag"))
+	{
+		std::shared_ptr<CompoundTag> extra = tag.getCompound(u"tag");
+		if (extra != nullptr && extra->contains(u"ench"))
+		{
+			std::shared_ptr<ListTag> list = extra->getList(u"ench");
+			for (int_t i = 0; list != nullptr && i < list->size(); ++i)
+			{
+				auto entry = std::dynamic_pointer_cast<CompoundTag>(list->get(i));
+				if (entry != nullptr)
+					enchantments.emplace_back(entry->getShort(u"id"), entry->getShort(u"lvl"));
+			}
+		}
+	}
+}
+
+bool ItemInstance::isEnchantable() const
+{
+	// 1.0 ItemStack.isEnchantable: an enchantable item that has no enchantments yet
+	Item *item = getItem();
+	return item != nullptr && item->getEnchantmentValue() > 0 && getMaxStackSize() == 1 && !isEnchanted();
+}
+
+bool ItemInstance::isFoil() const
+{
+	Item *item = getItem();
+	return item != nullptr && item->isFoil(*this);
 }
 
 ItemInstance ItemInstance::remove(int_t count)

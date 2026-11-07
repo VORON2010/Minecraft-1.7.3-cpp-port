@@ -34,6 +34,7 @@ public:
 
 protected:
 	virtual void onHit(class HitResult &hit);
+	virtual float getGravity() const { return 0.03f; }
 	void addAdditionalSaveData(CompoundTag &tag) override;
 	void readAdditionalSaveData(CompoundTag &tag) override;
 };

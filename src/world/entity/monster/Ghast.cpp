@@ -1,4 +1,6 @@
 #include "world/item/ItemInstance.h"
+#include "world/stats/Achievement.h"
+#include "world/stats/AchievementList.h"
 #include "world/entity/monster/Ghast.h"
 
 #include "world/entity/projectile/EntityFireball.h"
@@ -219,4 +221,19 @@ void Ghast::dropDeathLoot()
 	count = random.nextInt(3);
 	for (int_t i = 0; i < count; i++)
 		spawnAtLocation(ItemInstance(Items::gunpowder->getShiftedIndex(), 1, 0), 0.0f);
+}
+
+bool Ghast::hurt(Entity *source, int_t dmg)
+{
+	// 1.0: a fireball sent back by a player kills the ghast outright
+	if (dynamic_cast<EntityFireball *>(Entity::damageProjectile) != nullptr)
+	{
+		if (Player *player = dynamic_cast<Player *>(source))
+		{
+			Mob::hurt(source, 1000);
+			player->triggerAchievement(*AchievementList::ghast);
+			return true;
+		}
+	}
+	return Mob::hurt(source, dmg);
 }

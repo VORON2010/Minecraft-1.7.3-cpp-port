@@ -23,4 +23,5 @@ private:
 	Random random;
 
 	void blit(int_t x, int_t y, int_t sx, int_t sy, int_t w, int_t h);
+	void renderGuiFoil(Textures &textures, int_t x, int_t y);
 };

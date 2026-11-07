@@ -155,7 +155,7 @@ void EntitySnowball::tick()
 	xRot = xRotO + (xRot - xRotO) * 0.2f;
 	yRot = yRotO + (yRot - yRotO) * 0.2f;
 	float drag = 0.99f;
-	float gravity = 0.03f;
+	float gravity = getGravity();
 	if (isInWater())
 	{
 		for (int_t i = 0; i < 4; ++i)

@@ -35,6 +35,17 @@ public:
 	static Achievement *killEnemy;
 	static Achievement *killCow;
 	static Achievement *flyPig;
+	static Achievement *snipeSkeleton;
+	static Achievement *diamonds;
+	static Achievement *portal;
+	static Achievement *ghast;
+	static Achievement *blazeRod;
+	static Achievement *potion;
+	static Achievement *theEnd;
+	static Achievement *theEnd2;
+	static Achievement *enchantments;
+	static Achievement *overkill;
+	static Achievement *bookcase;
 
 	static void init();
 };

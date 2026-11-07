@@ -379,6 +379,12 @@ Recipes::Recipes()
 	addShapelessRecipe(ItemInstance(Items::eyeOfEnder->getShiftedIndex(), 1, 0), {
 		ItemInstance(Items::enderPearl->getShiftedIndex(), 1, 0), ItemInstance(Items::blazePowder->getShiftedIndex(), 1, 0)});
 	addShapelessRecipe(ItemInstance(Items::blazePowder->getShiftedIndex(), 2, 0), {ItemInstance(Items::blazeRod->getShiftedIndex(), 1, 0)});
+	addShapedRecipe(ItemInstance(Items::glassBottle->getShiftedIndex(), 3, 0), {"# #", " # "}, {{'#', ItemInstance(Tile::glass.id, 1, -1)}});
+	addShapedRecipe(ItemInstance(Items::cauldron->getShiftedIndex(), 1, 0), {"# #", "# #", "###"}, {{'#', ItemInstance(Items::ingotIron->getShiftedIndex(), 1, 0)}});
+	addShapedRecipe(ItemInstance(Items::brewingStand->getShiftedIndex(), 1, 0), {" B ", "###"}, {
+		{'#', ItemInstance(Tile::cobblestone.id, 1, -1)},
+		{'B', ItemInstance(Items::blazeRod->getShiftedIndex(), 1, 0)}
+	});
 	addShapelessRecipe(ItemInstance(Items::magmaCream->getShiftedIndex(), 1, 0), {
 		ItemInstance(Items::blazePowder->getShiftedIndex(), 1, 0), ItemInstance(Items::slimeball->getShiftedIndex(), 1, 0)});
 	addShapedRecipe(ItemInstance(Tile::jukebox.id, 1, 0), {"###", "#X#", "###"}, {

@@ -1,4 +1,5 @@
 #include <unordered_set>
+#include "world/level/tile/VineTile.h"
 #include "world/level/Level.h"
 #include "world/level/SpawnerAnimals.h"
 #include "MinecraftException.h"
@@ -1911,6 +1912,22 @@ bool Level::isUnobstructed(AABB &bb)
 			return false;
 	}
 	return true;
+}
+
+bool Level::mayPlace(int_t tileId, int_t x, int_t y, int_t z, bool ignoreEntities, Facing face)
+{
+	if (tileId <= 0 || Tile::tiles[tileId] == nullptr)
+		return false;
+	Tile *tile = Tile::tiles[tileId];
+	int_t existing = getTile(x, y, z);
+	AABB *box = ignoreEntities ? nullptr : tile->getAABB(*this, x, y, z);
+	if (box != nullptr && !isUnobstructed(*box))
+		return false;
+	Tile *old = existing > 0 ? Tile::tiles[existing] : nullptr;
+	if (old == &Tile::water || old == &Tile::calmWater || old == &Tile::lava || old == &Tile::calmLava ||
+		old == &Tile::fire || old == &Tile::snow || old == &Tile::vine)
+		old = nullptr;
+	return old == nullptr && tile->mayPlaceOnFace(*this, x, y, z, face);
 }
 
 bool Level::containsAnyLiquid(AABB &bb)

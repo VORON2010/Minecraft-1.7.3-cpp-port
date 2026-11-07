@@ -1,4 +1,9 @@
 #include "world/inventory/ContainerMenus.h"
+#include "world/stats/Achievement.h"
+#include "world/item/Item.h"
+#include "world/stats/AchievementList.h"
+#include "world/level/tile/entity/BrewingStandTileEntity.h"
+#include "world/item/Items.h"
 
 #include "world/entity/player/InventoryPlayer.h"
 #include "world/entity/player/Player.h"
@@ -232,4 +237,77 @@ std::unique_ptr<ItemInstance> ContainerWorkbench::quickMoveStack(int_t slot)
 	if (slot >= 37 && slot < 46)
 		return quickMoveStackTo(slot, 10, 37, false);
 	return quickMoveStackTo(slot, 10, 46, false);
+}
+
+namespace
+{
+	class PotionSlot : public Slot
+	{
+		Player &player;
+
+	public:
+		PotionSlot(Player &player, IInventory &inventory, int_t slot, int_t x, int_t y) : Slot(inventory, slot, x, y), player(player) {}
+		bool mayPlace(const ItemInstance &item) const override
+		{
+			return item.itemID == Items::potion->getShiftedIndex() || item.itemID == Items::glassBottle->getShiftedIndex();
+		}
+		int_t getMaxStackSize() const override { return 1; }
+		void onPickup(ItemInstance &item) override
+		{
+			if (item.itemID == Items::potion->getShiftedIndex() && item.itemDamage > 0)
+				player.addStat(*AchievementList::potion, 1);
+			Slot::onPickup(item);
+		}
+	};
+
+	class IngredientSlot : public Slot
+	{
+	public:
+		using Slot::Slot;
+		bool mayPlace(const ItemInstance &item) const override
+		{
+			Item *it = item.getItem();
+			return it != nullptr && it->hasPotionBrewingFormula();
+		}
+		int_t getMaxStackSize() const override { return 64; }
+	};
+}
+
+ContainerBrewingStand::ContainerBrewingStand(InventoryPlayer &inventory, std::shared_ptr<BrewingStandTileEntity> stand)
+	: stand(std::move(stand))
+{
+	Player &player = inventory.getPlayer();
+	addSlot(std::make_unique<PotionSlot>(player, *this->stand, 0, 56, 46));
+	addSlot(std::make_unique<PotionSlot>(player, *this->stand, 1, 79, 53));
+	addSlot(std::make_unique<PotionSlot>(player, *this->stand, 2, 102, 46));
+	addSlot(std::make_unique<IngredientSlot>(*this->stand, 3, 79, 17));
+	for (int_t row = 0; row < 3; ++row)
+		for (int_t column = 0; column < 9; ++column)
+			addSlot(std::make_unique<Slot>(inventory, column + row * 9 + 9, 8 + column * 18, 84 + row * 18));
+	for (int_t column = 0; column < 9; ++column)
+		addSlot(std::make_unique<Slot>(inventory, column, 8 + column * 18, 142));
+}
+
+void ContainerBrewingStand::updateProgressBar(int_t id, int_t value)
+{
+	if (id == 0)
+		stand->setBrewTime(value);
+}
+
+bool ContainerBrewingStand::canUse(Player &player) const
+{
+	return stand->canInteractWith(player);
+}
+
+std::unique_ptr<ItemInstance> ContainerBrewingStand::quickMoveStack(int_t slot)
+{
+	if ((slot < 0 || slot > 2) && slot != 3)
+	{
+		if (slot >= 4 && slot < 31)
+			return quickMoveStackTo(slot, 31, 40, false);
+		if (slot >= 31 && slot < 40)
+			return quickMoveStackTo(slot, 4, 31, false);
+		return quickMoveStackTo(slot, 4, 40, false);
+	}
+	return quickMoveStackTo(slot, 4, 40, true);
 }

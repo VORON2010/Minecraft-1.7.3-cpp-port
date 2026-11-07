@@ -1,3 +1,5 @@
+#include "client/gui/BrewingStandScreen.h"
+#include "world/level/tile/entity/BrewingStandTileEntity.h"
 #include "client/gui/WinScreen.h"
 #include "client/player/LocalPlayer.h"
 
@@ -134,6 +136,7 @@ void LocalPlayer::aiStep()
 				changingDimensionDelay = 10;
 				minecraft.soundEngine.playUI(u"portal.travel", 1.0f, random.nextFloat() * 0.4f + 0.8f);
 				minecraft.pendingDimension = dimension == -1 ? 0 : -1;
+				triggerAchievement(*AchievementList::portal);
 			}
 		}
 
@@ -261,6 +264,14 @@ void LocalPlayer::startFurnace(std::shared_ptr<FurnaceTileEntity> furnace)
 	craftingInventory = std::move(menu);
 }
 
+void LocalPlayer::startBrewing(std::shared_ptr<BrewingStandTileEntity> stand)
+{
+	auto menu = std::make_shared<ContainerBrewingStand>(inventory, stand);
+	craftingInventory = menu;
+	minecraft.setScreen(Util::make_shared<BrewingStandScreen>(minecraft, stand));
+	craftingInventory = std::move(menu);
+}
+
 void LocalPlayer::startDispenser(std::shared_ptr<DispenserTileEntity> dispenser)
 {
 	auto menu = std::make_shared<ContainerDispenser>(inventory, dispenser);
@@ -339,11 +350,13 @@ void LocalPlayer::changeDimension(int_t dimension)
 		return;
 	if (this->dimension == 1 && dimension == 1)
 	{
+		triggerAchievement(*AchievementList::theEnd2);
 		if (std::dynamic_pointer_cast<WinScreen>(minecraft.screen) == nullptr)
 			minecraft.setScreen(Util::make_shared<WinScreen>(minecraft));
 	}
 	else if (minecraft.pendingDimension == -100)
 	{
+		triggerAchievement(*AchievementList::theEnd);
 		minecraft.soundEngine.playUI(u"portal.travel", 1.0f, random.nextFloat() * 0.4f + 0.8f);
 		minecraft.pendingDimension = 1;
 	}

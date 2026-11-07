@@ -40,6 +40,7 @@ private:
 	int_t icon = -1;
 	bool harmful = false;
 	bool instant = false;
+	bool disabled = false;
 	double durationModifier = 1.0;
 	int_t color = 0;
 
@@ -53,6 +54,9 @@ public:
 	bool isDurationEffectTick(int_t duration, int_t amplifier) const;
 
 	bool isInstantenous() const { return instant; }
+	// 1.0 setUsable(): invisibility and night vision exist but no potion makes them
+	MobEffect &setDisabled() { disabled = true; return *this; }
+	bool isDisabled() const { return disabled; }
 	bool hasIcon() const { return icon >= 0; }
 	int_t getIcon() const { return icon; }
 	bool isHarmful() const { return harmful; }

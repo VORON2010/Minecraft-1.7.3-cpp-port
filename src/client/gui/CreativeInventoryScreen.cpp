@@ -68,6 +68,14 @@ CreativeInventoryScreen::CreativeInventoryScreen(Minecraft &mc) : Screen(mc) {
     }
     for (int_t d = 1; d < 16; d++)
         allItems.emplace_back(Items::dyePowder->getShiftedIndex(), 1, d);
+    // brewed potions, drinkable and splash (not in the 1.0 list)
+    static const int_t potions[] = {16, 8193, 8194, 8195, 8196, 8197, 8200, 8201, 8202, 8204,
+        8225, 8226, 8228, 8229, 8233, 8236, 8257, 8258, 8259, 8260, 8264, 8265, 8266};
+    for (int_t p : potions)
+        allItems.emplace_back(Items::potion->getShiftedIndex(), 1, p);
+    for (int_t p : potions)
+        if (p != 16)
+            allItems.emplace_back(Items::potion->getShiftedIndex(), 1, (p & ~8192) | 16384);
 }
 
 void CreativeInventoryScreen::init() {

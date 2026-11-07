@@ -97,6 +97,8 @@ class MyceliumTile;
 class WaterlilyTile;
 class EndPortalFrameTile;
 class DragonEggTile;
+class BrewingStandTile;
+class CauldronTile;
 class EndPortalTile;
 class NetherWartTile;
 
@@ -290,6 +292,8 @@ public:
 	static EndPortalTile endPortal;
 	static EndPortalFrameTile endPortalFrame;
 	static DragonEggTile dragonEgg;
+	static BrewingStandTile brewingStand;
+	static CauldronTile cauldron;
 	static Tile endStone;
 	static void initTiles();
 

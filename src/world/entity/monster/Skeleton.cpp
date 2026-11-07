@@ -1,4 +1,7 @@
 #include "world/entity/monster/Skeleton.h"
+#include "world/stats/Achievement.h"
+#include "world/stats/AchievementList.h"
+#include "world/entity/player/Player.h"
 
 #include <cmath>
 
@@ -84,4 +87,18 @@ jstring Skeleton::getDeathSound()
 int_t Skeleton::getDeathLoot()
 {
 	return Items::arrow->getShiftedIndex();
+}
+
+void Skeleton::die(Entity *source)
+{
+	Monster::die(source);
+	// 1.0 snipeSkeleton: an arrow from a player at least 50 blocks away
+	Player *player = dynamic_cast<Player *>(source);
+	if (player != nullptr && dynamic_cast<EntityArrow *>(Entity::damageProjectile) != nullptr)
+	{
+		double dx = player->x - x;
+		double dz = player->z - z;
+		if (dx * dx + dz * dz >= 2500.0)
+			player->triggerAchievement(*AchievementList::snipeSkeleton);
+	}
 }

@@ -367,6 +367,8 @@ public:
 	void tick(std::shared_ptr<Entity> entity, bool ai);
 
 	bool isUnobstructed(AABB &bb);
+	// 1.0 World.canPlace
+	bool mayPlace(int_t tileId, int_t x, int_t y, int_t z, bool ignoreEntities, Facing face);
 	bool containsAnyLiquid(AABB &bb);
 	bool isMaterialInBB(AABB &bb, const Material &material);
 	bool handleMaterialAcceleration(AABB &bb, const Material &material, Entity &entity);

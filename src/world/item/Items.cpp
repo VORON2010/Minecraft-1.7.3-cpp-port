@@ -3,6 +3,8 @@
 #include "world/level/tile/NetherWartTile.h"
 #include "world/level/tile/SoulSandTile.h"
 #include "world/item/Items.h"
+#include "world/item/PotionItem.h"
+#include "world/item/alchemy/PotionBrewing.h"
 
 #include "world/item/Item.h"
 #include "world/item/ItemAxe.h"
@@ -94,6 +96,10 @@ namespace Items
 	Item *blazePowder = nullptr;
 	Item *magmaCream = nullptr;
 	Item *speckledMelon = nullptr;
+	Item *potion = nullptr;
+	Item *glassBottle = nullptr;
+	Item *brewingStand = nullptr;
+	Item *cauldron = nullptr;
 
 	Item *reed = nullptr;
 	Item *doorWood = nullptr;
@@ -428,6 +434,23 @@ namespace Items
 		eyeOfEnder->setIconIndex(11 + 9 * 16).setDescriptionId(u"item.eyeOfEnder");
 		speckledMelon = new Item(126);
 		speckledMelon->setIconIndex(9 + 8 * 16).setDescriptionId(u"item.speckledMelon");
+		potion = new PotionItem(117);
+		potion->setIconIndex(13 + 8 * 16).setDescriptionId(u"item.potion");
+		glassBottle = new BottleItem(118);
+		glassBottle->setIconIndex(12 + 8 * 16).setDescriptionId(u"item.glassBottle");
+		brewingStand = new TilePlanterItem(123, 117);
+		brewingStand->setIconIndex(12 + 10 * 16).setDescriptionId(u"item.brewingStand");
+		cauldron = new TilePlanterItem(124, 118);
+		cauldron->setIconIndex(12 + 9 * 16).setDescriptionId(u"item.cauldron");
+
+		// 1.0 potion ingredients
+		ghastTear->setPotionBrewingFormula(PotionBrewing::GHAST_TEAR);
+		netherWart->setPotionBrewingFormula(PotionBrewing::NETHER_WART);
+		spiderEye->setPotionBrewingFormula(PotionBrewing::SPIDER_EYE);
+		fermentedSpiderEye->setPotionBrewingFormula(PotionBrewing::FERMENTED_SPIDER_EYE);
+		blazePowder->setPotionBrewingFormula(PotionBrewing::BLAZE_POWDER);
+		magmaCream->setPotionBrewingFormula(PotionBrewing::MAGMA_CREAM);
+		speckledMelon->setPotionBrewingFormula(PotionBrewing::GLISTERING_MELON);
 
 		flint = new Item(62);
 		flint->setIconIndex(6).setDescriptionId(u"item.flint");
@@ -545,6 +568,10 @@ namespace Items
 
 		glowstoneDust = new Item(92);
 		glowstoneDust->setIconIndex(73).setDescriptionId(u"item.yellowDust");
+		glowstoneDust->setPotionBrewingFormula(PotionBrewing::GLOWSTONE);
+		redstone->setPotionBrewingFormula(PotionBrewing::REDSTONE);
+		gunpowder->setPotionBrewingFormula(PotionBrewing::GUNPOWDER);
+		sugar->setPotionBrewingFormula(PotionBrewing::SUGAR);
 
 		fishRaw = new ItemFood(93, 2, 0.1f, false);
 		fishRaw->setMaxStackSize(64).setIconIndex(89).setDescriptionId(u"item.fishRaw");

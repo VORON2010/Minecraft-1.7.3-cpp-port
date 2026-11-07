@@ -5,6 +5,8 @@
 #include <atomic>
 #include <memory>
 #include <mutex>
+#include <utility>
+#include <vector>
 
 #include "java/Type.h"
 
@@ -54,6 +56,8 @@ public:
 	std::atomic<int_t> itemID{0};
 	std::atomic<int_t> itemDamage{0};
 	int_t popTime = 0;
+	// 1.0 ItemStack tag "ench": enchantment id and level pairs
+	std::vector<std::pair<short_t, short_t>> enchantments;
 
 	ItemInstance() = default;
 	ItemInstance(const ItemInstance &other);
@@ -93,5 +97,9 @@ public:
 	void load(CompoundTag &tag);
 	ItemInstance remove(int_t count);
 	bool sameItem(const ItemInstance &other) const;
+	bool isEnchanted() const { return !enchantments.empty(); }
+	void enchant(int_t id, int_t level) { enchantments.emplace_back(static_cast<short_t>(id), static_cast<short_t>(level)); }
+	bool isEnchantable() const;
+	bool isFoil() const;
 	std::shared_ptr<const ItemInstanceReference> retainReference() const;
 };

@@ -1,4 +1,5 @@
 #include "world/inventory/Slot.h"
+#include "world/level/tile/BookshelfTile.h"
 
 #include "world/entity/player/Player.h"
 #include "world/inventory/IInventory.h"
@@ -118,6 +119,10 @@ void CraftingSlot::onPickup(ItemInstance &item)
 		player.addStat(*AchievementList::bakeCake, 1);
 	else if (item.itemID == Items::pickaxeStone->getShiftedIndex())
 		player.addStat(*AchievementList::buildBetterPickaxe, 1);
+	else if (item.itemID == 116)
+		player.addStat(*AchievementList::enchantments, 1);
+	else if (item.itemID == Tile::bookshelf.id)
+		player.addStat(*AchievementList::bookcase, 1);
 	else if (item.itemID == Items::swordWood->getShiftedIndex())
 		player.addStat(*AchievementList::buildSword, 1);
 

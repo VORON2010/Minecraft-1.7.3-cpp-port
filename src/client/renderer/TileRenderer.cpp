@@ -164,6 +164,80 @@ bool TileRenderer::tesselateInWorld(Tile &tt, int_t x, int_t y, int_t z)
 		return tesselateFenceGateInWorld(tt, x, y, z);
 	if (shape == Tile::SHAPE_LILYPAD)
 		return tesselateLilyPadInWorld(tt, x, y, z);
+	if (shape == Tile::SHAPE_BREWING_STAND)
+	{
+		// 1.0 tesselateBrewingStand: rod, three base plates, three crossed bottle quads
+		tt.setShape(0.4375f, 0.0f, 0.4375f, 0.5625f, 0.875f, 0.5625f);
+		tesselateBlockInWorld(tt, x, y, z);
+		fixedTexture = 156;
+		tt.setShape(0.5625f, 0.0f, 0.3125f, 0.9375f, 0.125f, 0.6875f);
+		tesselateBlockInWorld(tt, x, y, z);
+		tt.setShape(0.125f, 0.0f, 0.0625f, 0.5f, 0.125f, 0.4375f);
+		tesselateBlockInWorld(tt, x, y, z);
+		tt.setShape(0.125f, 0.0f, 0.5625f, 0.5f, 0.125f, 0.9375f);
+		tesselateBlockInWorld(tt, x, y, z);
+		fixedTexture = -1;
+		Tesselator &t = Tesselator::instance;
+		float br = tt.getBrightness(*level, x, y, z);
+		t.color(br, br, br);
+		int_t tex = tt.getTexture(Facing::DOWN, 0);
+		int_t xt = (tex & 15) << 4;
+		int_t yt = tex & 240;
+		double v0 = yt / 256.0;
+		double v1 = (yt + 15.99) / 256.0;
+		int_t data = level->getData(x, y, z);
+		for (int_t i = 0; i < 3; ++i)
+		{
+			double angle = i * 3.141592653589793 * 2.0 / 3.0 + 3.141592653589793 / 2.0;
+			double u0 = (xt + 8.0) / 256.0;
+			double u1 = (xt + 15.99) / 256.0;
+			if ((data & 1 << i) != 0)
+			{
+				u0 = (xt + 7.99) / 256.0;
+				u1 = (xt + 0.0) / 256.0;
+			}
+			double x0 = x + 0.5, z0 = z + 0.5;
+			double x1 = x + 0.5 + std::sin(angle) * 8.0 / 16.0;
+			double z1 = z + 0.5 + std::cos(angle) * 8.0 / 16.0;
+			t.vertexUV(x0, y + 1, z0, u0, v0);
+			t.vertexUV(x0, y + 0, z0, u0, v1);
+			t.vertexUV(x1, y + 0, z1, u1, v1);
+			t.vertexUV(x1, y + 1, z1, u1, v0);
+			t.vertexUV(x1, y + 1, z1, u1, v0);
+			t.vertexUV(x1, y + 0, z1, u1, v1);
+			t.vertexUV(x0, y + 0, z0, u0, v1);
+			t.vertexUV(x0, y + 1, z0, u0, v0);
+		}
+		tt.updateDefaultShape();
+		return true;
+	}
+	if (shape == Tile::SHAPE_CAULDRON)
+	{
+		// 1.0 tesselateCauldron: outer block, inner walls, floor, water level
+		tesselateBlockInWorld(tt, x, y, z);
+		Tesselator &t = Tesselator::instance;
+		float br = tt.getBrightness(*level, x, y, z);
+		float w = 0.125f;
+		t.color(br * 0.6f, br * 0.6f, br * 0.6f);
+		renderEast(tt, x - 1.0f + w, y, z, 154);
+		renderWest(tt, x + 1.0f - w, y, z, 154);
+		t.color(br * 0.8f, br * 0.8f, br * 0.8f);
+		renderSouth(tt, x, y, z - 1.0f + w, 154);
+		renderNorth(tt, x, y, z + 1.0f - w, 154);
+		t.color(br, br, br);
+		renderFaceDown(tt, x, y - 1.0f + 0.25f, z, 139);
+		t.color(br * 0.5f, br * 0.5f, br * 0.5f);
+		renderFaceUp(tt, x, y + 1.0f - 0.75f, z, 139);
+		int_t data = level->getData(x, y, z);
+		if (data > 0)
+		{
+			if (data > 3)
+				data = 3;
+			t.color(br, br, br);
+			renderFaceDown(tt, x, y - 1.0f + (6.0f + data * 3.0f) / 16.0f, z, 205);
+		}
+		return true;
+	}
 	if (shape == Tile::SHAPE_DRAGON_EGG)
 	{
 		// 1.0 tesselateDragonEgg: eight stacked slices

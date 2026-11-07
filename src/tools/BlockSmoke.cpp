@@ -447,7 +447,7 @@ int runBlockSmoke()
 			StatList::mineBlockStats[2] == StatList::mineBlockStats[3] &&
 			StatList::mineBlockStats[60] == StatList::mineBlockStats[3],
 			"disabled and equivalent block mining counters should match the Beta registry aliases");
-		ok &= expect(AchievementList::achievements.size() == 16, "achievement registry should contain the 16 Beta 1.7.3 achievements");
+		ok &= expect(AchievementList::achievements.size() == 27, "achievement registry should contain the 27 achievements of 1.0");
 		ok &= expect(AchievementList::openInventory->statId == 5242880 && AchievementList::flyPig->statId == 5242895,
 			"achievement stat ids should occupy the Beta 1.7.3 range");
 		ok &= expect(StatList::getStat(5242880) == AchievementList::openInventory && StatList::getStat(5242895) == AchievementList::flyPig,
@@ -461,9 +461,9 @@ int runBlockSmoke()
 			"When Pigs Fly should require Cow Tipper");
 		ok &= expect(AchievementList::onARail->isSpecial() && AchievementList::flyPig->isSpecial(),
 			"On A Rail and When Pigs Fly should use special achievement frames");
-		ok &= expect(AchievementList::minDisplayColumn == -1 && AchievementList::minDisplayRow == -5 &&
-			AchievementList::maxDisplayColumn == 8 && AchievementList::maxDisplayRow == 6,
-			"achievement display bounds should match the Beta 1.7.3 tree");
+		ok &= expect(AchievementList::minDisplayColumn == -4 && AchievementList::minDisplayRow == -5 &&
+			AchievementList::maxDisplayColumn == 8 && AchievementList::maxDisplayRow == 13,
+			"achievement display bounds should match the 1.0 tree");
 		ok &= expect(!AchievementList::openInventory->statGuid.empty() && !AchievementList::flyPig->statGuid.empty(),
 			"achievement GUIDs should load from achievement/map.txt");
 		StatMap achievementStats;
