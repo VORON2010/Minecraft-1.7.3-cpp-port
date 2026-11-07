@@ -17,3 +17,8 @@ int_t GlowStoneTile::getResourceCount(Random &random)
 {
 	return 2 + random.nextInt(3);
 }
+int_t GlowStoneTile::getResourceCountForLootBonus(int_t bonus, Random &random)
+{
+	int_t n = getResourceCount(random) + random.nextInt(bonus + 1);
+	return n < 1 ? 1 : (n > 4 ? 4 : n);
+}

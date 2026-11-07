@@ -5,7 +5,7 @@
 #include "world/level/tile/Tile.h"
 #include "world/level/tile/WebTile.h"
 
-ItemSword::ItemSword(int_t baseId, ToolMaterialType material) : Item(baseId)
+ItemSword::ItemSword(int_t baseId, ToolMaterialType material) : Item(baseId), material(material)
 {
 	const ToolMaterialData &toolData = getToolMaterialData(material);
 	setMaxStackSize(1);

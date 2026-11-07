@@ -127,6 +127,8 @@ public:
 	virtual bool hurtByFire(int_t dmg) { return hurt(nullptr, dmg); }
 	// set while a projectile (arrow) is dealing damage, so targets can react to it (endermen dodge)
 	static Entity *damageProjectile;
+	// set while fire, falling, explosions or the void deal damage (1.0 DamageSource kinds, 0 = generic)
+	static int_t damageKind;
 
 protected:
 	DataWatcher dataWatcher;

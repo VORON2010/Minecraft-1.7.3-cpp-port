@@ -1,4 +1,7 @@
 #include "world/inventory/ContainerMenus.h"
+#include "world/item/enchantment/Enchantment.h"
+#include "world/level/tile/EnchantmentTableTile.h"
+#include "world/level/tile/BookshelfTile.h"
 #include "world/stats/Achievement.h"
 #include "world/item/Item.h"
 #include "world/stats/AchievementList.h"
@@ -310,4 +313,157 @@ std::unique_ptr<ItemInstance> ContainerBrewingStand::quickMoveStack(int_t slot)
 		return quickMoveStackTo(slot, 4, 40, false);
 	}
 	return quickMoveStackTo(slot, 4, 40, true);
+}
+
+ItemInstance EnchantInventory::decrStackSize(int_t slot, int_t count)
+{
+	if (slot != 0 || item.isEmpty())
+		return ItemInstance();
+	ItemInstance taken = item.remove(count);
+	taken.enchantments = item.enchantments;
+	if (item.stackSize <= 0)
+		item = ItemInstance();
+	onInventoryChanged();
+	return taken;
+}
+
+void EnchantInventory::setInventorySlotContents(int_t slot, const ItemInstance &stack)
+{
+	if (slot != 0)
+		return;
+	item = stack;
+	onInventoryChanged();
+}
+
+void EnchantInventory::onInventoryChanged()
+{
+	menu.slotsChanged();
+}
+
+namespace
+{
+	class EnchantSlot : public Slot
+	{
+	public:
+		using Slot::Slot;
+		bool mayPlace(const ItemInstance &item) const override { (void)item; return true; }
+	};
+}
+
+ContainerEnchantment::ContainerEnchantment(InventoryPlayer &inventory, Level &level, int_t x, int_t y, int_t z)
+	: level(level), x(x), y(y), z(z), enchantSlots(*this)
+{
+	addSlot(std::make_unique<EnchantSlot>(enchantSlots, 0, 25, 47));
+	for (int_t row = 0; row < 3; ++row)
+		for (int_t column = 0; column < 9; ++column)
+			addSlot(std::make_unique<Slot>(inventory, column + row * 9 + 9, 8 + column * 18, 84 + row * 18));
+	for (int_t column = 0; column < 9; ++column)
+		addSlot(std::make_unique<Slot>(inventory, column, 8 + column * 18, 142));
+}
+
+int_t ContainerEnchantment::countBookshelves() const
+{
+	int_t shelves = 0;
+	int_t book = Tile::bookshelf.id;
+	for (int_t dz = -1; dz <= 1; ++dz)
+	{
+		for (int_t dx = -1; dx <= 1; ++dx)
+		{
+			if ((dz == 0 && dx == 0) || !level.isEmptyTile(x + dx, y, z + dz) || !level.isEmptyTile(x + dx, y + 1, z + dz))
+				continue;
+			if (level.getTile(x + dx * 2, y, z + dz * 2) == book)
+				shelves++;
+			if (level.getTile(x + dx * 2, y + 1, z + dz * 2) == book)
+				shelves++;
+			if (dx != 0 && dz != 0)
+			{
+				if (level.getTile(x + dx * 2, y, z + dz) == book)
+					shelves++;
+				if (level.getTile(x + dx * 2, y + 1, z + dz) == book)
+					shelves++;
+				if (level.getTile(x + dx, y, z + dz * 2) == book)
+					shelves++;
+				if (level.getTile(x + dx, y + 1, z + dz * 2) == book)
+					shelves++;
+			}
+		}
+	}
+	return shelves;
+}
+
+void ContainerEnchantment::slotsChanged()
+{
+	const ItemInstance *item = enchantSlots.getStackInSlot(0);
+	if (item != nullptr && item->isEnchantable())
+	{
+		nameSeed = random.nextLong();
+		if (!level.isOnline)
+		{
+			int_t shelves = countBookshelves();
+			for (int_t i = 0; i < 3; ++i)
+				costs[i] = EnchantmentHelper::getEnchantmentCost(random, i, shelves, *item);
+		}
+	}
+	else
+	{
+		for (int_t i = 0; i < 3; ++i)
+			costs[i] = 0;
+	}
+}
+
+bool ContainerEnchantment::clickMenuButton(Player &player, int_t id)
+{
+	ItemInstance *item = enchantSlots.getStackInSlot(0);
+	if (id < 0 || id > 2 || costs[id] <= 0 || item == nullptr || player.experienceLevel < costs[id])
+		return false;
+	if (!level.isOnline)
+	{
+		std::vector<EnchantmentHelper::Entry> chosen = EnchantmentHelper::selectEnchantment(random, *item, costs[id]);
+		if (!chosen.empty())
+		{
+			// 1.0 PlayerEntity.addXp(levels) takes the levels away
+			player.experienceLevel -= costs[id];
+			if (player.experienceLevel < 0)
+				player.experienceLevel = 0;
+			for (const auto &e : chosen)
+				item->enchant(e.enchantment->id, e.level);
+			slotsChanged();
+		}
+	}
+	return true;
+}
+
+void ContainerEnchantment::onClosed(Player &player)
+{
+	Container::onClosed(player);
+	if (!level.isOnline)
+	{
+		ItemInstance *item = enchantSlots.getStackInSlot(0);
+		if (item != nullptr)
+		{
+			ItemInstance dropped = *item;
+			enchantSlots.setInventorySlotContents(0, ItemInstance());
+			player.drop(dropped);
+		}
+	}
+}
+
+bool ContainerEnchantment::canUse(Player &player) const
+{
+	if (level.getTile(x, y, z) != Tile::enchantTable.id)
+		return false;
+	return player.distanceToSqr(x + 0.5, y + 0.5, z + 0.5) <= 64.0;
+}
+
+std::unique_ptr<ItemInstance> ContainerEnchantment::quickMoveStack(int_t slot)
+{
+	if (slot != 0)
+		return nullptr;
+	return quickMoveStackTo(slot, 1, 37, true);
+}
+
+void ContainerEnchantment::updateProgressBar(int_t id, int_t value)
+{
+	if (id >= 0 && id <= 2)
+		costs[id] = value;
 }

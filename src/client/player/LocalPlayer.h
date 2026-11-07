@@ -63,6 +63,7 @@ public:
 	void startChest(std::shared_ptr<IInventory> chest);
 	void startFurnace(std::shared_ptr<FurnaceTileEntity> furnace);
 	void startBrewing(std::shared_ptr<BrewingStandTileEntity> stand);
+	void startEnchanting(int_t x, int_t y, int_t z);
 	void startDispenser(std::shared_ptr<DispenserTileEntity> dispenser);
 	void openTextEdit(std::shared_ptr<SignTileEntity> sign);
 	

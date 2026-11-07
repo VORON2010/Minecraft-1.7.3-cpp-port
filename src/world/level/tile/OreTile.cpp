@@ -31,3 +31,14 @@ int_t OreTile::getSpawnResourcesAuxValue(int_t data)
 		return 4; 
 	return 0;
 }
+int_t OreTile::getResourceCountForLootBonus(int_t bonus, Random &random)
+{
+	if (bonus > 0 && id != getResource(0, random))
+	{
+		int_t extra = random.nextInt(bonus + 2) - 1;
+		if (extra < 0)
+			extra = 0;
+		return getResourceCount(random) * (extra + 1);
+	}
+	return getResourceCount(random);
+}

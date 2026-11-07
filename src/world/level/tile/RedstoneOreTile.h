@@ -10,6 +10,7 @@ public:
 	int_t getTickDelay() override;
 	int_t getResource(int_t data, Random &random) override;
 	int_t getResourceCount(Random &random) override;
+	int_t getResourceCountForLootBonus(int_t bonus, Random &random) override;
 	void attack(Level &level, int_t x, int_t y, int_t z, Player &player) override;
 	void stepOn(Level &level, int_t x, int_t y, int_t z, Entity &entity) override;
 	bool use(Level &level, int_t x, int_t y, int_t z, Player &player) override;

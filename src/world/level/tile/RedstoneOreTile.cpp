@@ -92,3 +92,7 @@ void RedstoneOreTile::poofParticles(Level &level, int_t x, int_t y, int_t z)
 			level.addParticle(u"reddust", px, py, pz, 0.0, 0.0, 0.0);
 	}
 }
+int_t RedstoneOreTile::getResourceCountForLootBonus(int_t bonus, Random &random)
+{
+	return getResourceCount(random) + random.nextInt(bonus + 1);
+}

@@ -9,4 +9,5 @@ public:
 
 	int_t getResource(int_t data, Random &random) override;
 	int_t getResourceCount(Random &random) override;
+	int_t getResourceCountForLootBonus(int_t bonus, Random &random) override;
 };

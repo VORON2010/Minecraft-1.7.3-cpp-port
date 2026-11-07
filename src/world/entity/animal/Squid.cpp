@@ -122,7 +122,7 @@ int_t Squid::getDeathLoot()
 
 void Squid::dropDeathLoot()
 {
-	int_t count = random.nextInt(3) + 1;
+	int_t count = random.nextInt(3 + lootBonus) + 1;
 	for (int_t i = 0; i < count; ++i)
 		spawnAtLocation(ItemInstance(Items::dyePowder->getShiftedIndex(), 1, 0), 0.0f);
 }

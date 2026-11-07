@@ -98,6 +98,7 @@ class WaterlilyTile;
 class EndPortalFrameTile;
 class DragonEggTile;
 class BrewingStandTile;
+class EnchantmentTableTile;
 class CauldronTile;
 class EndPortalTile;
 class NetherWartTile;
@@ -293,6 +294,7 @@ public:
 	static EndPortalFrameTile endPortalFrame;
 	static DragonEggTile dragonEgg;
 	static BrewingStandTile brewingStand;
+	static EnchantmentTableTile enchantTable;
 	static CauldronTile cauldron;
 	static Tile endStone;
 	static void initTiles();
@@ -381,6 +383,10 @@ public:
 	virtual void onRemove(Level &level, int_t x, int_t y, int_t z);
 
 	virtual int_t getResourceCount(Random &random);
+	// 1.0 getDropCount(fortune, random)
+	virtual int_t getResourceCountForLootBonus(int_t bonus, Random &random) { (void)bonus; return getResourceCount(random); }
+	void spawnResourcesWithBonus(Level &level, int_t x, int_t y, int_t z, int_t data, int_t bonus);
+	void spawnResourcesBonus(Level &level, int_t x, int_t y, int_t z, int_t data, float chance, int_t bonus);
 	virtual int_t getResource(int_t data, Random &random);
 
 	float getDestroyProgress(Player &player);

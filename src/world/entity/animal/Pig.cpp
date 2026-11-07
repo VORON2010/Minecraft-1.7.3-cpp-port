@@ -76,6 +76,8 @@ jstring Pig::getDeathSound()
 void Pig::dropDeathLoot()
 {
 	int_t count = (random.nextInt(100) < 5) ? 2 : 1;
+	if (lootBonus > 0)
+		count += random.nextInt(1 + lootBonus);
 	for (int_t i = 0; i < count; ++i)
 		spawnAtLocation(ItemInstance(onFire > 0 ? Items::porkchopCooked->getShiftedIndex() : Items::porkchopRaw->getShiftedIndex(), 1, 0), 0.0f);
 }

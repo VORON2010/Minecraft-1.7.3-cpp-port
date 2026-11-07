@@ -1,4 +1,6 @@
 #include "world/entity/Mob.h"
+#include "world/entity/player/Player.h"
+#include "world/item/enchantment/Enchantment.h"
 
 #include "world/level/Level.h"
 #include "world/level/tile/LadderTile.h"
@@ -79,7 +81,7 @@ void Mob::baseTick()
 
 	if (isAlive() && isUnderLiquid(static_cast<const Material &>(Material::water)) && !isWaterMob() && !hasEffect(MobEffect::waterBreathing))
 	{
-		airSupply--;
+		airSupply = decreaseAirSupply(airSupply);
 		if (airSupply == -20)
 		{
 			airSupply = 0;
@@ -414,7 +416,14 @@ void Mob::die(Entity *source)
 		source->awardKillScore(*this, deathScore);
 	dead = true;
 	if (!level.isOnline)
+	{
+		// 1.0: looting on the killer's weapon
+		lootBonus = 0;
+		if (Player *player = dynamic_cast<Player *>(source))
+			lootBonus = EnchantmentHelper::getKillingLootBonus(player->inventory);
 		dropDeathLoot();
+		lootBonus = 0;
+	}
 }
 
 void Mob::dropDeathLoot()
@@ -424,6 +433,8 @@ void Mob::dropDeathLoot()
 		return;
 
 	int_t count = random.nextInt(3);
+	if (lootBonus > 0)
+		count += random.nextInt(lootBonus + 1);
 	for (int_t i = 0; i < count; ++i)
 		spawnAtLocation(ItemInstance(loot, 1, 0), 0.0f);
 }
@@ -440,7 +451,9 @@ void Mob::causeFallDamage(float distance)
 	if (fallDamage <= 0)
 		return;
 
+	Entity::damageKind = static_cast<int_t>(DamageKind::FALL);
 	hurt(nullptr, fallDamage);
+	Entity::damageKind = 0;
 
 	int_t tileX = Mth::floor(x);
 	int_t tileY = Mth::floor(y - 0.2 - heightOffset);
@@ -801,7 +814,9 @@ bool Mob::canSpawn()
 
 void Mob::outOfWorld()
 {
+	Entity::damageKind = static_cast<int_t>(DamageKind::OUT_OF_WORLD);
 	hurt(nullptr, 4);
+	Entity::damageKind = 0;
 }
 
 float Mob::getAttackAnim(float a)
@@ -1034,7 +1049,10 @@ bool Mob::hurtByFire(int_t dmg)
 {
 	if (hasEffect(MobEffect::fireResistance))
 		return false;
-	return hurt(nullptr, dmg);
+	Entity::damageKind = static_cast<int_t>(DamageKind::FIRE);
+	bool result = hurt(nullptr, dmg);
+	Entity::damageKind = 0;
+	return result;
 }
 
 int_t Mob::applyEffectDamageReduction(int_t dmg)

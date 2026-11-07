@@ -137,6 +137,12 @@ public:
 	const std::map<int_t, MobEffectInstance> &getActiveEffects() const { return activeEffects; }
 	virtual bool canBeAffected(const MobEffectInstance &effect);
 	virtual bool isUndead() { return false; }
+	// looting level of whoever is killing this mob, read by dropDeathLoot
+	int_t lootBonus = 0;
+	// 1.0 MobType.ARTHROPOD: spiders and silverfish, for Bane of Arthropods
+	virtual bool isArthropod() { return false; }
+	// 1.0 updateBreathUnderwater
+	virtual int_t decreaseAirSupply(int_t air) { return air - 1; }
 	bool hurtByMagic(Entity *source, int_t dmg);
 	bool hurtByFire(int_t dmg) override;
 	float getSpeedModifier();

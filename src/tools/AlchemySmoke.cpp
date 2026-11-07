@@ -9,6 +9,8 @@
 #include "world/item/ItemInstance.h"
 #include "world/item/Items.h"
 #include "world/item/PotionItem.h"
+#include "world/item/ItemPickaxe.h"
+#include "world/item/enchantment/Enchantment.h"
 #include "world/item/alchemy/PotionBrewing.h"
 #include "world/level/Level.h"
 #include "world/level/tile/BrewingStandTile.h"
@@ -103,6 +105,46 @@ int runAlchemySmoke()
 		}
 		std::unique_ptr<File> workdir(File::open(u"build/alchemy-smoke-workdir"));
 		Level::deleteLevel(*workdir, u"alchemy-smoke-world");
+	}
+
+	std::cerr << "alchemy-smoke: enchanting" << std::endl;
+	{
+		ItemInstance sword(Items::swordDiamond->getShiftedIndex(), 1, 0);
+		ItemInstance stick(Items::stick->getShiftedIndex(), 1, 0);
+		ok &= expect(sword.isEnchantable() && !stick.isEnchantable(), "swords can be enchanted, sticks cannot");
+		Random random(1234);
+		int_t maxCost = 0;
+		for (int_t i = 0; i < 200; ++i)
+		{
+			int_t c = EnchantmentHelper::getEnchantmentCost(random, 2, 30, sword);
+			if (c > maxCost)
+				maxCost = c;
+			ok &= expect(c >= 1 && c <= 50, "the third slot costs 1..50 levels");
+		}
+		ok &= expect(maxCost == 50 || maxCost >= 40, "thirty bookshelves reach level 40 and more");
+		int_t picked = 0;
+		bool sawSharpness = false;
+		for (int_t i = 0; i < 200; ++i)
+		{
+			auto chosen = EnchantmentHelper::selectEnchantment(random, sword, 30);
+			picked += chosen.empty() ? 0 : 1;
+			for (auto &e : chosen)
+			{
+				ok &= expect(canEnchant(e.enchantment->category, *sword.getItem()), "only weapon enchantments go on a sword");
+				sawSharpness |= e.enchantment == &Enchantment::damageAll;
+			}
+		}
+		ok &= expect(picked == 200 && sawSharpness, "level 30 always gives a sword something, sharpness among them");
+		ItemInstance pick(Items::pickaxeIron->getShiftedIndex(), 1, 0);
+		pick.enchant(Enchantment::digging.id, 3);
+		CompoundTag tag;
+		pick.save(tag);
+		ItemInstance loaded(tag);
+		ok &= expect(loaded.enchantments.size() == 1 && loaded.enchantments[0].first == 32 && loaded.enchantments[0].second == 3, "enchantments are saved in tag.ench");
+		ok &= expect(loaded.isFoil() && !loaded.isEnchantable(), "an enchanted pickaxe glints and cannot be enchanted again");
+		ok &= expect(Enchantment::damageAll.getFullname(5) == u"Sharpness V", "Sharpness V is named like in 1.0");
+		ok &= expect(!Enchantment::untouching.isCompatibleWith(Enchantment::lootBonusDigger), "silk touch and fortune exclude each other");
+		ok &= expect(Enchantment::protection.getMinCost(4) == 49 && Enchantment::digging.getMaxCost(1) == 61, "costs follow the 1.0 formulas");
 	}
 
 	std::cerr << "alchemy-smoke: " << (ok ? "PASS" : "FAIL") << std::endl;

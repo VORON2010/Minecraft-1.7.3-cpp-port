@@ -9,6 +9,7 @@ private:
 	int_t lookForFriends = 0;
 
 public:
+	bool isArthropod() override { return true; }
 	Silverfish(Level &level);
 	jstring getEncodeId() const override { return u"Silverfish"; }
 	void tick() override;

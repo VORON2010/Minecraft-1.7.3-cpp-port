@@ -30,3 +30,9 @@ int_t MelonTile::getResourceCount(Random &random)
 {
 	return 3 + random.nextInt(5);
 }
+
+int_t MelonTile::getResourceCountForLootBonus(int_t bonus, Random &random)
+{
+	int_t n = getResourceCount(random) + random.nextInt(1 + bonus);
+	return n > 9 ? 9 : n;
+}

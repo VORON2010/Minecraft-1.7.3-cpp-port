@@ -1,4 +1,5 @@
 #include "world/entity/player/Player.h"
+#include "world/item/enchantment/Enchantment.h"
 
 #include "nbt/ListTag.h"
 #include "util/Mth.h"
@@ -483,17 +484,25 @@ void Player::attack(const std::shared_ptr<Entity> &entity)
 		attackDamage += 3 << strength->getAmplifier();
 	if (const MobEffectInstance *weak = getEffect(MobEffect::weakness))
 		attackDamage -= 2 << weak->getAmplifier();
-	if (attackDamage <= 0)
-		return;
-
 	Mob *target = dynamic_cast<Mob *>(entity.get());
-	int_t knockback = isSprinting ? 1 : 0;
+	int_t knockback = 0;
+	int_t enchantBonus = 0;
+	if (target != nullptr)
+	{
+		enchantBonus = EnchantmentHelper::getDamageBonus(inventory, *target);
+		knockback += EnchantmentHelper::getKnockbackBonus(inventory);
+	}
+	if (isSprinting)
+		knockback++;
+	if (attackDamage <= 0 && enchantBonus <= 0)
+		return;
 
 	// b1.8 critical hit: hitting while falling
 	bool critical = fallDistance > 0.0f && !onGround && !onLadder() && !isInWater() &&
 		!hasEffect(MobEffect::blindness) && riding == nullptr && target != nullptr;
 	if (critical)
 		attackDamage += random.nextInt(attackDamage / 2 + 2);
+	attackDamage += enchantBonus;
 
 	bool damaged = entity->hurt(this, attackDamage);
 	if (damaged)
@@ -533,8 +542,29 @@ void Player::attack(const std::shared_ptr<Entity> &entity)
 		if (selected->isEmpty())
 			removeSelectedItem();
 	}
+	if (damaged && enchantBonus > 0)
+	{
+		// 1.0 addEnchantedCritParticles
+		for (int_t burst = 0; burst < 3; ++burst)
+			for (int_t i = 0; i < 16; ++i)
+			{
+				double ox = random.nextFloat() * 2.0f - 1.0f;
+				double oy = random.nextFloat() * 2.0f - 1.0f;
+				double oz = random.nextFloat() * 2.0f - 1.0f;
+				if (ox * ox + oy * oy + oz * oz > 1.0)
+					continue;
+				level.addParticle(u"magicCrit", entity->x + ox * entity->bbWidth / 4.0,
+					entity->bb.y0 + entity->bbHeight / 2.0f + oy * entity->bbHeight / 4.0,
+					entity->z + oz * entity->bbWidth / 4.0, ox, oy + 0.2, oz);
+			}
+	}
 	if (target != nullptr)
+	{
 		addStat(*StatList::damageDealtStat, attackDamage);
+		int_t fire = EnchantmentHelper::getFireAspect(inventory);
+		if (fire > 0)
+			entity->onFire = fire * 4 * 20;
+	}
 	if (damaged && attackDamage >= 18)
 		triggerAchievement(*AchievementList::overkill);
 	addExhaustion(0.3f);
@@ -556,11 +586,14 @@ void Player::addStat(const StatBase &stat, int_t amount)
 float Player::getDestroySpeed(Tile &tile)
 {
 	float speed = inventory.getDestroySpeed(tile);
+	int_t efficiency = EnchantmentHelper::getDiggingBonus(inventory);
+	if (efficiency > 0 && inventory.canDestroySpecial(tile))
+		speed += static_cast<float>(efficiency * efficiency + 1);
 	if (const MobEffectInstance *haste = getEffect(MobEffect::digSpeed))
 		speed *= 1.0f + static_cast<float>(haste->getAmplifier() + 1) * 0.2f;
 	if (const MobEffectInstance *fatigue = getEffect(MobEffect::digSlowdown))
 		speed *= 1.0f - static_cast<float>(fatigue->getAmplifier() + 1) * 0.2f;
-	if (isUnderLiquid(static_cast<const Material &>(Material::water)))
+	if (isUnderLiquid(static_cast<const Material &>(Material::water)) && !EnchantmentHelper::hasWaterWorkerBonus(inventory))
 		speed /= 5.0f;
 	if (!onGround)
 		speed /= 5.0f;
@@ -742,6 +775,19 @@ void Player::actuallyHurt(int_t dmg)
 		inventory.hurtArmor(dmg);
 		dmg = totalDamage / 25;
 		dmgSpill = totalDamage % 25;
+	}
+	if (dmg > 0)
+	{
+		// 1.0 damageAfterEffectsAndEnchantments: protection enchantments on the armor
+		int_t protection = EnchantmentHelper::getDamageProtection(inventory, static_cast<DamageKind>(Entity::damageKind), Entity::damageProjectile != nullptr);
+		if (protection > 20)
+			protection = 20;
+		if (protection > 0)
+		{
+			int_t total = dmg * (25 - protection) + enchantSpill;
+			dmg = total / 25;
+			enchantSpill = total % 25;
+		}
 	}
 	Mob::actuallyHurt(dmg);
 }
@@ -1037,4 +1083,11 @@ void Player::outOfWorld()
 	takingOutOfWorldDamage = true;
 	Mob::outOfWorld();
 	takingOutOfWorldDamage = false;
+}
+
+int_t Player::decreaseAirSupply(int_t air)
+{
+	// 1.0 updateBreathUnderwater: respiration skips some ticks of air loss
+	int_t bonus = EnchantmentHelper::getOxygenBonus(inventory);
+	return bonus > 0 && random.nextInt(bonus + 1) > 0 ? air : Mob::decreaseAirSupply(air);
 }

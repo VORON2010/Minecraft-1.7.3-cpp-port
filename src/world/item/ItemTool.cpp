@@ -82,3 +82,22 @@ bool ItemTool::isEffectiveAgainst(Tile &tile) const
 	}
 	return false;
 }
+
+int_t toolEnchantmentValue(ToolMaterialType material)
+{
+	// 1.0 Item.Tier enchantability
+	switch (material)
+	{
+	case ToolMaterialType::WOOD: return 15;
+	case ToolMaterialType::STONE: return 5;
+	case ToolMaterialType::IRON: return 14;
+	case ToolMaterialType::DIAMOND: return 10;
+	case ToolMaterialType::GOLD: return 22;
+	}
+	return 0;
+}
+
+int_t ItemTool::getEnchantmentValue() const
+{
+	return toolEnchantmentValue(toolMaterial);
+}

@@ -1,4 +1,5 @@
 #include "world/level/Explosion.h"
+#include "world/item/enchantment/Enchantment.h"
 
 #include <cmath>
 #include "world/level/Level.h"
@@ -101,7 +102,9 @@ void Explosion::doExplosionA()
 			float density = getBlockDensity(explosionX, explosionY, explosionZ, entity->bb);
 			double exposure = (1.0 - dist) * density;
 			int_t damage = static_cast<int_t>((exposure * exposure + exposure) / 2.0 * 8.0 * explosionSize + 1.0);
+			Entity::damageKind = static_cast<int_t>(DamageKind::EXPLOSION);
 			entity->hurt(exploder, damage);
+			Entity::damageKind = 0;
 			entity->xd += dx * exposure;
 			entity->yd += dy * exposure;
 			entity->zd += dz * exposure;

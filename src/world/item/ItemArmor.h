@@ -14,4 +14,6 @@ public:
 	const int_t renderIndex;
 
 	ItemArmor(int_t id, int_t armorLevel, int_t renderIndex, int_t armorType);
+	// 1.0 ArmorItem.Tier enchantability: cloth, chain, iron, diamond, gold
+	int_t getEnchantmentValue() const override { static const int_t v[] = {15, 12, 9, 10, 25}; return renderIndex >= 0 && renderIndex < 5 ? v[renderIndex] : 0; }
 };

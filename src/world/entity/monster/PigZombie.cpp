@@ -107,10 +107,10 @@ void PigZombie::becomeAngryAt(Entity &target)
 // 1.0: rotten flesh and gold nuggets
 void PigZombie::dropDeathLoot()
 {
-	int_t count = random.nextInt(2);
+	int_t count = random.nextInt(2 + lootBonus);
 	for (int_t i = 0; i < count; i++)
 		spawnAtLocation(ItemInstance(Items::rottenFlesh->getShiftedIndex(), 1, 0), 0.0f);
-	count = random.nextInt(2);
+	count = random.nextInt(2 + lootBonus);
 	for (int_t i = 0; i < count; i++)
 		spawnAtLocation(ItemInstance(Items::goldNugget->getShiftedIndex(), 1, 0), 0.0f);
 }

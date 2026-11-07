@@ -304,7 +304,7 @@ void Enderman::dropDeathLoot()
 	int_t loot = getDeathLoot();
 	if (loot <= 0)
 		return;
-	int_t count = random.nextInt(2);
+	int_t count = random.nextInt(2 + lootBonus);
 	for (int_t i = 0; i < count; ++i)
 		spawnAtLocation(ItemInstance(loot, 1, 0), 0.0f);
 }

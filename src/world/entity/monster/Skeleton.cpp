@@ -65,7 +65,7 @@ void Skeleton::checkHurtTarget(Entity &entity, float distance)
 void Skeleton::dropDeathLoot()
 {
 	Monster::dropDeathLoot();
-	for (int_t i = 0, count = random.nextInt(3); i < count; ++i)
+	for (int_t i = 0, count = random.nextInt(3 + lootBonus); i < count; ++i)
 		spawnAtLocation(ItemInstance(Items::bone->getShiftedIndex(), 1, 0), 0.0f);
 }
 

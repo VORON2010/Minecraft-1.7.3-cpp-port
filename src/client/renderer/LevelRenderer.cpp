@@ -1,3 +1,5 @@
+#include "client/model/BookModel.h"
+#include "world/level/tile/EnchantmentTableTile.h"
 #include <cmath>
 #include "java/String.h"
 #include "java/System.h"
@@ -333,6 +335,37 @@ void LevelRenderer::renderEntities(Vec3 &cam, Culler &culler, float a)
 			float brightness = level->getBrightness(pistonEntity->x, pistonEntity->y, pistonEntity->z);
 			glColor3f(brightness, brightness, brightness);
 			pistonRenderer->render(*pistonEntity, pistonEntity->x - EntityRenderDispatcher::xOff, pistonEntity->y - EntityRenderDispatcher::yOff, pistonEntity->z - EntityRenderDispatcher::zOff, a);
+		}
+
+		if (auto table = std::dynamic_pointer_cast<EnchantmentTableTileEntity>(tileEntity))
+		{
+			// 1.0 EnchantingTableRenderer: the book floats and turns over the table
+			float brightness = level->getBrightness(table->x, table->y, table->z);
+			glColor3f(brightness, brightness, brightness);
+			static BookModel book;
+			glPushMatrix();
+			glTranslatef(static_cast<float>(table->x - EntityRenderDispatcher::xOff) + 0.5f, static_cast<float>(table->y - EntityRenderDispatcher::yOff) + 0.75f, static_cast<float>(table->z - EntityRenderDispatcher::zOff) + 0.5f);
+			float t = table->time + a;
+			glTranslatef(0.0f, 0.1f + Mth::sin(t * 0.1f) * 0.01f, 0.0f);
+			float d = table->rot - table->oRot;
+			while (d >= Mth::PI)
+				d -= Mth::PI * 2.0f;
+			while (d < -Mth::PI)
+				d += Mth::PI * 2.0f;
+			float r = table->oRot + d * a;
+			glRotatef(-r * 180.0f / Mth::PI, 0.0f, 1.0f, 0.0f);
+			glRotatef(80.0f, 0.0f, 0.0f, 1.0f);
+			glBindTexture(GL_TEXTURE_2D, mc.textures.loadTexture(u"/item/book.png"));
+			float f1 = table->oFlip + (table->flip - table->oFlip) * a + 0.25f;
+			float f2 = table->oFlip + (table->flip - table->oFlip) * a + 0.75f;
+			f1 = (f1 - static_cast<float>(Mth::floor(f1))) * 1.6f - 0.3f;
+			f2 = (f2 - static_cast<float>(Mth::floor(f2))) * 1.6f - 0.3f;
+			f1 = f1 < 0.0f ? 0.0f : (f1 > 1.0f ? 1.0f : f1);
+			f2 = f2 < 0.0f ? 0.0f : (f2 > 1.0f ? 1.0f : f2);
+			float o = table->oOpen + (table->open - table->oOpen) * a;
+			glEnable(GL_CULL_FACE);
+			book.render(t, f1, f2, o, 0.0625f);
+			glPopMatrix();
 		}
 
 		if (std::dynamic_pointer_cast<EndPortalTileEntity>(tileEntity) != nullptr)

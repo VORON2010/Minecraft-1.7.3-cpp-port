@@ -1,4 +1,7 @@
 #include "world/item/ItemInstance.h"
+#include "world/level/Level.h"
+#include "world/item/enchantment/Enchantment.h"
+#include "world/entity/player/InventoryPlayer.h"
 
 #include "Facing.h"
 #include "nbt/CompoundTag.h"
@@ -266,6 +269,16 @@ void ItemInstance::damageItem(int_t amount, Entity &entity)
 	int_t maxDamage = getMaxDamage();
 	if (maxDamage <= 0)
 		return;
+	if (amount > 0)
+	{
+		// 1.0 unbreaking: each point of wear can be skipped
+		if (auto *holder = dynamic_cast<Player *>(&entity))
+		{
+			int_t bonus = EnchantmentHelper::getDigDurability(holder->inventory);
+			if (bonus > 0 && holder->level.random.nextInt(bonus + 1) > 0)
+				return;
+		}
+	}
 	itemDamage += amount;
 	if (itemDamage > maxDamage)
 	{
@@ -379,7 +392,7 @@ bool ItemInstance::isEnchantable() const
 {
 	// 1.0 ItemStack.isEnchantable: an enchantable item that has no enchantments yet
 	Item *item = getItem();
-	return item != nullptr && item->getEnchantmentValue() > 0 && getMaxStackSize() == 1 && !isEnchanted();
+	return item != nullptr && item->getMaxStackSize() == 1 && item->getMaxDamage() > 0 && !isEnchanted();
 }
 
 bool ItemInstance::isFoil() const

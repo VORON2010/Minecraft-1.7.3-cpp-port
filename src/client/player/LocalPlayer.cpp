@@ -1,4 +1,5 @@
 #include "client/gui/BrewingStandScreen.h"
+#include "client/gui/EnchantmentScreen.h"
 #include "world/level/tile/entity/BrewingStandTileEntity.h"
 #include "client/gui/WinScreen.h"
 #include "client/player/LocalPlayer.h"
@@ -269,6 +270,14 @@ void LocalPlayer::startBrewing(std::shared_ptr<BrewingStandTileEntity> stand)
 	auto menu = std::make_shared<ContainerBrewingStand>(inventory, stand);
 	craftingInventory = menu;
 	minecraft.setScreen(Util::make_shared<BrewingStandScreen>(minecraft, stand));
+	craftingInventory = std::move(menu);
+}
+
+void LocalPlayer::startEnchanting(int_t x, int_t y, int_t z)
+{
+	auto menu = std::make_shared<ContainerEnchantment>(inventory, level, x, y, z);
+	craftingInventory = menu;
+	minecraft.setScreen(Util::make_shared<EnchantmentScreen>(minecraft, menu));
 	craftingInventory = std::move(menu);
 }
 

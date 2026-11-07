@@ -1,4 +1,6 @@
 #include "world/level/tile/Tile.h"
+#include "world/item/Item.h"
+#include "world/item/enchantment/Enchantment.h"
 #include "world/level/tile/FurnaceTile.h"
 #include "world/level/tile/SlabTile.h"
 #include "world/level/tile/TNTTile.h"
@@ -105,6 +107,7 @@ StepSoundSand Tile::soundSandFootstep(u"sand", 1.0f, 1.0f);
 #include "world/level/tile/EndPortalTile.h"
 #include "world/level/tile/DragonEggTile.h"
 #include "world/level/tile/BrewingStandTile.h"
+#include "world/level/tile/EnchantmentTableTile.h"
 #include "world/level/material/DecorationMaterial.h"
 #include "world/level/tile/NetherWartTile.h"
 #include "world/level/tile/InfestedTile.h"
@@ -252,6 +255,7 @@ EndPortalFrameTile Tile::endPortalFrame = EndPortalFrameTile(120);
 Tile Tile::endStone = Tile(121, 175, Material::stone);
 DragonEggTile Tile::dragonEgg = DragonEggTile(122, 167);
 BrewingStandTile Tile::brewingStand = BrewingStandTile(117);
+EnchantmentTableTile Tile::enchantTable = EnchantmentTableTile(116);
 CauldronTile Tile::cauldron = CauldronTile(118);
 void Tile::initTiles()
 {
@@ -381,6 +385,7 @@ void Tile::initTiles()
 	endPortal.setLightEmission(15).setDestroyTime(-1.0f).setExplodeable(6000000.0f);
 	endPortalFrame.setSoundType(soundGlassFootstep).setLightEmission(1).setDestroyTime(-1.0f).setExplodeable(6000000.0f).setNotifyRenderOnDataChange();
 	endStone.setDestroyTime(3.0f).setExplodeable(15.0f).setSoundType(soundStoneFootstep);
+	enchantTable.setDestroyTime(5.0f).setExplodeable(2000.0f).setLightBlock(0);
 	brewingStand.setDestroyTime(0.5f).setLightEmission(1).setNotifyRenderOnDataChange();
 	cauldron.setDestroyTime(2.0f).setNotifyRenderOnDataChange();
 	dragonEgg.setDestroyTime(3.0f).setExplodeable(15.0f).setSoundType(soundStoneFootstep).setLightEmission(1);
@@ -492,6 +497,7 @@ void Tile::initTiles()
 	endStone.setDescriptionId(u"tile.whiteStone");
 	dragonEgg.setDescriptionId(u"tile.dragonEgg");
 	brewingStand.setDescriptionId(u"tile.brewingStand");
+	enchantTable.setDescriptionId(u"tile.enchantmentTable");
 	cauldron.setDescriptionId(u"tile.cauldron");
 	portal.setDescriptionId(u"tile.portal");
 	jackOLantern.setDescriptionId(u"tile.litpumpkin");
@@ -824,10 +830,20 @@ void Tile::spawnResources(Level &level, int_t x, int_t y, int_t z, int_t data)
 
 void Tile::spawnResources(Level &level, int_t x, int_t y, int_t z, int_t data, float chance)
 {
+	spawnResourcesBonus(level, x, y, z, data, chance, 0);
+}
+
+void Tile::spawnResourcesWithBonus(Level &level, int_t x, int_t y, int_t z, int_t data, int_t bonus)
+{
+	spawnResourcesBonus(level, x, y, z, data, 1.0f, bonus);
+}
+
+void Tile::spawnResourcesBonus(Level &level, int_t x, int_t y, int_t z, int_t data, float chance, int_t bonus)
+{
 	if (level.isOnline)
 		return;
 
-	int_t resourceCount = getResourceCount(level.random);
+	int_t resourceCount = getResourceCountForLootBonus(bonus, level.random);
 	for (int_t i = 0; i < resourceCount; ++i)
 	{
 		if (level.random.nextFloat() > chance)
@@ -1012,7 +1028,22 @@ void Tile::harvestBlock(Level &level, Player &player, int_t x, int_t y, int_t z,
 {
 	if (StatBase *stat = StatList::mineBlockStats[id])
 		player.addStat(*stat, 1);
-	spawnResources(level, x, y, z, data);
+	// 1.0 afterMinedByPlayer: silk touch drops the block itself, otherwise fortune adds drops
+	if (isCubeShaped() && !isEntityTile[id] && EnchantmentHelper::hasSilkTouch(player.inventory))
+	{
+		if (level.isOnline)
+			return;
+		int_t aux = Item::subtypeItems[id] ? data : 0;
+		float spread = 0.7f;
+		double xo = level.random.nextFloat() * spread + (1.0f - spread) * 0.5;
+		double yo = level.random.nextFloat() * spread + (1.0f - spread) * 0.5;
+		double zo = level.random.nextFloat() * spread + (1.0f - spread) * 0.5;
+		auto entity = std::make_shared<EntityItem>(level, x + xo, y + yo, z + zo, ItemInstance(id, 1, aux));
+		entity->throwTime = 10;
+		level.addEntity(entity);
+		return;
+	}
+	spawnResourcesWithBonus(level, x, y, z, data, EnchantmentHelper::getDiggingLootBonus(player.inventory));
 }
 
 

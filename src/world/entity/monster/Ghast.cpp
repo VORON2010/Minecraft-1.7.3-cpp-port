@@ -215,10 +215,10 @@ bool Ghast::isCourseTraversable(double x, double y, double z, double distance)
 // 1.0: ghast tears plus gunpowder
 void Ghast::dropDeathLoot()
 {
-	int_t count = random.nextInt(2);
+	int_t count = random.nextInt(2 + lootBonus);
 	for (int_t i = 0; i < count; i++)
 		spawnAtLocation(ItemInstance(Items::ghastTear->getShiftedIndex(), 1, 0), 0.0f);
-	count = random.nextInt(3);
+	count = random.nextInt(3 + lootBonus);
 	for (int_t i = 0; i < count; i++)
 		spawnAtLocation(ItemInstance(Items::gunpowder->getShiftedIndex(), 1, 0), 0.0f);
 }

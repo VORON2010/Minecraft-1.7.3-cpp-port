@@ -5,6 +5,7 @@
 class Spider : public Monster
 {
 public:
+	bool isArthropod() override { return true; }
 	Spider(Level &level);
 	jstring getEncodeId() const override { return u"Spider"; }
 	double getRideHeight() override;

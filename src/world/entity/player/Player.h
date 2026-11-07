@@ -46,6 +46,7 @@ public:
 	double xCloak = 0.0, yCloak = 0.0, zCloak = 0.0;
 
 	int_t dmgSpill = 0;
+	int_t enchantSpill = 0;
 	InventoryPlayer inventory = InventoryPlayer(this);
 	std::shared_ptr<Container> inventorySlots;
 	std::shared_ptr<Container> craftingInventory;
@@ -147,6 +148,7 @@ public:
 	void die(Entity *source) override;
 	bool hurt(Entity *source, int_t dmg) override;
 	void outOfWorld() override;
+	int_t decreaseAirSupply(int_t air) override;
 	virtual void changeDimension(int_t dimension) { (void)dimension; }
 
 protected:

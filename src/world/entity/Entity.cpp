@@ -11,6 +11,7 @@
 #include "util/Mth.h"
 
 Entity *Entity::damageProjectile = nullptr;
+int_t Entity::damageKind = 0;
 
 int_t Entity::entityCounter = 0;
 

@@ -1,4 +1,5 @@
 #include "client/gui/ContainerScreen.h"
+#include "world/item/enchantment/Enchantment.h"
 
 #include "client/Minecraft.h"
 #include "client/Options.h"
@@ -54,7 +55,10 @@ std::vector<jstring> ContainerScreen::getTooltipLines(const ItemInstance &stack,
 	std::vector<jstring> lines;
 	jstring name = getTooltipName(stack);
 	if (!name.empty())
-		lines.push_back(name);
+		lines.push_back(stack.isEnchanted() ? u"\u00a7b" + name : name);
+	for (const auto &e : stack.enchantments)
+		if (e.first >= 0 && e.first < 256 && Enchantment::enchantments[e.first] != nullptr)
+			lines.push_back(u"\u00a77" + Enchantment::enchantments[e.first]->getFullname(e.second));
 	if (Item *item = stack.getItem())
 		item->appendHoverText(stack, lines);
 
