@@ -51,6 +51,8 @@ int_t TreeTile::getTexture(Facing face, int_t data)
 		return 116;
 	if (type == BIRCH_TRUNK)
 		return 117;
+	if (type == 3)
+		return 153; // 1.2.4 jungle log
 	return 20;
 }
 

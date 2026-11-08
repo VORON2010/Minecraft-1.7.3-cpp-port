@@ -98,7 +98,7 @@ void MultiplayerGameMode::continueDestroyBlock(int_t x, int_t y, int_t z, Facing
 				if (std::fmod(destroyTicks, 4.0f) == 0.0f && tile != nullptr)
 				{
 					StepSound *sound = tile->soundType;
-					minecraft.soundEngine.play(sound->getStepResourcePath(),
+					minecraft.soundEngine.play(sound->getStepSound(),
 						static_cast<float>(x) + 0.5f, static_cast<float>(y) + 0.5f,
 						static_cast<float>(z) + 0.5f, (sound->getVolume() + 1.0f) / 8.0f,
 						sound->getPitch() * 0.5f);

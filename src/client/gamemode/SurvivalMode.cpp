@@ -82,7 +82,7 @@ void SurvivalMode::continueDestroyBlock(int_t x, int_t y, int_t z, Facing face)
 			if (tile.soundType != nullptr)
 			{
 				StepSound *ss = tile.soundType;
-				minecraft.soundEngine.play(ss->getStepResourcePath(),
+				minecraft.soundEngine.play(ss->getStepSound(),
 					(float)x + 0.5f, (float)y + 0.5f, (float)z + 0.5f,
 					(ss->getVolume() + 1.0f) / 8.0f, ss->getPitch() * 0.5f);
 			}

@@ -45,23 +45,43 @@ void Player::feed(int_t food, float saturationModifier)
 	foodSaturationLevel = std::min(std::max(foodSaturationLevel + (float)food * saturationModifier * 2.0f, 0.0f), (float)foodLevel);
 }
 
+// 1.5.2 PlayerEntity.increaseXp
 void Player::increaseXp(int_t amount)
 {
 	score += amount;
+	int_t room = 0x7FFFFFFF - totalExperience;
+	if (amount > room)
+		amount = room;
 	experienceProgress += static_cast<float>(amount) / static_cast<float>(getXpNeededForNextLevel());
 	totalExperience += amount;
 	while (experienceProgress >= 1.0f)
 	{
-		experienceProgress--;
-		experienceLevel++;
+		experienceProgress = (experienceProgress - 1.0f) * static_cast<float>(getXpNeededForNextLevel());
+		giveExperienceLevels(1);
+		experienceProgress /= static_cast<float>(getXpNeededForNextLevel());
+	}
+}
+
+void Player::giveExperienceLevels(int_t levels)
+{
+	experienceLevel += levels;
+	if (experienceLevel < 0)
+	{
+		experienceLevel = 0;
+		experienceProgress = 0.0f;
+		totalExperience = 0;
+	}
+	if (levels > 0 && experienceLevel % 5 == 0 && static_cast<float>(lastLevelUpTime) < static_cast<float>(tickCount) - 100.0f)
+	{
+		float volume = experienceLevel > 30 ? 1.0f : static_cast<float>(experienceLevel) / 30.0f;
+		level.playSoundAtEntity(*this, u"random.levelup", volume * 0.75f, 1.0f);
+		lastLevelUpTime = tickCount;
 	}
 }
 
 void Player::withdrawExperienceLevels(int_t levels)
 {
-	experienceLevel -= levels;
-	if (experienceLevel < 0)
-		experienceLevel = 0;
+	giveExperienceLevels(-levels);
 }
 
 void Player::addExhaustion(float exhaustion)

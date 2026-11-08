@@ -121,26 +121,45 @@ int_t LiquidTile::getTickDelay()
 	return &material == static_cast<const Material *>(&Material::water) ? 5 : 30;
 }
 
+// 1.5.2 LiquidBlock.randomDisplayTick
 void LiquidTile::animateTick(Level &level, int_t x, int_t y, int_t z, Random &random)
 {
-	if (&material == static_cast<const Material *>(&Material::water) && random.nextInt(64) == 0)
+	bool water = &material == static_cast<const Material *>(&Material::water);
+	bool lava = &material == static_cast<const Material *>(&Material::lava);
+	if (water && random.nextInt(10) == 0)
+	{
+		int_t data = level.getData(x, y, z);
+		if (data <= 0 || data >= 8)
+			level.addParticle(u"suspended", x + random.nextFloat(), y + random.nextFloat(), z + random.nextFloat(), 0.0, 0.0, 0.0);
+	}
+
+	if (water && random.nextInt(64) == 0)
 	{
 		int_t data = level.getData(x, y, z);
 		if (data > 0 && data < 8)
-			level.playSoundEffect(static_cast<double>(x) + 0.5, static_cast<double>(y) + 0.5, static_cast<double>(z) + 0.5, u"liquid.water", random.nextFloat() * 0.25f + 12.0f / 16.0f, random.nextFloat() + 0.5f);
+			level.playSoundEffect(x + 0.5f, y + 0.5f, z + 0.5f, u"liquid.water", random.nextFloat() * 0.25f + 0.75f, random.nextFloat() * 1.0f + 0.5f);
 	}
 
-	if (&material == static_cast<const Material *>(&Material::lava))
+	if (lava && &level.getMaterial(x, y + 1, z) == &Material::air && !level.isSolidTile(x, y + 1, z))
 	{
-		const Material &aboveMaterial = level.getMaterial(x, y + 1, z);
-		const Material &airMaterial = Material::air;
-		if (&aboveMaterial == &airMaterial && !level.isSolidTile(x, y + 1, z) && random.nextInt(100) == 0)
+		if (random.nextInt(100) == 0)
 		{
-			double px = static_cast<double>(x) + random.nextDouble();
-			double py = static_cast<double>(y) + yy1;
-			double pz = static_cast<double>(z) + random.nextDouble();
+			double px = x + random.nextFloat();
+			double py = y + yy1;
+			double pz = z + random.nextFloat();
 			level.addParticle(u"lava", px, py, pz, 0.0, 0.0, 0.0);
+			level.playSoundEffect(px, py, pz, u"liquid.lavapop", 0.2f + random.nextFloat() * 0.2f, 0.9f + random.nextFloat() * 0.15f);
 		}
+		if (random.nextInt(200) == 0)
+			level.playSoundEffect(x, y, z, u"liquid.lava", 0.2f + random.nextFloat() * 0.2f, 0.9f + random.nextFloat() * 0.15f);
+	}
+
+	if (random.nextInt(10) == 0 && level.isSolidTile(x, y - 1, z) && !level.getMaterial(x, y - 2, z).blocksMotion())
+	{
+		double px = x + random.nextFloat();
+		double py = y - 1.05;
+		double pz = z + random.nextFloat();
+		level.addParticle(water ? u"dripWater" : u"dripLava", px, py, pz, 0.0, 0.0, 0.0);
 	}
 }
 

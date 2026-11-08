@@ -81,7 +81,7 @@ bool GameMode::destroyBlock(int_t x, int_t y, int_t z, Facing face)
 		{
 			StepSound *ss = oldTile->soundType;
 			level.playSoundEffect((double)x + 0.5, (double)y + 0.5, (double)z + 0.5,
-				ss->stepSoundDir(), (ss->getVolume() + 1.0f) / 2.0f, ss->getPitch() * 0.8f);
+				ss->getBreakSound(), (ss->getVolume() + 1.0f) / 2.0f, ss->getPitch() * 0.8f);
 		}
 	}
 	return changed;
@@ -189,7 +189,7 @@ bool GameMode::useItemOn(std::shared_ptr<Player> &player, Level &level, ItemInst
 	{
 		StepSound *ss = placedTile->soundType;
 		level.playSoundEffect((double)placeX + 0.5, (double)placeY + 0.5, (double)placeZ + 0.5,
-			ss->getStepResourcePath(), (ss->getVolume() + 1.0f) / 2.0f, ss->getPitch() * 0.8f);
+			ss->getPlaceSound(), (ss->getVolume() + 1.0f) / 2.0f, ss->getPitch() * 0.8f);
 	}
 
 	item->stackSize--;

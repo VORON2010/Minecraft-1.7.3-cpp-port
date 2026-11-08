@@ -1,3 +1,4 @@
+#include <utility>
 #include "world/level/tile/Tile.h"
 #include "world/item/Item.h"
 #include "world/item/enchantment/Enchantment.h"
@@ -33,9 +34,12 @@ StepSound Tile::soundGravelFootstep(u"gravel", 1.0f, 1.0f);
 StepSound Tile::soundGrassFootstep(u"grass", 1.0f, 1.0f);
 StepSound Tile::soundStoneFootstep(u"stone", 1.0f, 1.0f);
 StepSound Tile::soundMetalFootstep(u"stone", 1.0f, 1.5f);
-StepSoundStone Tile::soundGlassFootstep(u"stone", 1.0f, 1.0f);
+StepSoundGlass Tile::soundGlassFootstep(u"stone", 1.0f, 1.0f);
 StepSound Tile::soundClothFootstep(u"cloth", 1.0f, 1.0f);
-StepSoundSand Tile::soundSandFootstep(u"sand", 1.0f, 1.0f);
+StepSound Tile::soundSandFootstep(u"sand", 1.0f, 1.0f);
+StepSound Tile::soundSnowFootstep(u"snow", 1.0f, 1.0f);
+StepSoundLadder Tile::soundLadderFootstep(u"ladder", 1.0f, 1.0f);
+StepSoundAnvil Tile::soundAnvilFootstep(u"anvil", 0.3f, 1.0f);
 
 
 #include "world/level/tile/StoneTile.h"
@@ -576,6 +580,138 @@ void Tile::initTiles()
 	lockedChest.setNotifyRenderOnDataChange();
 	trapdoor.setNotifyRenderOnDataChange();
 
+	applySoundGroups152();
+}
+
+void Tile::applySoundGroups152()
+{
+	static const std::pair<int_t, StepSound *> groups[] = {
+		{1, &soundStoneFootstep},
+		{2, &soundGrassFootstep},
+		{3, &soundGravelFootstep},
+		{4, &soundStoneFootstep},
+		{5, &soundWoodFootstep},
+		{6, &soundGrassFootstep},
+		{7, &soundStoneFootstep},
+		{12, &soundSandFootstep},
+		{13, &soundGravelFootstep},
+		{14, &soundStoneFootstep},
+		{15, &soundStoneFootstep},
+		{16, &soundStoneFootstep},
+		{17, &soundWoodFootstep},
+		{18, &soundGrassFootstep},
+		{19, &soundGrassFootstep},
+		{20, &soundGlassFootstep},
+		{21, &soundStoneFootstep},
+		{22, &soundStoneFootstep},
+		{23, &soundStoneFootstep},
+		{24, &soundStoneFootstep},
+		{27, &soundMetalFootstep},
+		{28, &soundMetalFootstep},
+		{31, &soundGrassFootstep},
+		{32, &soundGrassFootstep},
+		{37, &soundGrassFootstep},
+		{38, &soundGrassFootstep},
+		{39, &soundGrassFootstep},
+		{40, &soundGrassFootstep},
+		{41, &soundMetalFootstep},
+		{42, &soundMetalFootstep},
+		{43, &soundStoneFootstep},
+		{44, &soundStoneFootstep},
+		{45, &soundStoneFootstep},
+		{46, &soundGrassFootstep},
+		{47, &soundWoodFootstep},
+		{48, &soundStoneFootstep},
+		{49, &soundStoneFootstep},
+		{50, &soundWoodFootstep},
+		{51, &soundWoodFootstep},
+		{52, &soundMetalFootstep},
+		{54, &soundWoodFootstep},
+		{55, &soundPowderFootstep},
+		{56, &soundStoneFootstep},
+		{57, &soundMetalFootstep},
+		{58, &soundWoodFootstep},
+		{60, &soundGravelFootstep},
+		{61, &soundStoneFootstep},
+		{62, &soundStoneFootstep},
+		{63, &soundWoodFootstep},
+		{64, &soundWoodFootstep},
+		{65, &soundLadderFootstep},
+		{66, &soundMetalFootstep},
+		{68, &soundWoodFootstep},
+		{69, &soundWoodFootstep},
+		{70, &soundStoneFootstep},
+		{71, &soundMetalFootstep},
+		{72, &soundWoodFootstep},
+		{73, &soundStoneFootstep},
+		{74, &soundStoneFootstep},
+		{75, &soundWoodFootstep},
+		{76, &soundWoodFootstep},
+		{77, &soundStoneFootstep},
+		{78, &soundSnowFootstep},
+		{79, &soundGlassFootstep},
+		{80, &soundSnowFootstep},
+		{81, &soundClothFootstep},
+		{82, &soundGravelFootstep},
+		{83, &soundGrassFootstep},
+		{84, &soundStoneFootstep},
+		{85, &soundWoodFootstep},
+		{86, &soundWoodFootstep},
+		{87, &soundStoneFootstep},
+		{88, &soundSandFootstep},
+		{89, &soundGlassFootstep},
+		{90, &soundGlassFootstep},
+		{91, &soundWoodFootstep},
+		{92, &soundClothFootstep},
+		{93, &soundWoodFootstep},
+		{94, &soundWoodFootstep},
+		{95, &soundWoodFootstep},
+		{96, &soundWoodFootstep},
+		{98, &soundStoneFootstep},
+		{99, &soundWoodFootstep},
+		{100, &soundWoodFootstep},
+		{101, &soundMetalFootstep},
+		{102, &soundGlassFootstep},
+		{103, &soundWoodFootstep},
+		{104, &soundWoodFootstep},
+		{105, &soundWoodFootstep},
+		{106, &soundGrassFootstep},
+		{107, &soundWoodFootstep},
+		{110, &soundGrassFootstep},
+		{111, &soundGrassFootstep},
+		{112, &soundStoneFootstep},
+		{113, &soundStoneFootstep},
+		{120, &soundGlassFootstep},
+		{121, &soundStoneFootstep},
+		{122, &soundStoneFootstep},
+		{123, &soundGlassFootstep},
+		{124, &soundGlassFootstep},
+		{125, &soundWoodFootstep},
+		{126, &soundWoodFootstep},
+		{127, &soundWoodFootstep},
+		{129, &soundStoneFootstep},
+		{130, &soundStoneFootstep},
+		{133, &soundMetalFootstep},
+		{140, &soundPowderFootstep},
+		{143, &soundWoodFootstep},
+		{144, &soundStoneFootstep},
+		{145, &soundAnvilFootstep},
+		{146, &soundWoodFootstep},
+		{147, &soundWoodFootstep},
+		{148, &soundWoodFootstep},
+		{149, &soundWoodFootstep},
+		{150, &soundWoodFootstep},
+		{151, &soundWoodFootstep},
+		{152, &soundMetalFootstep},
+		{153, &soundStoneFootstep},
+		{154, &soundWoodFootstep},
+		{155, &soundStoneFootstep},
+		{157, &soundMetalFootstep},
+		{158, &soundStoneFootstep},
+	};
+	for (const auto &g : groups)
+		if (tiles[g.first] != nullptr)
+			tiles[g.first]->soundType = g.second;
 }
 
 Tile &Tile::setNotifyRenderOnDataChange()

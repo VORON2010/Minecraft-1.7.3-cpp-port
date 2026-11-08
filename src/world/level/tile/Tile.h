@@ -161,9 +161,14 @@ public:
 	static StepSound soundGrassFootstep;
 	static StepSound soundStoneFootstep;
 	static StepSound soundMetalFootstep;
-	static StepSoundStone soundGlassFootstep;
+	static StepSoundGlass soundGlassFootstep;
 	static StepSound soundClothFootstep;
-	static StepSoundSand soundSandFootstep;
+	static StepSound soundSandFootstep;
+	static StepSound soundSnowFootstep;
+	static StepSoundLadder soundLadderFootstep;
+	static StepSoundAnvil soundAnvilFootstep;
+	// 1.5.2 Block sound groups by block id
+	static void applySoundGroups152();
 
 	static StoneTile rock;
 	static GrassTile grass;

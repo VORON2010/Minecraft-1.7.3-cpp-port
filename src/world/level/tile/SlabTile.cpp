@@ -43,6 +43,8 @@ int_t SlabTile::getTexture(Facing face, int_t data)
 		return 7; // bricks
 	case 5:
 		return 54; // stone bricks
+	case 6:
+		return 224; // 1.4 nether brick
 	default:
 		return STONE_TOP_TEXTURE;
 	}

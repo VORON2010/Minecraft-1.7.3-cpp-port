@@ -102,3 +102,10 @@ void Skeleton::die(Entity *source)
 			player->triggerAchievement(*AchievementList::snipeSkeleton);
 	}
 }
+
+// 1.5.2 playStepSound
+void Skeleton::playStepSound(int_t x, int_t y, int_t z, int_t tile)
+{
+	(void)x; (void)y; (void)z; (void)tile;
+	level.playSoundAtEntity(*this, u"mob.skeleton.step", 0.15f, 1.0f);
+}

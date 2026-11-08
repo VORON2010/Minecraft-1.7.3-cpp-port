@@ -1,3 +1,5 @@
+#include "world/level/tile/WoodTile.h"
+#include "world/level/tile/SandStoneTile.h"
 #include "world/item/ItemEnderPearl.h"
 #include "world/item/ItemEnderEye.h"
 #include "world/level/tile/NetherWartTile.h"
@@ -15,6 +17,7 @@
 #include "world/item/ItemSpade.h"
 #include "world/item/ItemSpawnEgg.h"
 #include "world/item/ExperienceBottleItem.h"
+#include "world/item/FireChargeItem.h"
 #include "world/item/WrittenBookItem.h"
 #include "world/item/ItemSword.h"
 #include "world/item/ItemArmor.h"
@@ -130,6 +133,7 @@ namespace Items
 	Item *recordWait = nullptr;
 	Item *spawnEgg = nullptr;
 	Item *expBottle = nullptr;
+	Item *fireCharge = nullptr;
 	Item *writingBook = nullptr;
 	Item *writtenBook = nullptr;
 	Item *emerald = nullptr;
@@ -216,7 +220,7 @@ namespace Items
 		initialized = true;
 
 
-		for (int_t id : {Tile::sapling.id, Tile::treeTrunk.id, Tile::leaves.id, Tile::wool.id, 97, 98})
+		for (int_t id : {Tile::sapling.id, Tile::treeTrunk.id, Tile::leaves.id, Tile::wool.id, 97, 98, Tile::wood.id, Tile::sandstone.id})
 			Item::subtypeItems[id] = true;
 
 		flintAndSteel = new ItemFlintAndSteel(3);
@@ -450,6 +454,8 @@ namespace Items
 		spawnEgg->setIconIndex(153).setDescriptionId(u"item.monsterPlacer");
 		expBottle = new ExperienceBottleItem(128);
 		expBottle->setIconIndex(171).setDescriptionId(u"item.expBottle");
+		fireCharge = new FireChargeItem(129);
+		fireCharge->setIconIndex(46).setDescriptionId(u"item.fireball");
 		writingBook = new WritableBookItem(130);
 		writingBook->setIconIndex(187).setMaxStackSize(1).setDescriptionId(u"item.writingBook");
 		writtenBook = new WrittenBookItem(131);

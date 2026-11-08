@@ -135,6 +135,7 @@ namespace Items
 	extern Item *egg;
 	extern Item *spawnEgg;
 	extern Item *expBottle;
+	extern Item *fireCharge;
 	extern Item *writingBook;
 	extern Item *writtenBook;
 	extern Item *emerald;

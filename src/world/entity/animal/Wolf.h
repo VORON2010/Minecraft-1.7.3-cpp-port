@@ -16,6 +16,7 @@ private:
 	void showHeartsOrSmokeFX(bool hearts);
 
 public:
+	void playStepSound(int_t x, int_t y, int_t z, int_t tile) override;
 	bool isFood(const ItemInstance &item) const override { (void)item; return false; }
 	Wolf(Level &level);
 	void tick() override;

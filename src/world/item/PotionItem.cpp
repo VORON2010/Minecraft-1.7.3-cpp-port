@@ -207,7 +207,7 @@ bool TilePlanterItem::useOn(ItemInstance &stack, Player &player, Level &level, i
 		tile->setPlacedBy(level, x, y, z, player);
 	}
 	if (tile->soundType != nullptr)
-		level.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, tile->soundType->getStepResourcePath(), (tile->soundType->getVolume() + 1.0f) / 2.0f, tile->soundType->getPitch() * 0.8f);
+		level.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, tile->soundType->getPlaceSound(), (tile->soundType->getVolume() + 1.0f) / 2.0f, tile->soundType->getPitch() * 0.8f);
 	stack.stackSize--;
 	return true;
 }

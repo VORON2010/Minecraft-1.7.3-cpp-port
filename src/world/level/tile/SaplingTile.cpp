@@ -76,6 +76,7 @@ int_t SaplingTile::getTexture(Facing face, int_t data)
 	int_t type = data & 3;
 	if (type == 1) return 63;
 	if (type == 2) return 79;
+	if (type == 3) return 30; // jungle
 	return tex;
 }
 

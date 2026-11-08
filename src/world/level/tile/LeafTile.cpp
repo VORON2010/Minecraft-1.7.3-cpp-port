@@ -169,7 +169,10 @@ bool LeafTile::isSolidRender()
 
 int_t LeafTile::getTexture(Facing face, int_t data)
 {
-	return ((data & LEAF_TYPE_MASK) == SPRUCE_LEAF) ? (tex + 80) : tex;
+	// 1.4.7 LeavesBlock.getSprite: spruce +80, jungle +144
+	if ((data & 3) == 1)
+		return tex + 80;
+	return (data & 3) == 3 ? tex + 144 : tex;
 }
 
 void LeafTile::setFancy(bool fancy)

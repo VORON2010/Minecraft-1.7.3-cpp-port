@@ -31,7 +31,7 @@ bool ItemHoe::useOn(ItemInstance &stack, Player &player, Level &level, int_t x, 
 
 	StepSound *sound = farmlandTile->soundType;
 	level.playSoundEffect(static_cast<double>(x) + 0.5, static_cast<double>(y) + 0.5, static_cast<double>(z) + 0.5,
-		sound->getStepResourcePath(), (sound->getVolume() + 1.0f) / 2.0f, sound->getPitch() * 0.8f);
+		sound->getStepSound(), (sound->getVolume() + 1.0f) / 2.0f, sound->getPitch() * 0.8f);
 	if (level.isOnline)
 		return true;
 

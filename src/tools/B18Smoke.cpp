@@ -320,17 +320,18 @@ bool runB18Smoke(Level &level, Player &player, int_t baseY)
 	std::cerr << "block-smoke: b1.8 experience" << std::endl;
 	{
 		EffectPlayer xpPlayer(level);
-		ok &= check(xpPlayer.getXpNeededForNextLevel() == 7, "level 0 needs 7 xp");
-		xpPlayer.increaseXp(7);
-		ok &= check(xpPlayer.experienceLevel == 1 && xpPlayer.experienceProgress < 0.001f, "7 xp should reach level 1");
-		ok &= check(xpPlayer.getXpNeededForNextLevel() == 10, "level 1 needs 10 xp");
-		xpPlayer.increaseXp(5);
-		ok &= check(xpPlayer.experienceLevel == 1 && xpPlayer.experienceProgress > 0.49f && xpPlayer.experienceProgress < 0.51f, "5 of 10 xp is half a level");
+		// 1.5.2 getNextLevelExperience: 17 per level up to 15
+		ok &= check(xpPlayer.getXpNeededForNextLevel() == 17, "level 0 needs 17 xp");
+		xpPlayer.increaseXp(17);
+		ok &= check(xpPlayer.experienceLevel == 1 && xpPlayer.experienceProgress < 0.001f, "17 xp should reach level 1");
+		ok &= check(xpPlayer.getXpNeededForNextLevel() == 17, "level 1 needs 17 xp");
+		xpPlayer.increaseXp(8);
+		ok &= check(xpPlayer.experienceLevel == 1 && xpPlayer.experienceProgress > 0.46f && xpPlayer.experienceProgress < 0.48f, "8 of 17 xp is a bit under half a level");
 		CompoundTag saved;
 		xpPlayer.saveWithoutId(saved);
 		EffectPlayer loadedXp(level);
 		loadedXp.load(saved);
-		ok &= check(loadedXp.experienceLevel == 1 && loadedXp.totalExperience == 12, "experience should survive save/load");
+		ok &= check(loadedXp.experienceLevel == 1 && loadedXp.totalExperience == 25, "experience should survive save/load");
 
 		ok &= check(ExperienceOrb::getExperienceValue(5) == 3 && ExperienceOrb::getExperienceValue(20) == 17, "orb values should split like vanilla");
 

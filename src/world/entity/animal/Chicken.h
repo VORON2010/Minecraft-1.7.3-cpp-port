@@ -5,6 +5,7 @@
 class Chicken : public Animal
 {
 public:
+	void playStepSound(int_t x, int_t y, int_t z, int_t tile) override;
 	std::shared_ptr<Animal> getBreedOffspring(Animal &partner) override;
 	float flap = 0.0f;
 	float flapSpeed = 0.0f;

@@ -5,6 +5,7 @@
 class Spider : public Monster
 {
 public:
+	void playStepSound(int_t x, int_t y, int_t z, int_t tile) override;
 	bool isArthropod() override { return true; }
 	Spider(Level &level);
 	jstring getEncodeId() const override { return u"Spider"; }

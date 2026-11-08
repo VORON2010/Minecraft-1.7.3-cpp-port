@@ -84,7 +84,7 @@ bool ItemSlab::useOn(ItemInstance &stack, Player &player, Level &level, int_t x,
 		{
 			StepSound *ss = Tile::slabDouble.soundType;
 			level.playSoundEffect((double)placeX + 0.5, (double)(placeY - 1) + 0.5, (double)placeZ + 0.5,
-				ss->getStepResourcePath(), (ss->getVolume() + 1.0f) / 2.0f, ss->getPitch() * 0.8f);
+				ss->getPlaceSound(), (ss->getVolume() + 1.0f) / 2.0f, ss->getPitch() * 0.8f);
 		}
 		stack.stackSize--;
 		return true;
@@ -104,7 +104,7 @@ bool ItemSlab::useOn(ItemInstance &stack, Player &player, Level &level, int_t x,
 	{
 		StepSound *ss = Tile::slabSingle.soundType;
 		level.playSoundEffect((double)placeX + 0.5, (double)placeY + 0.5, (double)placeZ + 0.5,
-			ss->getStepResourcePath(), (ss->getVolume() + 1.0f) / 2.0f, ss->getPitch() * 0.8f);
+			ss->getPlaceSound(), (ss->getVolume() + 1.0f) / 2.0f, ss->getPitch() * 0.8f);
 	}
 	stack.stackSize--;
 	return true;

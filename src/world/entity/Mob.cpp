@@ -508,6 +508,9 @@ void Mob::causeFallDamage(float distance)
 	if (fallDamage <= 0)
 		return;
 
+	// 1.5.2: the landing thud depends on how hard the fall was
+	level.playSoundAtEntity(*this, fallDamage > 4 ? u"damage.fallbig" : u"damage.fallsmall", 1.0f, 1.0f);
+
 	Entity::damageKind = static_cast<int_t>(DamageKind::FALL);
 	hurt(nullptr, fallDamage);
 	Entity::damageKind = 0;
@@ -524,7 +527,7 @@ void Mob::causeFallDamage(float distance)
 		return;
 
 	StepSound *ss = landedTile->soundType;
-	level.playSoundAtEntity(*this, ss->getStepResourcePath(), ss->getVolume() * 0.5f, ss->getPitch() * 0.75f);
+	level.playSoundAtEntity(*this, ss->getStepSound(), ss->getVolume() * 0.5f, ss->getPitch() * 0.75f);
 }
 
 void Mob::travel(float x, float z)

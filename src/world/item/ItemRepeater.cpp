@@ -77,7 +77,7 @@ bool ItemRepeater::useOn(ItemInstance &stack, Player &player, Level &level, int_
 	{
 		StepSound *ss = placedTile.soundType;
 		level.playSoundEffect((double)placeX + 0.5, (double)placeY + 0.5, (double)placeZ + 0.5,
-			ss->getStepResourcePath(), (ss->getVolume() + 1.0f) / 2.0f, ss->getPitch() * 0.8f);
+			ss->getPlaceSound(), (ss->getVolume() + 1.0f) / 2.0f, ss->getPitch() * 0.8f);
 	}
 
 	stack.stackSize--;

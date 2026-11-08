@@ -42,3 +42,10 @@ int_t Zombie::getDeathLoot()
 {
 	return Items::rottenFlesh->getShiftedIndex();
 }
+
+// 1.5.2 playStepSound
+void Zombie::playStepSound(int_t x, int_t y, int_t z, int_t tile)
+{
+	(void)x; (void)y; (void)z; (void)tile;
+	level.playSoundAtEntity(*this, u"mob.zombie.step", 0.15f, 1.0f);
+}

@@ -1690,7 +1690,7 @@ void LevelRenderer::levelEvent(Player *player, int_t event, int_t x, int_t y, in
 		{
 			Tile *tile = Tile::tiles[tileId];
 			StepSound *sound = tile->soundType;
-			mc.soundEngine.play(sound->stepSoundDir(), static_cast<float>(x) + 0.5f, static_cast<float>(y) + 0.5f,
+			mc.soundEngine.play(sound->getBreakSound(), static_cast<float>(x) + 0.5f, static_cast<float>(y) + 0.5f,
 				static_cast<float>(z) + 0.5f, (sound->getVolume() + 1.0f) / 2.0f, sound->getPitch() * 0.8f);
 		}
 		mc.particleEngine.destroy(x, y, z, tileId, static_cast<int_t>((static_cast<uint_t>(data) >> 8) & 0xffU));

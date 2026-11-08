@@ -69,7 +69,11 @@ public:
 	int_t takeXpDelay = 0;
 	void increaseXp(int_t amount);
 	void withdrawExperienceLevels(int_t levels);
-	int_t getXpNeededForNextLevel() const { return 7 + (experienceLevel * 7 >> 1); }
+	// 1.5.2 getNextLevelExperience
+	int_t getXpNeededForNextLevel() const { return experienceLevel >= 30 ? 62 + (experienceLevel - 30) * 7 : (experienceLevel >= 15 ? 17 + (experienceLevel - 15) * 3 : 17); }
+	// 1.5.2 addXp(levels): the level-up chime every five levels
+	void giveExperienceLevels(int_t levels);
+	int_t lastLevelUpTime = 0;
 	int_t getExperienceReward() override { int_t xp = experienceLevel * 7; return xp > 100 ? 100 : xp; }
 	bool alwaysDropsExperience() override { return true; }
 

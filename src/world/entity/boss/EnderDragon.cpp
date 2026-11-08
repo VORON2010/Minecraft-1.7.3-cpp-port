@@ -99,6 +99,14 @@ void EnderDragon::aiStep()
 	else
 		flapTime += flapSpeed;
 
+	// 1.5.2: a wing beat sound each time the wings come down
+	{
+		float now = Mth::cos(flapTime * Mth::PI * 2.0f);
+		float before = Mth::cos(oFlapTime * Mth::PI * 2.0f);
+		if (before <= -0.3f && now >= -0.3f)
+			level.playSoundEffect(x, y, z, u"mob.enderdragon.wings", 5.0f, 0.8f + random.nextFloat() * 0.3f);
+	}
+
 	while (yRot >= 180.0f)
 		yRot -= 360.0f;
 	while (yRot < -180.0f)
@@ -419,6 +427,23 @@ bool EnderDragon::hurtPart(EnderDragonPart &part, Entity *source, int_t dmg, boo
 void EnderDragon::tickDeath()
 {
 	dragonDeathTime++;
+	// 1.5.2 global event 1018: everyone hears the death roar from the dragon's direction
+	if (dragonDeathTime == 1 && !level.isOnline)
+	{
+		for (const auto &p : level.players)
+		{
+			double dx = x - p->x, dy = y - p->y, dz = z - p->z;
+			double len = std::sqrt(dx * dx + dy * dy + dz * dz);
+			double px = p->x, py = p->y, pz = p->z;
+			if (len > 0.0)
+			{
+				px += dx / len * 2.0;
+				py += dy / len * 2.0;
+				pz += dz / len * 2.0;
+			}
+			level.playSoundEffect(px, py, pz, u"mob.enderdragon.end", 5.0f, 1.0f);
+		}
+	}
 	if (dragonDeathTime >= 180 && dragonDeathTime <= 200)
 	{
 		float ox = (random.nextFloat() - 0.5f) * 8.0f;
@@ -503,4 +528,19 @@ void EnderDragon::spawnExitPortal(int_t px, int_t pz)
 	level.setTile(px, py + 3, pz, Tile::bedrock.id);
 	level.setTile(px, py + 4, pz, Tile::dragonEgg.id);
 	EndPortalTile::forcePlace = false;
+}
+
+jstring EnderDragon::getAmbientSound()
+{
+	return u"mob.enderdragon.growl";
+}
+
+jstring EnderDragon::getHurtSound()
+{
+	return u"mob.enderdragon.hit";
+}
+
+float EnderDragon::getSoundVolume()
+{
+	return 5.0f;
 }

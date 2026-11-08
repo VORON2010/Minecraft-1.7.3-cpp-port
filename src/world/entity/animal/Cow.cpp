@@ -1,3 +1,4 @@
+#include "world/level/Level.h"
 #include "world/entity/animal/Cow.h"
 
 #include "world/entity/player/Player.h"
@@ -60,4 +61,11 @@ std::shared_ptr<Animal> Cow::getBreedOffspring(Animal &partner)
 {
 	(void)partner;
 	return std::make_shared<Cow>(level);
+}
+
+// 1.5.2 playStepSound
+void Cow::playStepSound(int_t x, int_t y, int_t z, int_t tile)
+{
+	(void)x; (void)y; (void)z; (void)tile;
+	level.playSoundAtEntity(*this, u"mob.cow.step", 0.15f, 1.0f);
 }

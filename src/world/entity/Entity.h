@@ -73,6 +73,7 @@ public:
 
 	float walkDistO = 0.0f;
 	float walkDist = 0.0f;
+	float moveDist = 0.0f;
 
 protected:
 	bool makeStepSound = true;
@@ -204,6 +205,7 @@ public:
 	virtual bool isInLava();
 	// 1.5.2 getSafeFallDistance
 	virtual int_t getMaxFallDistance() { return 3; }
+	virtual void playStepSound(int_t x, int_t y, int_t z, int_t tile);
 	Random &getRandom() { return random; }
 
 	void moveRelative(float x, float z, float acc);

@@ -469,3 +469,10 @@ jstring Wolf::getHurtSound() { return u"mob.wolf.hurt"; }
 jstring Wolf::getDeathSound() { return u"mob.wolf.death"; }
 float Wolf::getSoundVolume() { return 0.4f; }
 int_t Wolf::getDeathLoot() { return -1; }
+
+// 1.5.2 playStepSound
+void Wolf::playStepSound(int_t x, int_t y, int_t z, int_t tile)
+{
+	(void)x; (void)y; (void)z; (void)tile;
+	level.playSoundAtEntity(*this, u"mob.wolf.step", 0.15f, 1.0f);
+}

@@ -62,6 +62,9 @@ public:
 
 protected:
 	void tickDeath() override;
+	jstring getAmbientSound() override;
+	jstring getHurtSound() override;
+	float getSoundVolume() override;
 	void checkDespawn() override {}
 
 private:

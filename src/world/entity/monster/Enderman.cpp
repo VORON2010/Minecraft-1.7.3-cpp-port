@@ -59,9 +59,13 @@ std::shared_ptr<Entity> Enderman::findAttackTarget()
 	{
 		if (isLookingAtMe(*player))
 		{
+			// 1.5.2: a creepy sting the moment you look at it, then it gets angry
+			if (aggroTime == 0)
+				level.playSoundAtEntity(*player, u"mob.endermen.stare", 1.0f, 1.0f);
 			if (aggroTime++ == 5)
 			{
 				aggroTime = 0;
+				creepy = true;
 				return std::static_pointer_cast<Entity>(player);
 			}
 		}
@@ -281,7 +285,7 @@ bool Enderman::hurt(Entity *source, int_t damage)
 
 jstring Enderman::getAmbientSound()
 {
-	return u"mob.endermen.idle";
+	return creepy ? u"mob.endermen.scream" : u"mob.endermen.idle";
 }
 
 jstring Enderman::getHurtSound()

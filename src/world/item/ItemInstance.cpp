@@ -1,3 +1,6 @@
+#include "util/Mth.h"
+#include "java/Math.h"
+#include "world/phys/Vec3.h"
 #include "world/item/ItemInstance.h"
 #include "world/item/Items.h"
 #include "world/level/Level.h"
@@ -283,6 +286,22 @@ void ItemInstance::damageItem(int_t amount, Entity &entity)
 	itemDamage += amount;
 	if (itemDamage > maxDamage)
 	{
+		// 1.5.2 onBrokenItem: snap sound and item shards
+		if (auto *mob = dynamic_cast<Mob *>(&entity))
+		{
+			Level &level = mob->level;
+			level.playSoundAtEntity(*mob, u"random.break", 0.8f, 0.8f + level.random.nextFloat() * 0.4f);
+			for (int_t i = 0; i < 5; ++i)
+			{
+				Vec3 *speed = Vec3::newTemp((mob->getRandom().nextFloat() - 0.5) * 0.1, Math::random() * 0.1 + 0.1, 0.0);
+				speed->xRot(-mob->xRot * Mth::PI / 180.0f);
+				speed->yRot(-mob->yRot * Mth::PI / 180.0f);
+				Vec3 *pos = Vec3::newTemp((mob->getRandom().nextFloat() - 0.5) * 0.3, -mob->getRandom().nextFloat() * 0.6 - 0.3, 0.6);
+				pos->xRot(-mob->xRot * Mth::PI / 180.0f);
+				pos->yRot(-mob->yRot * Mth::PI / 180.0f);
+				level.addParticle(u"iconcrack_" + String::toString(static_cast<int_t>(itemID)), pos->x + mob->x, pos->y + mob->y + mob->getHeadHeight(), pos->z + mob->z, speed->x, speed->y + 0.05, speed->z);
+			}
+		}
 		if (auto *player = dynamic_cast<Player *>(&entity))
 		{
 			if (StatBase *stat = StatList::breakItemStats[itemID])

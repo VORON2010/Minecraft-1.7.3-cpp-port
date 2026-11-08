@@ -8,6 +8,8 @@ private:
 	bool fullBlock = false;
 
 public:
+	// highest data value a stone slab can have (1.4.7: 6 nether brick)
+	static constexpr int_t MAX_STONE_DATA = 6;
 	SlabTile(int_t id, bool fullBlock);
 
 	int_t getTexture(Facing face, int_t data) override;

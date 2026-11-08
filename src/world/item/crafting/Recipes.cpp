@@ -435,6 +435,10 @@ Recipes::Recipes()
 	addShapedRecipe(ItemInstance(Tile::slabSingle.id, 3, 2), {"###"}, {{'#', ItemInstance(Tile::wood.id, 1, -1)}});
 	addShapedRecipe(ItemInstance(Tile::slabSingle.id, 3, 4), {"###"}, {{'#', ItemInstance(Tile::brick.id, 1, -1)}});
 	addShapedRecipe(ItemInstance(Tile::slabSingle.id, 3, 5), {"###"}, {{'#', ItemInstance(Tile::stoneBrick.id, 1, -1)}});
+	addShapedRecipe(ItemInstance(Tile::slabSingle.id, 6, 6), {"###"}, {{'#', ItemInstance(Tile::netherBrick.id, 1, -1)}});
+	// 1.5.2 sandstone variants
+	addShapedRecipe(ItemInstance(Tile::sandstone.id, 1, 1), {"#", "#"}, {{'#', ItemInstance(Tile::slabSingle.id, 1, 1)}});
+	addShapedRecipe(ItemInstance(Tile::sandstone.id, 4, 2), {"##", "##"}, {{'#', ItemInstance(Tile::sandstone.id, 1, 0)}});
 	addShapedRecipe(ItemInstance(Tile::ladder.id, 2, 0), {"# #", "###", "# #"}, {
 		{'#', stick}
 	});
@@ -460,7 +464,9 @@ Recipes::Recipes()
 	addShapedRecipe(ItemInstance(Items::sugar->getShiftedIndex(), 1, 0), {"#"}, {
 		{'#', ItemInstance(Items::reed->getShiftedIndex(), 1, 0)}
 	});
-	addShapedRecipe(ItemInstance(Tile::wood.id, 4, 0), {"#"}, {{'#', ItemInstance(Tile::treeTrunk.id, 1, -1)}});
+	// 1.5.2: each log gives its own planks
+	for (int_t type = 0; type < 4; ++type)
+		addShapedRecipe(ItemInstance(Tile::wood.id, 4, type), {"#"}, {{'#', ItemInstance(Tile::treeTrunk.id, 1, type)}});
 	addShapedRecipe(ItemInstance(Items::stick->getShiftedIndex(), 4, 0), {"#", "#"}, {{'#', ItemInstance(Tile::wood.id, 1, -1)}});
 	addShapedRecipe(ItemInstance(Tile::torch.id, 4, 0), {"X", "#"}, {
 		{'X', ItemInstance(Items::coal->getShiftedIndex(), 1, 0)},

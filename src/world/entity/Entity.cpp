@@ -1,3 +1,4 @@
+#include "world/level/tile/LadderTile.h"
 #include "world/entity/Entity.h"
 
 #include "world/entity/item/EntityItem.h"
@@ -136,7 +137,7 @@ void Entity::baseTick()
 			float splashVolume = Mth::sqrt(xd * xd * 0.2f + yd * yd + zd * zd * 0.2f) * 0.2f;
 			if (splashVolume > 1.0f)
 				splashVolume = 1.0f;
-			level.playSoundAtEntity(*this, u"random.splash", splashVolume, 1.0f + (random.nextFloat() - random.nextFloat()) * 0.4f);
+			level.playSoundAtEntity(*this, u"liquid.splash", splashVolume, 1.0f + (random.nextFloat() - random.nextFloat()) * 0.4f);
 
 			float waterY = static_cast<float>(Mth::floor(bb.y0));
 			for (int_t i = 0; i < static_cast<int_t>(1.0f + bbWidth * 20.0f); i++)
@@ -266,6 +267,7 @@ void Entity::move(double xd, double yd, double zd)
 	}
 
 	double ox = x;
+	double oy = y;
 	double oz = z;
 	double oxd = xd;
 	double oyd = yd;
@@ -402,28 +404,40 @@ void Entity::move(double xd, double yd, double zd)
 	double fdx = x - ox;
 	double fdz = z - oz;
 
-	if (makeStepSound && !sneaking && !isFlying)
+	double fdy = y - oy;
+	// 1.5.2 Entity.move: footsteps every block moved, ladders count height, fences below count
+	if (makeStepSound && !sneaking && !isFlying && riding == nullptr)
 	{
-		walkDist = static_cast<float>(walkDist + Mth::sqrt(fdx * fdx + fdz * fdz) * 0.6);
-
 		int_t sx = Mth::floor(x);
 		int_t sy = Mth::floor(y - 0.2 - heightOffset);
 		int_t sz = Mth::floor(z);
-
 		int_t stile = level.getTile(sx, sy, sz);
-		if (walkDist > nextStep && stile > 0)
+		if (stile == 0)
 		{
-			nextStep++;
-
-			if (Tile::tiles[stile]->soundType != nullptr)
+			int_t below = level.getTile(sx, sy - 1, sz);
+			if (below > 0 && Tile::tiles[below] != nullptr)
 			{
-				StepSound *ss = Tile::tiles[stile]->soundType;
-
-				int_t aboveTile = level.getTile(sx, Mth::floor(y), sz);
-				if (aboveTile == Tile::snow.id)
-					ss = Tile::snow.soundType;
-				level.playSoundAtEntity(*this, ss->getStepResourcePath(), ss->getVolume() * 0.15f, ss->getPitch());
+				int_t shape = Tile::tiles[below]->getRenderShape();
+				if (shape == Tile::SHAPE_FENCE || shape == 32 || shape == Tile::SHAPE_FENCE_GATE)
+					stile = below;
 			}
+		}
+		if (stile != Tile::ladder.id)
+			fdy = 0.0;
+
+		walkDist = static_cast<float>(walkDist + Mth::sqrt(fdx * fdx + fdz * fdz) * 0.6);
+		moveDist = static_cast<float>(moveDist + Mth::sqrt(fdx * fdx + fdy * fdy + fdz * fdz) * 0.6);
+		if (moveDist > nextStep && stile > 0)
+		{
+			nextStep = static_cast<int_t>(moveDist) + 1;
+			if (isInWater())
+			{
+				float volume = Mth::sqrt(xd * xd * 0.2 + yd * yd + zd * zd * 0.2) * 0.35f;
+				if (volume > 1.0f)
+					volume = 1.0f;
+				level.playSoundAtEntity(*this, u"liquid.swim", volume, 1.0f + (random.nextFloat() - random.nextFloat()) * 0.4f);
+			}
+			playStepSound(sx, sy, sz, stile);
 			Tile::tiles[stile]->stepOn(level, sx, sy, sz, *this);
 		}
 	}
@@ -453,6 +467,21 @@ void Entity::move(double xd, double yd, double zd)
 	}
 
 	ySlideOffset *= 0.4f;
+}
+
+// 1.5.2 Entity.playStepSound
+void Entity::playStepSound(int_t x, int_t y, int_t z, int_t tile)
+{
+	StepSound *ss = Tile::tiles[tile]->soundType;
+	if (ss == nullptr)
+		return;
+	if (level.getTile(x, y + 1, z) == Tile::snow.id)
+	{
+		ss = Tile::snow.soundType;
+		level.playSoundAtEntity(*this, ss->getStepSound(), ss->getVolume() * 0.15f, ss->getPitch());
+	}
+	else if (!Tile::tiles[tile]->material.isLiquid())
+		level.playSoundAtEntity(*this, ss->getStepSound(), ss->getVolume() * 0.15f, ss->getPitch());
 }
 
 void Entity::checkFallDamage(double yd, bool onGround)

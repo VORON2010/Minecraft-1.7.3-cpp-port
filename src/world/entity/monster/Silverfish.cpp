@@ -136,3 +136,10 @@ float Silverfish::getWalkTargetValue(int_t x, int_t y, int_t z)
 {
 	return level.getTile(x, y - 1, z) == Tile::rock.id ? 10.0f : Monster::getWalkTargetValue(x, y, z);
 }
+
+// 1.5.2 playStepSound
+void Silverfish::playStepSound(int_t x, int_t y, int_t z, int_t tile)
+{
+	(void)x; (void)y; (void)z; (void)tile;
+	level.playSoundAtEntity(*this, u"mob.silverfish.step", 0.15f, 1.0f);
+}

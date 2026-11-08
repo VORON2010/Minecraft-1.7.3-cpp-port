@@ -168,6 +168,9 @@ void EntityArrow::tick()
 				damage += random.nextInt(damage / 2 + 2);
 			Entity::damageProjectile = this;
 			bool damaged = hit.entity->hurt(damageSource != nullptr ? damageSource : this, damage);
+			// 1.5.2: the shooter hears a ding when an arrow hits another player
+			if (damaged && dynamic_cast<Player *>(hit.entity.get()) != nullptr && dynamic_cast<Player *>(ownerRef.get()) != nullptr && hit.entity != ownerRef)
+				level.playSoundEffect(ownerRef->x, ownerRef->y + ownerRef->getHeadHeight(), ownerRef->z, u"random.successful_hit", 0.18f, 0.45f);
 			Entity::damageProjectile = nullptr;
 			if (damaged)
 			{

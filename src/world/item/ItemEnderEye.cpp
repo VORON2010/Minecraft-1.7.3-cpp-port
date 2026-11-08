@@ -34,6 +34,8 @@ bool ItemEnderEye::useOn(ItemInstance &stack, Player &player, Level &level, int_
 		return true;
 
 	level.setData(x, y, z, data + 4);
+	// 1.5.2 has no sound here; the frame's stone placing sound so the click is heard
+	level.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, u"dig.stone", 1.0f, 0.8f + level.random.nextFloat() * 0.2f);
 	stack.stackSize--;
 	for (int_t i = 0; i < 16; i++)
 	{

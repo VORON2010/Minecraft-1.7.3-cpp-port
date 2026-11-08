@@ -23,6 +23,7 @@ bool Sheep::interact(Player &player)
 		if (!level.isOnline)
 		{
 			setSheared(true);
+			level.playSoundAtEntity(*this, u"mob.sheep.shear", 1.0f, 1.0f);
 			int_t count = 2 + random.nextInt(3);
 			for (int_t i = 0; i < count; ++i)
 			{
@@ -118,4 +119,11 @@ std::shared_ptr<Animal> Sheep::getBreedOffspring(Animal &partner)
 	Sheep *other = dynamic_cast<Sheep *>(&partner);
 	child->setFleeceColor(random.nextBoolean() || other == nullptr ? getFleeceColor() : other->getFleeceColor());
 	return child;
+}
+
+// 1.5.2 playStepSound
+void Sheep::playStepSound(int_t x, int_t y, int_t z, int_t tile)
+{
+	(void)x; (void)y; (void)z; (void)tile;
+	level.playSoundAtEntity(*this, u"mob.sheep.step", 0.15f, 1.0f);
 }
