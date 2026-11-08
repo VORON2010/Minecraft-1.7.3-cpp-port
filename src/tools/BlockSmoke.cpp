@@ -635,7 +635,7 @@ int runBlockSmoke()
 		ok &= expect(Tile::lockedChest.getTexture(Facing::SOUTH, 0) == 27, "locked chest default front should use the beta latch texture");
 		ok &= expect(Tile::lockedChest.descriptionId == u"tile.lockedchest", "locked chest should use the lockedchest localization key");
 		ok &= expect(Tile::chest.descriptionId == u"tile.chest", "chest should use the chest localization key");
-		ok &= expect(Tile::lightBlock[54] == 255, "chest should fully block light as a full cube (b173 parity)");
+		ok &= expect(Tile::lightBlock[54] == 0, "1.4.7: the chest model is not a full cube and lets light through");
 		ok &= expect(Items::minecartChest->getShiftedIndex() == 342, "chest minecart item should use the beta shifted id 342");
 		ok &= expect(ItemInstance(Items::minecartChest->getShiftedIndex(), 1, 0).getIcon() == 151, "chest minecart item should use the beta chest minecart icon");
 		GridCraftingContainer chestRecipe{};
