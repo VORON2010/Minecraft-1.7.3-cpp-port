@@ -6,6 +6,7 @@
 class FenceGateTile : public Tile
 {
 public:
+	bool isPathfindable(LevelSource &level, int_t x, int_t y, int_t z) override;
 	FenceGateTile(int_t id, int_t tex);
 
 	bool mayPlace(Level &level, int_t x, int_t y, int_t z) override;

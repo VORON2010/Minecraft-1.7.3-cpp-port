@@ -82,7 +82,7 @@ void ItemRenderer::render(Entity &entity, double x, double y, double z, float ro
 	{
 		glScalef(0.5f, 0.5f, 0.5f);
 		int_t icon = item.getIcon();
-		bool potion = item.getItem() != nullptr && item.getItem() == Items::potion;
+		bool layered = item.getItem() != nullptr && item.getItem()->hasMultipleLayers();
 		if (item.itemID < 256)
 			bindTexture(u"/terrain.png");
 		else
@@ -104,29 +104,36 @@ void ItemRenderer::render(Entity &entity, double x, double y, double z, float ro
 					(random.nextFloat() * 2.0f - 1.0f) * 0.3f,
 					(random.nextFloat() * 2.0f - 1.0f) * 0.3f);
 			glRotatef(180.0f - entityRenderDispatcher.playerRotY, 0.0f, 1.0f, 0.0f);
-			if (potion)
+			if (layered)
 			{
-				// 1.0: tinted liquid layer under the bottle
-				int_t col = item.getItem()->getColor(item.getAuxValue());
-				glColor4f(((col >> 16) & 255) / 255.0f, ((col >> 8) & 255) / 255.0f, (col & 255) / 255.0f, 1.0f);
-				float pu0 = (141 % 16 * 16) / 256.0f, pu1 = (141 % 16 * 16 + 16) / 256.0f;
-				float pv0 = (141 / 16 * 16) / 256.0f, pv1 = (141 / 16 * 16 + 16) / 256.0f;
-				t.begin();
-				t.normal(0.0f, 1.0f, 0.0f);
-				t.vertexUV(0.0f - xo, 0.0f - yo, 0.0, pu0, pv1);
-				t.vertexUV(1.0f - xo, 0.0f - yo, 0.0, pu1, pv1);
-				t.vertexUV(1.0f - xo, 1.0f - yo, 0.0, pu1, pv0);
-				t.vertexUV(0.0f - xo, 1.0f - yo, 0.0, pu0, pv0);
-				t.end();
+				// 1.4.7 requiresMultipleRenderPasses: each layer with its own icon and tint
+				for (int_t layer = 0; layer <= 1; ++layer)
+				{
+					int_t li = item.getItem()->getLayerIcon(item, layer);
+					int_t col = item.getItem()->getLayerColor(item, layer);
+					glColor4f(((col >> 16) & 255) / 255.0f, ((col >> 8) & 255) / 255.0f, (col & 255) / 255.0f, 1.0f);
+					float pu0 = (li % 16 * 16) / 256.0f, pu1 = (li % 16 * 16 + 16) / 256.0f;
+					float pv0 = (li / 16 * 16) / 256.0f, pv1 = (li / 16 * 16 + 16) / 256.0f;
+					t.begin();
+					t.normal(0.0f, 1.0f, 0.0f);
+					t.vertexUV(0.0f - xo, 0.0f - yo, 0.0, pu0, pv1);
+					t.vertexUV(1.0f - xo, 0.0f - yo, 0.0, pu1, pv1);
+					t.vertexUV(1.0f - xo, 1.0f - yo, 0.0, pu1, pv0);
+					t.vertexUV(0.0f - xo, 1.0f - yo, 0.0, pu0, pv0);
+					t.end();
+				}
 				glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 			}
-			t.begin();
-			t.normal(0.0f, 1.0f, 0.0f);
-			t.vertexUV(0.0f - xo, 0.0f - yo, 0.0, u0, v1);
-			t.vertexUV(1.0f - xo, 0.0f - yo, 0.0, u1, v1);
-			t.vertexUV(1.0f - xo, 1.0f - yo, 0.0, u1, v0);
-			t.vertexUV(0.0f - xo, 1.0f - yo, 0.0, u0, v0);
-			t.end();
+			else
+			{
+				t.begin();
+				t.normal(0.0f, 1.0f, 0.0f);
+				t.vertexUV(0.0f - xo, 0.0f - yo, 0.0, u0, v1);
+				t.vertexUV(1.0f - xo, 0.0f - yo, 0.0, u1, v1);
+				t.vertexUV(1.0f - xo, 1.0f - yo, 0.0, u1, v0);
+				t.vertexUV(0.0f - xo, 1.0f - yo, 0.0, u0, v0);
+				t.end();
+			}
 			glPopMatrix();
 		}
 	}
@@ -164,17 +171,20 @@ void ItemRenderer::renderGuiItem(Font &font, Textures &textures, ItemInstance &i
 		tileRenderer.renderGuiTile(*tile, item.getAuxValue());
 		glPopMatrix();
 	}
-	else if (itemType != nullptr && itemType == Items::potion)
+	else if (itemType != nullptr && itemType->hasMultipleLayers())
 	{
-		// 1.0: the liquid overlay (141) takes the potion colour, the bottle is drawn over it
+		// 1.4.7 renderGuiItem for layered items (potions, spawn eggs)
 		glDisable(GL_LIGHTING);
 		textures.bind(textures.loadTexture(u"/gui/items.png"));
-		if (renderWithColor)
-			glColor4f(r, g, b, 1.0f);
-		blit(x, y, 141 % 16 * 16, 141 / 16 * 16, 16, 16);
-		if (renderWithColor)
-			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-		blit(x, y, item.getIcon() % 16 * 16, item.getIcon() / 16 * 16, 16, 16);
+		for (int_t layer = 0; layer <= 1; ++layer)
+		{
+			int_t icon = itemType->getLayerIcon(item, layer);
+			int_t col = itemType->getLayerColor(item, layer);
+			if (renderWithColor)
+				glColor4f(((col >> 16) & 255) / 255.0f, ((col >> 8) & 255) / 255.0f, (col & 255) / 255.0f, 1.0f);
+			blit(x, y, icon % 16 * 16, icon / 16 * 16, 16, 16);
+		}
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 		glEnable(GL_LIGHTING);
 	}
 	else if (item.getIcon() >= 0)

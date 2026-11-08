@@ -13,6 +13,8 @@
 #include "nbt/NbtIo.h"
 
 #include "world/level/MapDataBase.h"
+#include "world/village/Village.h"
+#include "world/entity/ai/PathNavigation.h"
 #include "world/level/chunk/ChunkCache.h"
 #include "world/level/Region.h"
 #include "world/level/pathfinder/Pathfinder.h"
@@ -2726,6 +2728,47 @@ void Level::tick()
 
 	tickPendingTicks(false);
 	tickTiles();
+
+	// 1.5.2 ServerWorld.tick: "village"
+	if (!isOnline)
+		getVillages().tick();
+}
+
+Villages &Level::getVillages()
+{
+	if (villages != nullptr)
+		return *villages;
+	if (dimension != nullptr && dimension->id == 0 && dir != nullptr)
+	{
+		MapDataBase *loaded = loadItemData(u"villages", [](const jstring &id) -> std::unique_ptr<MapDataBase> {
+			return std::make_unique<Villages>(id);
+		});
+		villages = dynamic_cast<Villages *>(loaded);
+		if (villages == nullptr)
+		{
+			villages = new Villages(*this);
+			setItemData(u"villages", villages);
+		}
+	}
+	else
+	{
+		ownVillages = std::make_shared<Villages>(*this);
+		villages = ownVillages.get();
+	}
+	villages->setLevel(*this);
+	return *villages;
+}
+
+std::shared_ptr<NavPath> Level::findPath(Entity &from, Entity &to, float maxDist, bool passDoors, bool openDoors, bool avoidWater, bool canFloat)
+{
+	NodePathFinder finder(*this, passDoors, openDoors, avoidWater, canFloat);
+	return finder.findPath(from, to, maxDist);
+}
+
+std::shared_ptr<NavPath> Level::findPath(Entity &from, int_t x, int_t y, int_t z, float maxDist, bool passDoors, bool openDoors, bool avoidWater, bool canFloat)
+{
+	NodePathFinder finder(*this, passDoors, openDoors, avoidWater, canFloat);
+	return finder.findPath(from, x, y, z, maxDist);
 }
 
 void Level::updateAllPlayersSleepingFlag()

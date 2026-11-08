@@ -1,3 +1,4 @@
+#include "world/entity/EntityIO.h"
 #include "pc/OpenGL.h"
 #include "world/item/enchantment/Enchantment.h"
 #include "world/level/tile/AnvilTile.h"
@@ -66,8 +67,15 @@ CreativeInventoryScreen::CreativeInventoryScreen(Minecraft &mc) : Screen(mc) {
         allItems.emplace_back(tile->id, 1, data);
     }
     for (int_t i = 256; i < static_cast<int_t>(Item::items.size()); i++) {
-        if (Item::items[i] != nullptr)
-            allItems.emplace_back(i, 1, 0);
+        if (Item::items[i] == nullptr)
+            continue;
+        if (Item::items[i] == Items::spawnEgg) {
+            // 1.5.2 SpawnEggItem.addToCreativeMenu: one egg per mob
+            for (const EntityIO::SpawnEggData &egg : EntityIO::getSpawnEggs())
+                allItems.emplace_back(i, 1, egg.id);
+            continue;
+        }
+        allItems.emplace_back(i, 1, 0);
     }
     for (int_t d = 1; d < 16; d++)
         allItems.emplace_back(Items::dyePowder->getShiftedIndex(), 1, d);

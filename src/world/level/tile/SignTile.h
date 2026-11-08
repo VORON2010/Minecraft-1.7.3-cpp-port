@@ -8,6 +8,7 @@ private:
 	bool freestanding;
 
 public:
+	bool isPathfindable(LevelSource &level, int_t x, int_t y, int_t z) override;
 	SignTile(int_t id, bool freestanding);
 
 	bool isSolidRender() override;

@@ -225,3 +225,14 @@ void EnchantedBookItem::addEnchantment(ItemInstance &stack, int_t id, int_t leve
 	}
 	stack.storedEnchantments.emplace_back(static_cast<short_t>(id), static_cast<short_t>(level));
 }
+
+// 1.4.7: layer 0 is the liquid (141) in the potion colour, layer 1 the bottle
+int_t PotionItem::getLayerIcon(const ItemInstance &stack, int_t layer) const
+{
+	return layer == 0 ? 141 : getIcon(stack);
+}
+
+int_t PotionItem::getLayerColor(const ItemInstance &stack, int_t layer) const
+{
+	return layer > 0 ? 0xFFFFFF : getColor(stack.getAuxValue());
+}

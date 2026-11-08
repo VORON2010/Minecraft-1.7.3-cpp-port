@@ -520,7 +520,7 @@ int runBlockSmoke()
 		ok &= expect(overflowValueThrew, "overflowing Beta stats values should propagate without returning a partial map");
 		ok &= expect(Items::reed->getDescriptionId() == u"item.reeds" &&
 			Items::minecartPowered->getDescriptionId() == u"item.minecartFurnace" &&
-			Items::diamond->getDescriptionId() == u"item.emerald" &&
+			Items::diamond->getDescriptionId() == u"item.diamond" &&
 			Tile::deadBush.descriptionId == u"tile.deadbush",
 			"corrected item and tile description ids should match Beta 1.7.3");
 		ok &= expect(Tile::lightBlock[65] == 0, "ladder should stay transparent for light sampling like beta");

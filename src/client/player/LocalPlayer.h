@@ -19,6 +19,8 @@ class CompoundContainer;
 class IInventory;
 class SignTileEntity;
 class BrewingStandTileEntity;
+class Merchant;
+
 class LocalPlayer : public Player
 {
 public:
@@ -65,6 +67,8 @@ public:
 	void startBrewing(std::shared_ptr<BrewingStandTileEntity> stand);
 	void startEnchanting(int_t x, int_t y, int_t z);
 	void startRepairing(int_t x, int_t y, int_t z);
+	// 1.5.2 openTraderMenu
+	void startTrading(Merchant &merchant, const jstring &name);
 	void startDispenser(std::shared_ptr<DispenserTileEntity> dispenser);
 	void openTextEdit(std::shared_ptr<SignTileEntity> sign);
 	

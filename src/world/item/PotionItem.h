@@ -25,6 +25,9 @@ public:
 	int_t getUseDuration(const ItemInstance &stack) const override { (void)stack; return 32; }
 	int_t getIcon(const ItemInstance &stack) const override;
 	int_t getColor(int_t data) const override;
+	bool hasMultipleLayers() const override { return true; }
+	int_t getLayerIcon(const ItemInstance &stack, int_t layer) const override;
+	int_t getLayerColor(const ItemInstance &stack, int_t layer) const override;
 	jstring getHoverName(const ItemInstance &stack) const override;
 	void appendHoverText(const ItemInstance &stack, std::vector<jstring> &lines) const override;
 	bool isFoil(const ItemInstance &stack) const override;

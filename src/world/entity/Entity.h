@@ -202,6 +202,9 @@ public:
 	virtual float getHeadHeight();
 
 	virtual bool isInLava();
+	// 1.5.2 getSafeFallDistance
+	virtual int_t getMaxFallDistance() { return 3; }
+	Random &getRandom() { return random; }
 
 	void moveRelative(float x, float z, float acc);
 

@@ -1462,6 +1462,21 @@ void LevelRenderer::addParticle(const jstring &name, double x, double y, double 
 		mc.particleEngine.add(std::make_unique<ItemParticle>(*level, x, y, z, *Items::slimeball));
 	else if (name == u"heart")
 		mc.particleEngine.add(std::make_unique<HeartParticle>(*level, x, y, z, xa, ya, za));
+	else if (name == u"angryVillager")
+	{
+		// 1.5.2: a heart particle with the angry cloud icon
+		auto particle = std::make_unique<HeartParticle>(*level, x, y + 0.5, z, xa, ya, za);
+		particle->setTex(81);
+		particle->setColor(1.0f, 1.0f, 1.0f);
+		mc.particleEngine.add(std::move(particle));
+	}
+	else if (name == u"happyVillager")
+	{
+		auto particle = std::make_unique<DepthSuspendParticle>(*level, x, y, z, xa, ya, za);
+		particle->setTex(82);
+		particle->setColor(1.0f, 1.0f, 1.0f);
+		mc.particleEngine.add(std::move(particle));
+	}
 	else if (name == u"crit")
 		mc.particleEngine.add(std::make_unique<CritParticle>(*level, x, y, z, xa, ya, za));
 	else if (name == u"magicCrit")

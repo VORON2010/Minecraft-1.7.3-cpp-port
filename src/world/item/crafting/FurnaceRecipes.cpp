@@ -33,7 +33,6 @@ FurnaceRecipes::FurnaceRecipes()
 	recipes.emplace(Items::porkchopRaw->getShiftedIndex(), ItemInstance(Items::porkchopCooked->getShiftedIndex(), 1, 0));
 	recipes.emplace(Items::beefRaw->getShiftedIndex(), ItemInstance(Items::beefCooked->getShiftedIndex(), 1, 0));
 	recipes.emplace(Items::chickenRaw->getShiftedIndex(), ItemInstance(Items::chickenCooked->getShiftedIndex(), 1, 0));
-	recipes.emplace(Items::muttonRaw->getShiftedIndex(), ItemInstance(Items::muttonCooked->getShiftedIndex(), 1, 0));
 	
 	recipes.emplace(Items::fishRaw->getShiftedIndex(), ItemInstance(Items::fishCooked->getShiftedIndex(), 1, 0));
 }

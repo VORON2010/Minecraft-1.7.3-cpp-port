@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include "java/Type.h"
+#include "java/Random.h"
 
 namespace Mth
 {
@@ -28,5 +29,29 @@ int_t ceil(float value);
 double asbMax(double a, double b);
 
 int_t intFloorDiv(int_t a, int_t b);
+
+// 1.5.2 MathHelper.wrapDegrees: into [-180, 180)
+inline float wrapDegrees(float value)
+{
+	value = static_cast<float>(std::fmod(value, 360.0f));
+	if (value >= 180.0f)
+		value -= 360.0f;
+	if (value < -180.0f)
+		value += 360.0f;
+	return value;
+}
+
+inline double wrapDegrees(double value)
+{
+	value = std::fmod(value, 360.0);
+	if (value >= 180.0)
+		value -= 360.0;
+	if (value < -180.0)
+		value += 360.0;
+	return value;
+}
+
+inline int_t clamp(int_t value, int_t min, int_t max) { return value < min ? min : (value > max ? max : value); }
+inline int_t nextInt(Random &random, int_t min, int_t max) { return min >= max ? min : random.nextInt(max - min + 1) + min; }
 
 }

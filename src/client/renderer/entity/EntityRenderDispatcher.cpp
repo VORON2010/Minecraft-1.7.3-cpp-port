@@ -1,4 +1,5 @@
 #include "world/entity/projectile/ThrownPotion.h"
+#include "world/entity/projectile/ThrownExpBottle.h"
 #include "world/entity/animal/MushroomCow.h"
 #include "client/renderer/entity/GolemRenderers.h"
 #include "world/entity/projectile/ThrownEnderpearl.h"
@@ -346,6 +347,14 @@ void EntityRenderDispatcher::render(Entity &entity, double x, double y, double z
 	if (dynamic_cast<ThrownEnderpearl *>(&entity) != nullptr)
 	{
 		static ThrownItemRenderer renderer(instance, 11 + 6 * 16);
+		renderer.render(entity, x, y, z, rot, a);
+		renderer.postRender(entity, x, y, z, rot, a);
+		return;
+	}
+
+	if (dynamic_cast<ThrownExpBottle *>(&entity) != nullptr)
+	{
+		static ThrownItemRenderer renderer(instance, 171);
 		renderer.render(entity, x, y, z, rot, a);
 		renderer.postRender(entity, x, y, z, rot, a);
 		return;

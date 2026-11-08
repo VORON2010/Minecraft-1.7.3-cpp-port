@@ -24,10 +24,10 @@ protected:
 	virtual void findRandomStrollLocation();
 	virtual void checkHurtTarget(Entity &entity, float distance);
 	virtual void attackBlockedEntity(Entity &entity, float distance);
-	virtual float getWalkTargetValue(int_t x, int_t y, int_t z);
 	virtual std::shared_ptr<Entity> findAttackTarget();
 
 public:
+	virtual float getWalkTargetValue(int_t x, int_t y, int_t z);
 	bool canSpawn() override;
 	float getSpeedModifier() override;
 	bool hasPath() const;

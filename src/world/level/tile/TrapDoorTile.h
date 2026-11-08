@@ -11,6 +11,7 @@ private:
 	static bool isOpen(int_t data);
 
 public:
+	bool isPathfindable(LevelSource &level, int_t x, int_t y, int_t z) override;
 	TrapDoorTile(int_t id, int_t tex, const Material &material);
 
 	bool isCubeShaped() override;

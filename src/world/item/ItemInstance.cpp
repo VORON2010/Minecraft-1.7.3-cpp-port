@@ -59,14 +59,14 @@ void ItemInstanceReference::move(const ItemInstance &from, const ItemInstance &t
 ItemInstance::ItemInstance(const ItemInstance &other)
 	: stackSize(other.stackSize.load(std::memory_order_relaxed)),
 	  itemID(other.itemID.load(std::memory_order_relaxed)),
-	  itemDamage(other.itemDamage.load(std::memory_order_relaxed)), popTime(other.popTime), enchantments(other.enchantments), storedEnchantments(other.storedEnchantments), repairCost(other.repairCost), customName(other.customName)
+	  itemDamage(other.itemDamage.load(std::memory_order_relaxed)), popTime(other.popTime), enchantments(other.enchantments), storedEnchantments(other.storedEnchantments), repairCost(other.repairCost), customName(other.customName), otherTag(other.otherTag)
 {
 }
 
 ItemInstance::ItemInstance(ItemInstance &&other) noexcept
 	: stackSize(other.stackSize.load(std::memory_order_relaxed)),
 	  itemID(other.itemID.load(std::memory_order_relaxed)),
-	  itemDamage(other.itemDamage.load(std::memory_order_relaxed)), popTime(other.popTime), enchantments(other.enchantments), storedEnchantments(other.storedEnchantments), repairCost(other.repairCost), customName(other.customName)
+	  itemDamage(other.itemDamage.load(std::memory_order_relaxed)), popTime(other.popTime), enchantments(other.enchantments), storedEnchantments(other.storedEnchantments), repairCost(other.repairCost), customName(other.customName), otherTag(other.otherTag)
 {
 	moveJavaReference(other);
 }
@@ -351,7 +351,8 @@ void ItemInstance::save(CompoundTag &tag) const
 	tag.putShort(u"id", static_cast<short_t>(itemID));
 	tag.putByte(u"Count", static_cast<byte_t>(stackSize));
 	tag.putShort(u"Damage", static_cast<short_t>(itemDamage));
-	if (!enchantments.empty() || !storedEnchantments.empty() || repairCost > 0 || !customName.empty())
+	bool hasOther = otherTag != nullptr && !otherTag->getTags().empty();
+	if (!enchantments.empty() || !storedEnchantments.empty() || repairCost > 0 || !customName.empty() || hasOther)
 	{
 		auto toList = [](const std::vector<std::pair<short_t, short_t>> &values) {
 			auto list = std::make_shared<ListTag>();
@@ -377,6 +378,9 @@ void ItemInstance::save(CompoundTag &tag) const
 			display->putString(u"Name", customName);
 			extra->put(u"display", display);
 		}
+		if (hasOther)
+			for (const auto &e : otherTag->getTags())
+				extra->put(e.first, e.second);
 		tag.put(u"tag", extra);
 	}
 }
@@ -390,6 +394,7 @@ void ItemInstance::load(CompoundTag &tag)
 	storedEnchantments.clear();
 	repairCost = 0;
 	customName.clear();
+	otherTag = nullptr;
 	if (tag.contains(u"tag"))
 	{
 		std::shared_ptr<CompoundTag> extra = tag.getCompound(u"tag");
@@ -413,6 +418,17 @@ void ItemInstance::load(CompoundTag &tag)
 			std::shared_ptr<CompoundTag> display = extra->getCompound(u"display");
 			if (display != nullptr && display->contains(u"Name"))
 				customName = display->getString(u"Name");
+		}
+		if (extra != nullptr)
+		{
+			for (const auto &e : extra->getTags())
+			{
+				if (e.first == u"ench" || e.first == u"StoredEnchantments" || e.first == u"RepairCost" || e.first == u"display")
+					continue;
+				if (otherTag == nullptr)
+					otherTag = std::make_shared<CompoundTag>();
+				otherTag->put(e.first, e.second);
+			}
 		}
 	}
 }
@@ -453,10 +469,13 @@ void ItemInstance::copyTagFrom(const ItemInstance &other)
 	storedEnchantments = other.storedEnchantments;
 	repairCost = other.repairCost;
 	customName = other.customName;
+	otherTag = other.otherTag;
 }
 
 bool ItemInstance::sameTag(const ItemInstance &other) const
 {
 	return enchantments == other.enchantments && storedEnchantments == other.storedEnchantments &&
-		repairCost == other.repairCost && customName == other.customName;
+		repairCost == other.repairCost && customName == other.customName &&
+		(otherTag == other.otherTag || (otherTag != nullptr && other.otherTag != nullptr && otherTag->toString() == other.otherTag->toString())
+			|| (otherTag == nullptr && other.otherTag->getTags().empty()) || (other.otherTag == nullptr && otherTag->getTags().empty()));
 }

@@ -82,6 +82,11 @@ public:
 
 	// 1.0: tint for the item icon (potions)
 	virtual int_t getColor(int_t data) const { (void)data; return 0xFFFFFF; }
+	// 1.4.7 requiresMultipleRenderPasses / getSprite(data, pass) / getColor(stack, pass):
+	// layer 0 is drawn first, layer 1 over it, each with its own tint
+	virtual bool hasMultipleLayers() const { return false; }
+	virtual int_t getLayerIcon(const ItemInstance &stack, int_t layer) const;
+	virtual int_t getLayerColor(const ItemInstance &stack, int_t layer) const;
 	// 1.0 getName(stack): a full display name, empty means "translate the description id"
 	virtual jstring getHoverName(const ItemInstance &stack) const { (void)stack; return u""; }
 	// 1.0 addHoverText: extra tooltip lines (potion effects, enchantments)

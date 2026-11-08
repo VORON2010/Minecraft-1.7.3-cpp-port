@@ -12,11 +12,59 @@
 #include "nbt/CompoundTag.h"
 #include "nbt/ListTag.h"
 #include "world/entity/item/ExperienceOrb.h"
+#include "world/entity/ai/Goal.h"
+#include "world/entity/ai/Controls.h"
+#include "world/entity/ai/PathNavigation.h"
+#include <algorithm>
 
 Mob::Mob(Level &level) : Entity(level)
 {
 	blocksBuilding = true;
 	footSize = 0.5f;
+	goalSelector = std::make_unique<GoalSelector>();
+	targetSelector = std::make_unique<GoalSelector>();
+	lookControl = std::make_unique<LookControl>(*this);
+	moveControl = std::make_unique<MoveControl>(*this);
+	jumpControl = std::make_unique<JumpControl>(*this);
+	bodyControl = std::make_unique<BodyControl>(*this);
+	navigation = std::make_unique<PathNavigation>(*this, level, 16.0f);
+}
+
+Mob::~Mob()
+{
+}
+
+// 1.5.2 VisibilityCache: one line-of-sight check per entity per tick
+bool Mob::canSeeCached(Entity &entity)
+{
+	if (std::find(sensingSeen.begin(), sensingSeen.end(), &entity) != sensingSeen.end())
+		return true;
+	if (std::find(sensingUnseen.begin(), sensingUnseen.end(), &entity) != sensingUnseen.end())
+		return false;
+	bool seen = canSee(entity);
+	(seen ? sensingSeen : sensingUnseen).push_back(&entity);
+	return seen;
+}
+
+int_t Mob::getMaxFallDistance()
+{
+	return 3;
+}
+
+// 1.5.2 serverTickAi (newAi)
+void Mob::serverAiStep()
+{
+	noActionTime++;
+	checkDespawn();
+	sensingSeen.clear();
+	sensingUnseen.clear();
+	targetSelector->tick();
+	goalSelector->tick();
+	navigation->tick();
+	serverAiMobStep();
+	moveControl->tick();
+	lookControl->tick();
+	jumpControl->tick();
 }
 
 void Mob::defineSynchedData()
@@ -117,6 +165,7 @@ void Mob::baseTick()
 
 	animStepO = animStep;
 	yBodyRotO = yBodyRot;
+	yHeadRotO = yHeadRot;
 	yRotO = yRot;
 	xRotO = xRot;
 }
@@ -238,26 +287,31 @@ void Mob::tick()
 
 	run += (targetRun - run) * 0.3f;
 
-	float deltaBodyRot = targetBodyRot - yBodyRot;
-	while (deltaBodyRot < -180.0f) deltaBodyRot += 360.0f;
-	while (deltaBodyRot >= 180.0f) deltaBodyRot -= 360.0f;
+	if (useNewAi())
+		bodyControl->clientTick();
+	else
+	{
+		float deltaBodyRot = targetBodyRot - yBodyRot;
+		while (deltaBodyRot < -180.0f) deltaBodyRot += 360.0f;
+		while (deltaBodyRot >= 180.0f) deltaBodyRot -= 360.0f;
 
-	yBodyRot += deltaBodyRot * 0.3f;
+		yBodyRot += deltaBodyRot * 0.3f;
 
-	float deltaYRot = yRot - yBodyRot;
-	while (deltaYRot < -180.0f) deltaYRot += 360.0f;
-	while (deltaYRot >= 180.0f) deltaYRot -= 360.0f;
+		float deltaYRot = yRot - yBodyRot;
+		while (deltaYRot < -180.0f) deltaYRot += 360.0f;
+		while (deltaYRot >= 180.0f) deltaYRot -= 360.0f;
 
-	bool rotAtLimit = deltaYRot < -90.0f || deltaYRot >= 90.0f;
-	if (deltaYRot < -75.0f) deltaYRot = -75.0f;
-	if (deltaYRot >= 75.0f) deltaYRot = 75.0f;
+		bool rotAtLimit = deltaYRot < -90.0f || deltaYRot >= 90.0f;
+		if (deltaYRot < -75.0f) deltaYRot = -75.0f;
+		if (deltaYRot >= 75.0f) deltaYRot = 75.0f;
 
-	yBodyRot = yRot - deltaYRot;
-	if (deltaYRot * deltaYRot > 2500.0f)
-		yBodyRot += deltaYRot * 0.2f;
+		yBodyRot = yRot - deltaYRot;
+		if (deltaYRot * deltaYRot > 2500.0f)
+			yBodyRot += deltaYRot * 0.2f;
 
-	if (rotAtLimit)
-		speedAnimStep *= -1.0f;
+		if (rotAtLimit)
+			speedAnimStep *= -1.0f;
+	}
 
 	while (yRot - yRotO < -180.0f) yRotO -= 360.0f;
 	while (yRot - yRotO >= 180.0f) yRotO += 360.0f;
@@ -267,6 +321,9 @@ void Mob::tick()
 
 	while (xRot - xRotO < -180.0f) xRotO -= 360.0f;
 	while (xRot - xRotO >= 180.0f) xRotO += 360.0f;
+
+	while (yHeadRot - yHeadRotO < -180.0f) yHeadRotO -= 360.0f;
+	while (yHeadRot - yHeadRotO >= 180.0f) yHeadRotO += 360.0f;
 
 	animStep += speedAnimStep;
 }
@@ -514,8 +571,9 @@ void Mob::travel(float x, float z)
 		}
 
 		float acceleration = 0.16277136f / (friction * friction * friction);
-		acceleration *= getSpeedModifier();
-		moveRelative(x, z, onGround ? (landSpeed * acceleration) : flyingSpeed);
+		// 1.5.2: goal AI walks at the speed MoveControl set (it already has the modifier)
+		float groundSpeed = useNewAi() ? speed : landSpeed * getSpeedModifier();
+		moveRelative(x, z, onGround ? (groundSpeed * acceleration) : flyingSpeed);
 
 		friction = 0.91f;
 		if (onGround)
@@ -629,6 +687,8 @@ bool Mob::isWaterMob()
 
 void Mob::aiStep()
 {
+	if (noJumpDelay > 0)
+		--noJumpDelay;
 	if (lSteps > 0)
 	{
 		double xd = x + (lx - x) / lSteps;
@@ -657,8 +717,13 @@ void Mob::aiStep()
 	}
 	else if (!interpolateOnly)
 	{
-		updateAi();
+		if (useNewAi())
+			serverAiStep();
+		else
+			updateAi();
 	}
+	if (!useNewAi())
+		yHeadRot = yRot;
 
 
 	bool inWater = isInWater();
@@ -670,9 +735,14 @@ void Mob::aiStep()
 			yd += 0.04;
 		else if (inLava)
 			yd += 0.04;
-		else if (onGround)
+		else if (onGround && noJumpDelay == 0)
+		{
 			jumpFromGround();
+			noJumpDelay = 10;
+		}
 	}
+	else
+		noJumpDelay = 0;
 
 
 	xxa *= 0.98f;

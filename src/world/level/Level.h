@@ -37,6 +37,10 @@
 class Explosion;
 class PathEntity;
 
+class Villages;
+class NavPath;
+class Mob;
+
 class Level : public LevelSource
 {
 private:
@@ -465,6 +469,18 @@ public:
 
 	MapDataBase *loadItemData(const jstring &id, const std::function<std::unique_ptr<MapDataBase>(const jstring&)> &factory);
 	void setItemData(const jstring &id, MapDataBase *data);
+
+	// 1.5.2 World.villages: overworld villages live in data/villages.dat
+	Villages &getVillages();
+	// 1.5.2 World.findPath with the PathFinder flags
+	std::shared_ptr<NavPath> findPath(Entity &from, Entity &to, float maxDist, bool passDoors, bool openDoors, bool avoidWater, bool canFloat);
+	std::shared_ptr<NavPath> findPath(Entity &from, int_t x, int_t y, int_t z, float maxDist, bool passDoors, bool openDoors, bool avoidWater, bool canFloat);
+
+private:
+	Villages *villages = nullptr;
+	std::shared_ptr<Villages> ownVillages;
+
+public:
 	void shareItemDataWith(Level &level);
 	int_t getUniqueDataId(const jstring &key);
 	void saveAllItemData();

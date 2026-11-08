@@ -153,3 +153,15 @@ bool Item::isFoil(const ItemInstance &stack) const
 {
 	return stack.isEnchanted();
 }
+
+int_t Item::getLayerIcon(const ItemInstance &stack, int_t layer) const
+{
+	(void)layer;
+	return getIcon(stack);
+}
+
+int_t Item::getLayerColor(const ItemInstance &stack, int_t layer) const
+{
+	(void)layer;
+	return getColor(stack.getAuxValue());
+}

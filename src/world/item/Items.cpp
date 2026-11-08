@@ -14,6 +14,8 @@
 #include "world/item/ItemSeeds.h"
 #include "world/item/ItemSpade.h"
 #include "world/item/ItemSpawnEgg.h"
+#include "world/item/ExperienceBottleItem.h"
+#include "world/item/WrittenBookItem.h"
 #include "world/item/ItemSword.h"
 #include "world/item/ItemArmor.h"
 #include "world/item/ItemFood.h"
@@ -78,8 +80,6 @@ namespace Items
 	Item *beefCooked = nullptr;
 	Item *chickenRaw = nullptr;
 	Item *chickenCooked = nullptr;
-	Item *muttonRaw = nullptr;
-	Item *muttonCooked = nullptr;
 	Item *painting = nullptr;
 	Item *appleGold = nullptr;
 	Item *melon = nullptr;
@@ -113,20 +113,26 @@ namespace Items
 	Item *map = nullptr;
 	Item *cake = nullptr;
 	Item *egg = nullptr;
-	Item *spawnEggZombie = nullptr;
-	Item *spawnEggSkeleton = nullptr;
-	Item *spawnEggCreeper = nullptr;
-	Item *spawnEggSpider = nullptr;
-	Item *spawnEggPig = nullptr;
-	Item *spawnEggSheep = nullptr;
-	Item *spawnEggCow = nullptr;
-	Item *spawnEggChicken = nullptr;
 	Item *saddle = nullptr;
 	Item *compass = nullptr;
 	Item *fishingRod = nullptr;
 	Item *clock = nullptr;
 	Item *record13 = nullptr;
 	Item *recordCat = nullptr;
+	Item *recordBlocks = nullptr;
+	Item *recordFar = nullptr;
+	Item *recordMall = nullptr;
+	Item *recordMellohi = nullptr;
+	Item *recordStal = nullptr;
+	Item *recordStrad = nullptr;
+	Item *recordWard = nullptr;
+	Item *record11 = nullptr;
+	Item *recordWait = nullptr;
+	Item *spawnEgg = nullptr;
+	Item *expBottle = nullptr;
+	Item *writingBook = nullptr;
+	Item *writtenBook = nullptr;
+	Item *emerald = nullptr;
 	Item *recordHorror = nullptr;
 	Item *recordChirp = nullptr;
 	Item *recordMail = nullptr;
@@ -374,24 +380,19 @@ namespace Items
 		porkchopCooked = new ItemFood(64, 8, 0.8f, true);
 		porkchopCooked->setMaxStackSize(64).setIconIndex(88).setDescriptionId(u"item.porkchopCooked");
 
-		beefRaw = new ItemFood(104, 3, 0.3f, true);
-		beefRaw->setMaxStackSize(64).setIconIndex(224).setDescriptionId(u"item.beefRaw");
+		// 1.5.2 ids: beef 363/364, chicken 365/366
+		beefRaw = new ItemFood(107, 3, 0.3f, true);
+		beefRaw->setMaxStackSize(64).setIconIndex(105).setDescriptionId(u"item.beefRaw");
 
-		beefCooked = new ItemFood(105, 8, 0.8f, true);
-		beefCooked->setMaxStackSize(64).setIconIndex(225).setDescriptionId(u"item.beefCooked");
+		beefCooked = new ItemFood(108, 8, 0.8f, true);
+		beefCooked->setMaxStackSize(64).setIconIndex(106).setDescriptionId(u"item.beefCooked");
 
-		chickenRaw = new ItemFood(106, 2, 0.3f, true);
-		chickenRaw->setMaxStackSize(64).setIconIndex(226).setDescriptionId(u"item.chickenRaw");
+		chickenRaw = new ItemFood(109, 2, 0.3f, true);
+		chickenRaw->setMaxStackSize(64).setIconIndex(121).setDescriptionId(u"item.chickenRaw");
 		static_cast<ItemFood *>(chickenRaw)->setEffect(MobEffect::hunger.id, 30, 0, 0.3f);
 
-		chickenCooked = new ItemFood(107, 6, 0.6f, true);
-		chickenCooked->setMaxStackSize(64).setIconIndex(227).setDescriptionId(u"item.chickenCooked");
-
-		muttonRaw = new ItemFood(108, 2, 0.3f, true);
-		muttonRaw->setMaxStackSize(64).setIconIndex(228).setDescriptionId(u"item.muttonRaw");
-
-		muttonCooked = new ItemFood(109, 6, 0.6f, true);
-		muttonCooked->setMaxStackSize(64).setIconIndex(229).setDescriptionId(u"item.muttonCooked");
+		chickenCooked = new ItemFood(110, 6, 0.6f, true);
+		chickenCooked->setMaxStackSize(64).setIconIndex(122).setDescriptionId(u"item.chickenCooked");
 
 		painting = new ItemPainting(65);
 		painting->setIconIndex(26).setDescriptionId(u"item.painting");
@@ -400,14 +401,14 @@ namespace Items
 		appleGold->setIconIndex(11).setDescriptionId(u"item.appleGold");
 		static_cast<ItemFood *>(appleGold)->setAlwaysEdible();
 
-		// b1.8. Vanilla ids 360-362 are taken by this port's beef/chicken, so these sit at 386-388.
-		melon = new ItemFood(130, 2, 0.3f, false);
+		// 1.5.2 ids: melon 360, pumpkin seeds 361, melon seeds 362
+		melon = new ItemFood(104, 2, 0.3f, false);
 		melon->setIconIndex(109).setDescriptionId(u"item.melon");
 
-		pumpkinSeeds = new ItemSeeds(131, Tile::pumpkinStem.id);
+		pumpkinSeeds = new ItemSeeds(105, Tile::pumpkinStem.id);
 		pumpkinSeeds->setIconIndex(61).setDescriptionId(u"item.seeds_pumpkin");
 
-		melonSeeds = new ItemSeeds(132, Tile::melonStem.id);
+		melonSeeds = new ItemSeeds(106, Tile::melonStem.id);
 		melonSeeds->setIconIndex(62).setDescriptionId(u"item.seeds_melon");
 
 		enderPearl = new ItemEnderPearl(112);
@@ -444,8 +445,20 @@ namespace Items
 		cauldron = new TilePlanterItem(124, 118);
 		cauldron->setIconIndex(12 + 9 * 16).setDescriptionId(u"item.cauldron");
 		// 1.4.7; its icon sits in a free slot (208) of this items.png
+		// 1.5.2 383-388
+		spawnEgg = new ItemSpawnEgg(127);
+		spawnEgg->setIconIndex(153).setDescriptionId(u"item.monsterPlacer");
+		expBottle = new ExperienceBottleItem(128);
+		expBottle->setIconIndex(171).setDescriptionId(u"item.expBottle");
+		writingBook = new WritableBookItem(130);
+		writingBook->setIconIndex(187).setMaxStackSize(1).setDescriptionId(u"item.writingBook");
+		writtenBook = new WrittenBookItem(131);
+		writtenBook->setIconIndex(188).setMaxStackSize(1).setDescriptionId(u"item.writtenBook");
+		emerald = new Item(132);
+		emerald->setIconIndex(186).setDescriptionId(u"item.emerald");
+
 		enchantedBook = new EnchantedBookItem(147);
-		enchantedBook->setIconIndex(208).setMaxStackSize(1).setDescriptionId(u"item.enchantedBook");
+		enchantedBook->setIconIndex(207).setMaxStackSize(1).setDescriptionId(u"item.enchantedBook");
 
 		// 1.0 potion ingredients
 		ghastTear->setPotionBrewingFormula(PotionBrewing::GHAST_TEAR);
@@ -495,29 +508,44 @@ namespace Items
 		recordCat = new RecordItem(2001, u"cat");
 		recordCat->setIconIndex(241).setDescriptionId(u"item.record");
 
-		recordHorror = new RecordItem(2002, u"horror");
-		recordHorror->setIconIndex(242).setDescriptionId(u"item.recordHorror");
-
+		// 1.5.2 discs 2258-2267, then this port's own discs
+		recordBlocks = new RecordItem(2002, u"blocks");
+		recordBlocks->setIconIndex(242).setDescriptionId(u"item.record");
 		recordChirp = new RecordItem(2003, u"chirp");
-		recordChirp->setIconIndex(243).setDescriptionId(u"item.recordChirp");
+		recordChirp->setIconIndex(243).setDescriptionId(u"item.record");
+		recordFar = new RecordItem(2004, u"far");
+		recordFar->setIconIndex(244).setDescriptionId(u"item.record");
+		recordMall = new RecordItem(2005, u"mall");
+		recordMall->setIconIndex(245).setDescriptionId(u"item.record");
+		recordMellohi = new RecordItem(2006, u"mellohi");
+		recordMellohi->setIconIndex(246).setDescriptionId(u"item.record");
+		recordStal = new RecordItem(2007, u"stal");
+		recordStal->setIconIndex(247).setDescriptionId(u"item.record");
+		recordStrad = new RecordItem(2008, u"strad");
+		recordStrad->setIconIndex(248).setDescriptionId(u"item.record");
+		recordWard = new RecordItem(2009, u"ward");
+		recordWard->setIconIndex(249).setDescriptionId(u"item.record");
+		record11 = new RecordItem(2010, u"11");
+		record11->setIconIndex(250).setDescriptionId(u"item.record");
+		recordWait = new RecordItem(2011, u"wait");
+		recordWait->setIconIndex(251).setDescriptionId(u"item.record");
 
-		recordMail = new RecordItem(2004, u"mail");
-		recordMail->setIconIndex(244).setDescriptionId(u"item.recordMail");
-
-		recordError404 = new RecordItem(2005, u"error404");
-		recordError404->setIconIndex(245).setDescriptionId(u"item.recordError404");
-
-		recordLiminality = new RecordItem(2006, u"liminality");
-		recordLiminality->setIconIndex(246).setDescriptionId(u"item.recordLiminality");
-
-		recordNostalgia = new RecordItem(2007, u"nostalgia");
-		recordNostalgia->setIconIndex(247).setDescriptionId(u"item.recordNostalgia");
+		recordHorror = new RecordItem(2012, u"horror");
+		recordHorror->setIconIndex(232).setDescriptionId(u"item.recordHorror");
+		recordMail = new RecordItem(2013, u"mail");
+		recordMail->setIconIndex(233).setDescriptionId(u"item.recordMail");
+		recordError404 = new RecordItem(2014, u"error404");
+		recordError404->setIconIndex(234).setDescriptionId(u"item.recordError404");
+		recordLiminality = new RecordItem(2015, u"liminality");
+		recordLiminality->setIconIndex(235).setDescriptionId(u"item.recordLiminality");
+		recordNostalgia = new RecordItem(2016, u"nostalgia");
+		recordNostalgia->setIconIndex(236).setDescriptionId(u"item.recordNostalgia");
 
 		coal = new ItemCoal(7);
 		coal->setIconIndex(7).setDescriptionId(u"item.coal");
 
 		diamond = new Item(8);
-		diamond->setIconIndex(55).setDescriptionId(u"item.emerald");
+		diamond->setIconIndex(55).setDescriptionId(u"item.diamond");
 
 		redstone = new ItemRedStone(75);
 		redstone->setIconIndex(56).setDescriptionId(u"item.redstone");
@@ -541,7 +569,7 @@ namespace Items
 		bowlEmpty->setIconIndex(71).setDescriptionId(u"item.bowl");
 
 		bowlSoup = new ItemSoup(26, 10);
-		bowlSoup->setIconIndex(77).setDescriptionId(u"item.mushroomStew");
+		bowlSoup->setIconIndex(72).setDescriptionId(u"item.mushroomStew");
 
 		bucketEmpty = new ItemBucket(69, 0);
 		bucketEmpty->setIconIndex(74).setDescriptionId(u"item.bucket");
@@ -609,30 +637,6 @@ namespace Items
 
 		cake = new ItemCake(98, Tile::cake);
 		cake->setIconIndex(29).setDescriptionId(u"item.cake");
-
-			spawnEggZombie = new ItemSpawnEgg(200, 54);
-		spawnEggZombie->setIconIndex(200).setDescriptionId(u"item.spawnEggZombie");
-
-		spawnEggSkeleton = new ItemSpawnEgg(201, 51);
-		spawnEggSkeleton->setIconIndex(201).setDescriptionId(u"item.spawnEggSkeleton");
-
-		spawnEggCreeper = new ItemSpawnEgg(202, 50);
-		spawnEggCreeper->setIconIndex(202).setDescriptionId(u"item.spawnEggCreeper");
-
-		spawnEggSpider = new ItemSpawnEgg(203, 52);
-		spawnEggSpider->setIconIndex(203).setDescriptionId(u"item.spawnEggSpider");
-
-		spawnEggPig = new ItemSpawnEgg(204, 90);
-		spawnEggPig->setIconIndex(204).setDescriptionId(u"item.spawnEggPig");
-
-		spawnEggSheep = new ItemSpawnEgg(205, 91);
-		spawnEggSheep->setIconIndex(205).setDescriptionId(u"item.spawnEggSheep");
-
-		spawnEggCow = new ItemSpawnEgg(206, 92);
-		spawnEggCow->setIconIndex(206).setDescriptionId(u"item.spawnEggCow");
-
-		spawnEggChicken = new ItemSpawnEgg(207, 93);
-		spawnEggChicken->setIconIndex(207).setDescriptionId(u"item.spawnEggChicken");
 
 	egg = new ItemEgg(88);
 		egg->setIconIndex(12).setDescriptionId(u"item.egg");

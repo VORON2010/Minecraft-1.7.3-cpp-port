@@ -55,4 +55,6 @@ public:
 	void print(const std::string &indent, std::ostream &os) const override;
 
 	bool isEmpty();
+	const std::unordered_map<jstring, std::shared_ptr<Tag>> &getTags() const { return tags; }
+	void remove(const jstring &name) { tags.erase(name); }
 };

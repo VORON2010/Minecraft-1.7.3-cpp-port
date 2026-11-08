@@ -13,6 +13,7 @@
 #include "tools/StructureSmoke.h"
 #include "tools/EndSmoke.h"
 #include "tools/AlchemySmoke.h"
+#include "tools/VillagerSmoke.h"
 #include "tools/MultiplayerScreenSmoke.h"
 #include "tools/NetworkSmoke.h"
 #include "tools/SaveConverterSmoke.h"
@@ -93,6 +94,8 @@ int main(int argc, char *argv[])
 		return runEndSmoke();
 	if (argc >= 2 && std::strcmp(argv[1], "--alchemy-smoke") == 0)
 		return runAlchemySmoke();
+	if (argc >= 2 && std::strcmp(argv[1], "--villager-smoke") == 0)
+		return runVillagerSmoke();
 	if (argc >= 2 && std::strcmp(argv[1], "--block-smoke") == 0)
 		return runBlockSmoke();
 	if (argc >= 2 && std::strcmp(argv[1], "--network-smoke") == 0)

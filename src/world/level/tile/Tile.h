@@ -442,4 +442,6 @@ public:
 	virtual float getExplosionResistance(Entity *entity) { (void)entity; return explosionResistance / 5.0f; }
 	virtual void playBlock(Level &level, int_t x, int_t y, int_t z, int_t type, int_t data);
 	virtual int_t getMobilityFlag() const;
+	// 1.5.2 isPathfindable (Feather canWalkThrough): can a mob walk through this block
+	virtual bool isPathfindable(LevelSource &level, int_t x, int_t y, int_t z);
 };

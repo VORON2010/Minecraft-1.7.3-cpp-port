@@ -63,6 +63,8 @@ public:
 	std::vector<std::pair<short_t, short_t>> storedEnchantments;
 	int_t repairCost = 0;
 	jstring customName;
+	// every other key of the item tag (book pages, title, author...), kept as is; treat as read-only and replace it to change
+	std::shared_ptr<CompoundTag> otherTag;
 
 	ItemInstance() = default;
 	ItemInstance(const ItemInstance &other);

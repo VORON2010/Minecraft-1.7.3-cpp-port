@@ -5,6 +5,7 @@
 class FenceTile : public Tile
 {
 public:
+	bool isPathfindable(LevelSource &level, int_t x, int_t y, int_t z) override;
 	FenceTile(int_t id, int_t tex, const Material &material);
 
 	bool isCubeShaped() override;

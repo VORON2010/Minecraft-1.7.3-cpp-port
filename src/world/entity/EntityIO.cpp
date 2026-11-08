@@ -1,4 +1,5 @@
 #include "world/entity/projectile/ThrownPotion.h"
+#include "world/entity/projectile/ThrownExpBottle.h"
 #include "world/entity/animal/MushroomCow.h"
 #include "world/entity/projectile/ThrownEnderpearl.h"
 #include "world/entity/EyeOfEnderSignal.h"
@@ -80,6 +81,38 @@ std::shared_ptr<Entity> newEntity(int_t id, Level &level)
 		return nullptr;
 	}
 	return it->second(level);
+}
+
+jstring getEncodeId(int_t id)
+{
+	static const std::unordered_map<int_t, jstring> names = {
+#define ENTITYIO_ID(type, name, id) { id, name },
+#include "world/entity/EntityIDs.h"
+#undef ENTITYIO_ID
+	};
+	auto it = names.find(id);
+	return it != names.end() ? it->second : jstring();
+}
+
+const std::vector<SpawnEggData> &getSpawnEggs()
+{
+	// 1.5.2 Entities.registerWithSpawnEgg, for the mobs this port has
+	static const std::vector<SpawnEggData> eggs = {
+		{50, 894731, 0}, {51, 12698049, 4802889}, {52, 3419431, 11013646}, {54, 44975, 7969893},
+		{55, 5349438, 8306542}, {56, 16382457, 12369084}, {57, 15373203, 5009705}, {58, 1447446, 0},
+		{59, 803406, 11013646}, {60, 7237230, 3158064}, {61, 16167425, 16775294}, {62, 3407872, 16579584},
+		{90, 15771042, 14377823}, {91, 15198183, 16758197}, {92, 4470310, 10592673}, {93, 10592673, 16711680},
+		{94, 2243405, 7375001}, {95, 14144467, 13545366}, {96, 10489616, 12040119}, {120, 5651507, 12422002},
+	};
+	return eggs;
+}
+
+const SpawnEggData *getSpawnEgg(int_t id)
+{
+	for (const SpawnEggData &egg : getSpawnEggs())
+		if (egg.id == id)
+			return &egg;
+	return nullptr;
 }
 
 std::shared_ptr<Entity> loadStatic(CompoundTag &tag, Level &level)

@@ -1,5 +1,7 @@
 #include "client/gui/BrewingStandScreen.h"
 #include "client/gui/RepairScreen.h"
+#include "client/gui/MerchantScreen.h"
+#include "world/inventory/MerchantMenu.h"
 #include "world/inventory/ContainerRepair.h"
 #include "client/gui/EnchantmentScreen.h"
 #include "world/level/tile/entity/BrewingStandTileEntity.h"
@@ -288,6 +290,14 @@ void LocalPlayer::startRepairing(int_t x, int_t y, int_t z)
 	auto menu = std::make_shared<ContainerRepair>(inventory, level, x, y, z, *this);
 	craftingInventory = menu;
 	minecraft.setScreen(Util::make_shared<RepairScreen>(minecraft, menu));
+	craftingInventory = std::move(menu);
+}
+
+void LocalPlayer::startTrading(Merchant &merchant, const jstring &name)
+{
+	auto menu = std::make_shared<MerchantMenu>(inventory, merchant, level, *this);
+	craftingInventory = menu;
+	minecraft.setScreen(Util::make_shared<MerchantScreen>(minecraft, menu, merchant, name));
 	craftingInventory = std::move(menu);
 }
 

@@ -12,6 +12,7 @@ private:
 	void removePair(Level &level, int_t x, int_t y, int_t z, bool drop, int_t data);
 
 public:
+	bool isPathfindable(LevelSource &level, int_t x, int_t y, int_t z) override;
 	DoorTile(int_t id, int_t tex, const Material &material, bool iron);
 
 	bool isCubeShaped() override;
@@ -27,4 +28,6 @@ public:
 	void neighborChanged(Level &level, int_t x, int_t y, int_t z, int_t tile) override;
 	int_t getResource(int_t data, Random &random) override;
 	int_t getMobilityFlag() const override { return 1; }
+	// 1.5.2 setOpen (Feather updateOpenState): villagers open and close doors
+	void setOpen(Level &level, int_t x, int_t y, int_t z, bool open);
 };

@@ -4,6 +4,7 @@
 class PressurePlateTile : public Tile
 {
 public:
+	bool isPathfindable(LevelSource &level, int_t x, int_t y, int_t z) override;
 	enum class Sensitivity { EVERYTHING, MOBS, PLAYERS };
 
 	PressurePlateTile(int_t id, int_t tex, Sensitivity sensitivity, const Material &material);

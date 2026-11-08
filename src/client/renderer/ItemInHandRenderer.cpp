@@ -228,16 +228,17 @@ namespace HeldItemRenderer
 				t.end();
 			};
 			int_t icon = iconOverride >= 0 ? iconOverride : item.getIcon();
-			if (item.getItem() != nullptr && item.getItem() == Items::potion)
+			if (item.getItem() != nullptr && item.getItem()->hasMultipleLayers())
 			{
-				// 1.0: the potion colour on the liquid layer (141), then the bottle
-				int_t col = item.getItem()->getColor(item.getAuxValue());
+				// 1.4.7: every layer with its own tint (potion liquid, spawn egg spots)
 				glEnable(GL_COLOR_MATERIAL);
 				glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-				glColor4f(((col >> 16) & 255) / 255.0f * brightness, ((col >> 8) & 255) / 255.0f * brightness, (col & 255) / 255.0f * brightness, 1.0f);
-				drawIcon(141);
-				glColor4f(brightness, brightness, brightness, 1.0f);
-				drawIcon(icon);
+				for (int_t layer = 0; layer <= 1; ++layer)
+				{
+					int_t col = item.getItem()->getLayerColor(item, layer);
+					glColor4f(((col >> 16) & 255) / 255.0f * brightness, ((col >> 8) & 255) / 255.0f * brightness, (col & 255) / 255.0f * brightness, 1.0f);
+					drawIcon(item.getItem()->getLayerIcon(item, layer));
+				}
 				glDisable(GL_COLOR_MATERIAL);
 				glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 			}

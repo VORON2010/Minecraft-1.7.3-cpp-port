@@ -10,6 +10,17 @@
 
 #include "java/Type.h"
 #include "java/Math.h"
+#include "util/Mth.h"
+
+#include <memory>
+#include <vector>
+
+class GoalSelector;
+class LookControl;
+class MoveControl;
+class JumpControl;
+class BodyControl;
+class PathNavigation;
 
 class Mob : public Entity
 {
@@ -26,6 +37,9 @@ public:
 	float rotA = static_cast<float>(Math::random() + 1.0) * 0.01f;
 	float yBodyRot = 0.0f;
 	float yBodyRotO = 0.0f;
+	// 1.5.2 headYaw: the head turns on its own; old-AI mobs keep it equal to yRot
+	float yHeadRot = 0.0f;
+	float yHeadRotO = 0.0f;
 
 protected:
 	float oRun = 0.0f;
@@ -150,8 +164,58 @@ public:
 	virtual bool isBaby() { return false; }
 	int_t getEffectColor() const { return effectColor; }
 
+	// 1.5.2 goal-based AI (aiEnabled)
+	std::unique_ptr<GoalSelector> goalSelector;
+	std::unique_ptr<GoalSelector> targetSelector;
+	std::unique_ptr<LookControl> lookControl;
+	std::unique_ptr<MoveControl> moveControl;
+	std::unique_ptr<JumpControl> jumpControl;
+	std::unique_ptr<BodyControl> bodyControl;
+	std::unique_ptr<PathNavigation> navigation;
+	std::vector<Entity *> sensingSeen;
+	std::vector<Entity *> sensingUnseen;
+	float speed = 0.0f;
+	int_t noJumpDelay = 0;
+	int_t restrictX = 0, restrictY = 0, restrictZ = 0;
+	float restrictRadius = -1.0f;
+
+	virtual void serverAiStep();
+	virtual void serverAiMobStep() {}
+
 public:
 	Mob(Level &level);
+	~Mob() override;
+
+	virtual bool useNewAi() { return false; }
+	LookControl &getLookControl() { return *lookControl; }
+	MoveControl &getMoveControl() { return *moveControl; }
+	JumpControl &getJumpControl() { return *jumpControl; }
+	PathNavigation &getNavigation() { return *navigation; }
+	bool canSeeCached(Entity &entity);
+	float getSpeed() const { return speed; }
+	void setSpeed(float value) { speed = value; yya = value; }
+	void setYya(float value) { yya = value; }
+	void setJumping(bool value) { jumping = value; }
+	int_t getNoActionTime() const { return noActionTime; }
+	int_t getMaxFallDistance() override;
+
+	// 1.5.2 house restriction (villagers stay near the village centre)
+	bool isWithinRestriction() { return isWithinRestriction(Mth::floor(x), Mth::floor(y), Mth::floor(z)); }
+	bool isWithinRestriction(int_t xx, int_t yy, int_t zz) { return restrictRadius == -1.0f || getRestrictCenterDistanceSqr(xx, yy, zz) < restrictRadius * restrictRadius; }
+	void restrictTo(int_t xx, int_t yy, int_t zz, int_t radius) { restrictX = xx; restrictY = yy; restrictZ = zz; restrictRadius = static_cast<float>(radius); }
+	float getRestrictCenterDistanceSqr(int_t xx, int_t yy, int_t zz) const
+	{
+		float dx = static_cast<float>(restrictX - xx), dy = static_cast<float>(restrictY - yy), dz = static_cast<float>(restrictZ - zz);
+		return dx * dx + dy * dy + dz * dz;
+	}
+	int_t getRestrictX() const { return restrictX; }
+	int_t getRestrictY() const { return restrictY; }
+	int_t getRestrictZ() const { return restrictZ; }
+	float getRestrictRadius() const { return restrictRadius; }
+	void clearRestriction() { restrictRadius = -1.0f; }
+	bool hasRestriction() const { return restrictRadius != -1.0f; }
+	// 1.5.2 setEntityVariety (spawn eggs, natural spawns)
+	virtual void setEntityVariety() {}
 
 protected:
 	virtual void defineSynchedData();
@@ -235,8 +299,8 @@ protected:
 	virtual void checkDespawn();
 	virtual void tickDeath();
 
-	virtual int_t getMaxHeadXRot();
 public:
+	virtual int_t getMaxHeadXRot();
 	void lookAt(Entity &entity, float yawSpeed, float pitchSpeed);
 
 private:

@@ -8,6 +8,7 @@
 class LiquidTile : public TransparentTile
 {
 public:
+	bool isPathfindable(LevelSource &level, int_t x, int_t y, int_t z) override;
 	LiquidTile(int_t id, int_t tex, const Material &material);
 
 	virtual AABB *getAABB(Level &level, int_t x, int_t y, int_t z) override;
