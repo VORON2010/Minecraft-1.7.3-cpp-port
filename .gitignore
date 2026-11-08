@@ -20,3 +20,6 @@ resource/
 img/
 .idea/
 cmake-build-*/
+
+# Gradle cache from the Android build
+android/.gradle/
