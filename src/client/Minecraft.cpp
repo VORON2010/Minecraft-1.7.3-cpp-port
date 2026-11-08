@@ -61,7 +61,7 @@
 
 #include "CrashHandler.h"
 
-const jstring Minecraft::VERSION_STRING = u"CPPCRAFT " + SharedConstants::VERSION_STRING;
+const jstring Minecraft::VERSION_STRING = u"C++ CRAFT " + SharedConstants::VERSION_STRING;
 
 std::array<long_t, 512> Minecraft::frameTimes = {};
 std::array<long_t, 512> Minecraft::tickTimes = {};
@@ -147,7 +147,12 @@ void Minecraft::init(std::shared_ptr<File> directory)
 	soundEngine.init(&options);
 	std::unique_ptr<File> resourceDir(File::openResourceDirectory());
 	if (resourceDir && resourceDir->exists() && resourceDir->isDirectory())
+	{
 		loadAllSounds(resourceDir.get(), u"");
+		for (auto &legacy : legacySounds)
+			soundEngine.addFallback(legacy.first, legacy.second);
+		legacySounds.clear();
+	}
 	if (!unattended)
 	{
 		if (serverHost.empty())
@@ -1264,8 +1269,10 @@ void Minecraft::fileDownloaded(const jstring &name, File *file)
 	jstring soundName = name.substr(slashPos + 1);
 	std::string filePath = String::toUTF8(file->toString());
 
-	if (category == u"sound" || category == u"newsound")
+	if (category == u"sound3")
 		soundEngine.add(soundName, filePath);
+	else if (category == u"sound" || category == u"newsound")
+		legacySounds.emplace_back(soundName, filePath);
 	else if (category == u"streaming")
 		soundEngine.addStreaming(soundName, filePath);
 	else if (category == u"music" || category == u"newmusic")

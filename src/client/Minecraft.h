@@ -151,6 +151,7 @@ private:
 	void renderLoadingScreen();
 	void blit(int_t dstx, int_t dsty, int_t srcx, int_t srcy, int_t w, int_t h);
 	void loadAllSounds(File *dir, const jstring &prefix);
+	std::vector<std::pair<jstring, std::string>> legacySounds;
 	void fileDownloaded(const jstring &name, File *file);
 
 public:

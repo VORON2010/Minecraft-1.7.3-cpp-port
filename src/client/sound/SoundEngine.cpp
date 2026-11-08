@@ -196,6 +196,11 @@ void SoundEngine::add(const jstring &name, const std::string &filePath)
 	sounds.add(name, filePath);
 }
 
+void SoundEngine::addFallback(const jstring &name, const std::string &filePath)
+{
+	sounds.addFallback(name, filePath);
+}
+
 
 void SoundEngine::addStreaming(const jstring &name, const std::string &filePath)
 {

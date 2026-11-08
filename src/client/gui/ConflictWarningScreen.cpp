@@ -23,7 +23,7 @@ void ConflictWarningScreen::render(int_t xm, int_t ym, float a)
 {
 	renderBackground();
 	drawCenteredString(font, u"Level save conflict", width / 2, height / 4 - 60 + 20, 0xFFFFFF);
-	drawString(font, u"Minecraft detected a conflict in the level save data.", width / 2 - 140, height / 4 - 60 + 60 + 0, 0xA0A0A0);
+	drawString(font, u"C++ CRAFT detected a conflict in the level save data.", width / 2 - 140, height / 4 - 60 + 60 + 0, 0xA0A0A0);
 	drawString(font, u"This could be caused by two copies of the game", width / 2 - 140, height / 4 - 60 + 60 + 18, 0xA0A0A0);
 	drawString(font, u"accessing the same level.", width / 2 - 140, height / 4 - 60 + 60 + 27, 0xA0A0A0);
 	drawString(font, u"To prevent level corruption, the current game has quit.", width / 2 - 140, height / 4 - 60 + 60 + 45, 0xA0A0A0);

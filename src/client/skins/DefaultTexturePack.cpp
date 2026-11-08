@@ -8,7 +8,7 @@
 DefaultTexturePack::DefaultTexturePack()
 {
 	name = u"Default";
-	desc1 = u"The default look of Minecraft";
+	desc1 = u"The default look of C++ CRAFT";
 
 	std::unique_ptr<std::istream> is(Resource::getResource(u"/pack.png"));
 	icon = std::make_unique<BufferedImage>(BufferedImage::ImageIO_read(*is));

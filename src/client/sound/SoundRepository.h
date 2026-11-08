@@ -5,6 +5,7 @@
 #include "java/Random.h"
 
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <string>
 
@@ -15,11 +16,15 @@ private:
 	std::unordered_map<jstring, std::vector<Sound>> urls;
 	std::vector<Sound> all;
 	bool trimDigits = true;
+	std::unordered_set<jstring> primary;
+
+	jstring poolName(const jstring &name) const;
 
 public:
 	int_t count = 0;
 
 	Sound add(const jstring &name, const std::string &filePath);
+	bool addFallback(const jstring &name, const std::string &filePath);
 	Sound *get(const jstring &name);
 	Sound *any();
 

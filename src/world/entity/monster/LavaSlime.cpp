@@ -84,12 +84,12 @@ int_t LavaSlime::getAttackDamage()
 
 jstring LavaSlime::getHurtSound()
 {
-	return u"mob.slime";
+	return getSlimeSize() > 1 ? u"mob.slime.big" : u"mob.slime.small";
 }
 
 jstring LavaSlime::getDeathSound()
 {
-	return u"mob.slime";
+	return getSlimeSize() > 1 ? u"mob.slime.big" : u"mob.slime.small";
 }
 
 jstring LavaSlime::getSquishSound()

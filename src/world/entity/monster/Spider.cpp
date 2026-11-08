@@ -34,17 +34,17 @@ std::shared_ptr<Entity> Spider::findAttackTarget()
 
 jstring Spider::getAmbientSound()
 {
-	return u"mob.spider";
+	return u"mob.spider.say";
 }
 
 jstring Spider::getHurtSound()
 {
-	return u"mob.spider";
+	return u"mob.spider.say";
 }
 
 jstring Spider::getDeathSound()
 {
-	return u"mob.spiderdeath";
+	return u"mob.spider.death";
 }
 
 void Spider::checkHurtTarget(Entity &entity, float distance)

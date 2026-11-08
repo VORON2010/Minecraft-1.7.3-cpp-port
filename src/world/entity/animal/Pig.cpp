@@ -62,17 +62,17 @@ void Pig::readAdditionalSaveData(CompoundTag &tag)
 
 jstring Pig::getAmbientSound()
 {
-	return u"mob.pig";
+	return u"mob.pig.say";
 }
 
 jstring Pig::getHurtSound()
 {
-	return u"mob.pig";
+	return u"mob.pig.say";
 }
 
 jstring Pig::getDeathSound()
 {
-	return u"mob.pigdeath";
+	return u"mob.pig.death";
 }
 
 void Pig::dropDeathLoot()

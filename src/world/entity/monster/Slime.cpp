@@ -38,7 +38,7 @@ jstring Slime::getParticleName()
 
 jstring Slime::getSquishSound()
 {
-	return u"mob.slime";
+	return getSlimeSize() > 1 ? u"mob.slime.big" : u"mob.slime.small";
 }
 
 void Slime::tick()
@@ -133,7 +133,7 @@ void Slime::playerTouch(Player &player)
 	{
 		int_t size = getSlimeSize();
 		if (canSee(player) && distanceTo(player) < 0.6 * size && player.hurt(this, getAttackDamage()))
-			level.playSoundAtEntity(*this, u"mob.slimeattack", 1.0f, (random.nextFloat() - random.nextFloat()) * 0.2f + 1.0f);
+			level.playSoundAtEntity(*this, u"mob.attack", 1.0f, (random.nextFloat() - random.nextFloat()) * 0.2f + 1.0f);
 	}
 }
 
@@ -149,12 +149,12 @@ int_t Slime::getAttackDamage()
 
 jstring Slime::getHurtSound()
 {
-	return u"mob.slime";
+	return getSlimeSize() > 1 ? u"mob.slime.big" : u"mob.slime.small";
 }
 
 jstring Slime::getDeathSound()
 {
-	return u"mob.slime";
+	return getSlimeSize() > 1 ? u"mob.slime.big" : u"mob.slime.small";
 }
 
 int_t Slime::getDeathLoot()

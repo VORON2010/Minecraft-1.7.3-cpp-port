@@ -131,12 +131,12 @@ void Creeper::checkHurtTarget(Entity &entity, float distance)
 
 jstring Creeper::getHurtSound()
 {
-	return u"mob.creeper";
+	return u"mob.creeper.say";
 }
 
 jstring Creeper::getDeathSound()
 {
-	return u"mob.creeperdeath";
+	return u"mob.creeper.death";
 }
 
 int_t Creeper::getDeathLoot()

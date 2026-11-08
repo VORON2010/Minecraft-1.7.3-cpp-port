@@ -75,6 +75,7 @@ public:
 	void destroy();
 
 	void add(const jstring &name, const std::string &filePath);
+	void addFallback(const jstring &name, const std::string &filePath);
 	void addStreaming(const jstring &name, const std::string &filePath);
 	void addMusic(const jstring &name, const std::string &filePath);
 

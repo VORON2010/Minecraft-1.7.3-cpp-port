@@ -71,17 +71,17 @@ void Skeleton::dropDeathLoot()
 
 jstring Skeleton::getAmbientSound()
 {
-	return u"mob.skeleton";
+	return u"mob.skeleton.say";
 }
 
 jstring Skeleton::getHurtSound()
 {
-	return u"mob.skeletonhurt";
+	return u"mob.skeleton.hurt";
 }
 
 jstring Skeleton::getDeathSound()
 {
-	return u"mob.skeletonhurt";
+	return u"mob.skeleton.death";
 }
 
 int_t Skeleton::getDeathLoot()

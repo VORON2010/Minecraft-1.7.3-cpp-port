@@ -383,12 +383,12 @@ jstring Mob::getAmbientSound()
 
 jstring Mob::getHurtSound()
 {
-	return u"random.hurt";
+	return u"damage.hit";
 }
 
 jstring Mob::getDeathSound()
 {
-	return u"random.hurt";
+	return u"damage.hit";
 }
 
 void Mob::knockback(Entity &source, int_t unknown, double x, double z)

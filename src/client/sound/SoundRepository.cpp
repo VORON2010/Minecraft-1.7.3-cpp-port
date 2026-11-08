@@ -1,8 +1,7 @@
 #include "client/sound/SoundRepository.h"
 
-Sound SoundRepository::add(const jstring &name, const std::string &filePath)
+jstring SoundRepository::poolName(const jstring &name) const
 {
-	
 	jstring baseName = name;
 	size_t dotPos = baseName.find(u'.');
 	if (dotPos != jstring::npos)
@@ -22,8 +21,13 @@ Sound SoundRepository::add(const jstring &name, const std::string &filePath)
 			baseName[i] = u'.';
 	}
 
-	if (urls.find(baseName) == urls.end())
-		urls[baseName] = std::vector<Sound>();
+	return baseName;
+}
+
+Sound SoundRepository::add(const jstring &name, const std::string &filePath)
+{
+	jstring baseName = poolName(name);
+	primary.insert(baseName);
 
 	Sound sound(name, filePath);
 	urls[baseName].push_back(sound);
@@ -31,6 +35,20 @@ Sound SoundRepository::add(const jstring &name, const std::string &filePath)
 	count++;
 
 	return sound;
+}
+
+// 1.5.2 loads only sound3; older sound/newsound files stay as a fallback
+// for names that sound3 does not have
+bool SoundRepository::addFallback(const jstring &name, const std::string &filePath)
+{
+	jstring baseName = poolName(name);
+	if (primary.count(baseName))
+		return false;
+	Sound sound(name, filePath);
+	urls[baseName].push_back(sound);
+	all.push_back(sound);
+	count++;
+	return true;
 }
 
 Sound *SoundRepository::get(const jstring &name)

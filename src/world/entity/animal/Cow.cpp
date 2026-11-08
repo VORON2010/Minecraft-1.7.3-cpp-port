@@ -23,17 +23,17 @@ bool Cow::interact(Player &player)
 
 jstring Cow::getAmbientSound()
 {
-	return u"mob.cow";
+	return u"mob.cow.say";
 }
 
 jstring Cow::getHurtSound()
 {
-	return u"mob.cowhurt";
+	return u"mob.cow.hurt";
 }
 
 jstring Cow::getDeathSound()
 {
-	return u"mob.cowhurt";
+	return u"mob.cow.hurt";
 }
 
 float Cow::getSoundVolume()

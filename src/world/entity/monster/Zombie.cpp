@@ -25,17 +25,17 @@ void Zombie::aiStep()
 
 jstring Zombie::getAmbientSound()
 {
-	return u"mob.zombie";
+	return u"mob.zombie.say";
 }
 
 jstring Zombie::getHurtSound()
 {
-	return u"mob.zombiehurt";
+	return u"mob.zombie.hurt";
 }
 
 jstring Zombie::getDeathSound()
 {
-	return u"mob.zombiedeath";
+	return u"mob.zombie.death";
 }
 
 int_t Zombie::getDeathLoot()

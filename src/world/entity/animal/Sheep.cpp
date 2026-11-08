@@ -67,17 +67,17 @@ void Sheep::readAdditionalSaveData(CompoundTag &tag)
 
 jstring Sheep::getAmbientSound()
 {
-	return u"mob.sheep";
+	return u"mob.sheep.say";
 }
 
 jstring Sheep::getHurtSound()
 {
-	return u"mob.sheep";
+	return u"mob.sheep.say";
 }
 
 jstring Sheep::getDeathSound()
 {
-	return u"mob.sheep";
+	return u"mob.sheep.say";
 }
 
 int_t Sheep::getFleeceColor() const

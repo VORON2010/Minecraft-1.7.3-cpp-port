@@ -29,7 +29,7 @@ void Chicken::aiStep()
 	flap += flapping * 2.0f;
 	if (!level.isOnline && --eggTime <= 0)
 	{
-		level.playSoundAtEntity(*this, u"mob.chickenplop", 1.0f, (random.nextFloat() - random.nextFloat()) * 0.2f + 1.0f);
+		level.playSoundAtEntity(*this, u"mob.chicken.plop", 1.0f, (random.nextFloat() - random.nextFloat()) * 0.2f + 1.0f);
 		spawnAtLocation(ItemInstance(Items::egg->getShiftedIndex(), 1, 0), 0.0f);
 		eggTime = random.nextInt(6000) + 6000;
 	}
@@ -42,17 +42,17 @@ void Chicken::causeFallDamage(float distance)
 
 jstring Chicken::getAmbientSound()
 {
-	return u"mob.chicken";
+	return u"mob.chicken.say";
 }
 
 jstring Chicken::getHurtSound()
 {
-	return u"mob.chickenhurt";
+	return u"mob.chicken.hurt";
 }
 
 jstring Chicken::getDeathSound()
 {
-	return u"mob.chickenhurt";
+	return u"mob.chicken.hurt";
 }
 
 int_t Chicken::getDeathLoot()
