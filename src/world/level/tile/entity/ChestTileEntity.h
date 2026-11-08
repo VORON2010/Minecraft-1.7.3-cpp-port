@@ -12,8 +12,24 @@ class ChestTileEntity : public TileEntity, public IInventory
 {
 private:
 	std::array<ItemInstance, 27> items = {};
+	bool hasCheckedNeighbors = false;
+	int_t tickCount = 0;
 
 public:
+	// 1.4.7 ChestBlockEntity: neighbours make a large chest, the lid opens while someone looks inside
+	ChestTileEntity *northNeighbor = nullptr;
+	ChestTileEntity *eastNeighbor = nullptr;
+	ChestTileEntity *westNeighbor = nullptr;
+	ChestTileEntity *southNeighbor = nullptr;
+	float openness = 0.0f;
+	float oOpenness = 0.0f;
+	int_t openCount = 0;
+
+	void updateNeighbors();
+	void clearCache();
+	void tick() override;
+	void startOpen() override;
+	void stopOpen() override;
 	jstring getEncodeId() const override { return u"Chest"; }
 	void load(CompoundTag &tag) override;
 	void save(CompoundTag &tag) override;

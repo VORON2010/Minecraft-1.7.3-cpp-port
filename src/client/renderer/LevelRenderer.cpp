@@ -38,6 +38,8 @@
 #include "world/entity/EntityIO.h"
 #include "world/level/tile/entity/MobSpawnerTileEntity.h"
 #include "world/level/tile/entity/SignTileEntity.h"
+#include "world/level/tile/entity/ChestTileEntity.h"
+#include "client/model/ChestModel.h"
 #include "world/level/tile/entity/PistonTileEntity.h"
 
 #include "world/level/tile/Tile.h"
@@ -109,6 +111,7 @@ LevelRenderer::LevelRenderer(Minecraft &mc, Textures &textures) : mc(mc), textur
 	glEndList();
 
 	pistonRenderer = std::make_unique<PistonTileEntityRenderer>(&textures);
+	ChestRenderer::setTextures(textures);
 }
 
 void LevelRenderer::renderStars()
@@ -321,6 +324,15 @@ void LevelRenderer::renderEntities(Vec3 &cam, Culler &culler, float a)
 
 	for (auto &tileEntity : renderableTileEntities)
 	{
+		if (auto chest = std::dynamic_pointer_cast<ChestTileEntity>(tileEntity))
+		{
+			float brightness = level->getBrightness(chest->x, chest->y, chest->z);
+			glColor3f(brightness, brightness, brightness);
+			ChestRenderer::render(chest.get(), level->getData(chest->x, chest->y, chest->z), chest->x - EntityRenderDispatcher::xOff,
+				chest->y - EntityRenderDispatcher::yOff, chest->z - EntityRenderDispatcher::zOff, a, mc.textures);
+			glColor3f(1.0f, 1.0f, 1.0f);
+		}
+
 		auto signEntity = std::dynamic_pointer_cast<SignTileEntity>(tileEntity);
 		if (signEntity)
 		{

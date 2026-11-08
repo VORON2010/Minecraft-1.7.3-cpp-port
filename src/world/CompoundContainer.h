@@ -28,6 +28,8 @@ public:
 	const jstring &getName() const;
 
 	int_t getSizeInventory() const override { return getContainerSize(); }
+	void startOpen() override;
+	void stopOpen() override;
 	ItemInstance *getStackInSlot(int_t slot) override { return getItem(slot).isEmpty() ? nullptr : &getItem(slot); }
 	const ItemInstance *getStackInSlot(int_t slot) const override { return getItem(slot).isEmpty() ? nullptr : &getItem(slot); }
 	ItemInstance decrStackSize(int_t slot, int_t count) override { return removeItem(slot, count); }

@@ -63,3 +63,15 @@ const jstring &CompoundContainer::getName() const
 {
 	return name;
 }
+
+void CompoundContainer::startOpen()
+{
+	first->startOpen();
+	second->startOpen();
+}
+
+void CompoundContainer::stopOpen()
+{
+	first->stopOpen();
+	second->stopOpen();
+}

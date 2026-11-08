@@ -1,3 +1,4 @@
+#include "client/model/ChestModel.h"
 #include "client/renderer/TileRenderer.h"
 #include "world/level/tile/AnvilTile.h"
 #include <utility>
@@ -121,6 +122,8 @@ bool TileRenderer::tesselateInWorld(Tile &tt, int_t x, int_t y, int_t z)
 {
 	int_t shape = tt.getRenderShape();
 	tt.updateShape(*level, x, y, z);
+	if (shape == Tile::SHAPE_ENTITYBLOCK_ANIMATED)
+		return false;
 
 	if (shape == Tile::SHAPE_BLOCK)
 		return tesselateBlockInWorld(tt, x, y, z);
@@ -1854,6 +1857,16 @@ void TileRenderer::renderTile(Tile &tile, int_t data)
 	int_t shape = tile.getRenderShape();
 	tile.updateDefaultShape();
 
+	if (shape == Tile::SHAPE_ENTITYBLOCK_ANIMATED)
+	{
+		// 1.4.7 ChestItemRenderHelper
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		glTranslatef(-0.5f, -0.5f, -0.5f);
+		ChestRenderer::renderItem();
+		glEnable(GL_RESCALE_NORMAL);
+		return;
+	}
+
 		if (shape == Tile::SHAPE_BLOCK)
 		{
 			glTranslatef(-0.5f, -0.5f, -0.5f);
@@ -2370,7 +2383,7 @@ bool TileRenderer::canRender(int_t renderShape)
 		return renderShape == Tile::SHAPE_BLOCK || renderShape == Tile::SHAPE_CACTUS ||
 			renderShape == Tile::SHAPE_STAIRS || renderShape == Tile::SHAPE_FENCE ||
 			renderShape == Tile::SHAPE_PISTON_BASE || renderShape == Tile::SHAPE_FENCE_GATE ||
-			renderShape == Tile::SHAPE_DRAGON_EGG;
+			renderShape == Tile::SHAPE_DRAGON_EGG || renderShape == Tile::SHAPE_ENTITYBLOCK_ANIMATED;
 	}
 
 

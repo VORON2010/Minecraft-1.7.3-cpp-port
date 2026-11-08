@@ -20,4 +20,7 @@ public:
 	virtual int_t getInventoryStackLimit() const { return 64; }
 	virtual void onInventoryChanged() = 0;
 	virtual bool canInteractWith(Player &player) const = 0;
+	// 1.4.7 onOpen/onClose (chests count viewers to open their lid)
+	virtual void startOpen() {}
+	virtual void stopOpen() {}
 };

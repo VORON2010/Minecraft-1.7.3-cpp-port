@@ -97,11 +97,19 @@ ContainerChest::ContainerChest(InventoryPlayer &inventory, std::shared_ptr<IInve
 				8 + column * 18, 103 + row * 18 + offset));
 	for (int_t column = 0; column < 9; ++column)
 		addSlot(std::make_unique<Slot>(inventory, column, 8 + column * 18, 161 + offset));
+	// 1.4.7 ChestMenu: opening the menu opens the lid
+	this->chest->startOpen();
 }
 
 bool ContainerChest::canUse(Player &player) const
 {
 	return chest->canInteractWith(player);
+}
+
+void ContainerChest::onClosed(Player &player)
+{
+	Container::onClosed(player);
+	chest->stopOpen();
 }
 
 std::unique_ptr<ItemInstance> ContainerChest::quickMoveStack(int_t slotNumber)

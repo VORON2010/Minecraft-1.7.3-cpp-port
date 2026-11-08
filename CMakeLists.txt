@@ -523,6 +523,8 @@ set(McBetaCpp_SOURCES
 	"src/world/item/ExperienceBottleItem.cpp"
 	"src/world/item/FireChargeItem.cpp"
 	"src/world/item/CreativeModeTab.cpp"
+	"src/client/model/ChestModel.cpp"
+	"src/client/model/ChestModel.h"
 	"src/world/item/CreativeModeTab.h"
 	"src/world/item/FireChargeItem.h"
 	"src/world/item/ExperienceBottleItem.h"

@@ -15,6 +15,8 @@
 #include "world/item/ItemPickaxe.h"
 #include "world/item/ItemArmor.h"
 #include "world/stats/StatList.h"
+#include "world/level/tile/entity/ChestTileEntity.h"
+#include "world/level/tile/ChestTile.h"
 
 namespace
 {
@@ -101,6 +103,37 @@ int runContentSmoke()
 		ok &= expect(player->experienceLevel == 15 && player->getXpNeededForNextLevel() == 17, "fifteen levels of 17");
 		player->experienceLevel = 30;
 		ok &= expect(player->getXpNeededForNextLevel() == 62, "level 30 needs 62");
+
+		std::cerr << "content-smoke: chests" << std::endl;
+		for (int_t xx = 0; xx < 4; ++xx)
+			for (int_t zz = 0; zz < 4; ++zz)
+			{
+				level.setTile(xx, 99, zz, Tile::rock.id);
+				for (int_t yy = 100; yy < 103; ++yy)
+					level.setTile(xx, yy, zz, 0);
+			}
+		level.setTile(1, 100, 1, Tile::chest.id);
+		level.setTile(2, 100, 1, Tile::chest.id);
+		auto a = std::dynamic_pointer_cast<ChestTileEntity>(level.getTileEntity(1, 100, 1));
+		auto b = std::dynamic_pointer_cast<ChestTileEntity>(level.getTileEntity(2, 100, 1));
+		ok &= expect(a != nullptr && b != nullptr, "both chests have tile entities");
+		if (a != nullptr && b != nullptr)
+		{
+			a->tick();
+			b->tick();
+			ok &= expect(a->eastNeighbor == b.get() && b->westNeighbor == a.get(), "two chests side by side join into a large chest");
+			int_t da = level.getData(1, 100, 1), db = level.getData(2, 100, 1);
+			ok &= expect(da == db && (da == 2 || da == 3), "both halves face the same way");
+			a->startOpen();
+			for (int_t i = 0; i < 12; ++i)
+				a->tick();
+			ok &= expect(a->openness == 1.0f, "an opened chest lifts its lid");
+			a->stopOpen();
+			for (int_t i = 0; i < 12; ++i)
+				a->tick();
+			ok &= expect(a->openness == 0.0f, "and closes it again");
+			ok &= expect(!Tile::chest.isSolidRender() && Tile::chest.getRenderShape() == Tile::SHAPE_ENTITYBLOCK_ANIMATED, "the chest is a model, not a cube");
+		}
 	}
 	{
 		std::unique_ptr<File> workdir(File::open(u"build/content-smoke-workdir"));

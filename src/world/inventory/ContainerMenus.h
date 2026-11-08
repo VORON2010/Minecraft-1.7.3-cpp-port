@@ -37,6 +37,7 @@ private:
 public:
 	ContainerChest(InventoryPlayer &inventory, std::shared_ptr<IInventory> chest);
 	bool canUse(Player &player) const override;
+	void onClosed(Player &player) override;
 	std::unique_ptr<ItemInstance> quickMoveStack(int_t slot) override;
 };
 
